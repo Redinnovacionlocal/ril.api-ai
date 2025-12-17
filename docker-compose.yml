@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - .:/app
+      - ~/.config/gcloud:/root/.config/gcloud:ro
+    ports:
+      - "8080:8080"
+    # IMPORTANTE: Esto evita que los logs se queden en el buffer
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json
+      - APP_ENV=local
+      - GIN_MODE=release # O debug

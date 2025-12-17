@@ -29,13 +29,15 @@ func main() {
 	//AGENT
 	sessionService := session.InMemoryService()
 	artifactService := artifact.InMemoryService()
-	runn, _ := runner.New(runner.Config{
+	runn, err := runner.New(runner.Config{
 		AppName:         os.Getenv("APP_NAME"),
 		Agent:           agent.GetRilAgent(ctx),
 		SessionService:  sessionService,
 		ArtifactService: artifactService,
 	})
-
+	if err != nil {
+		log.Fatal(err)
+	}
 	//REPOSITORIES
 	userRepository := m.NewUserRepository()
 
