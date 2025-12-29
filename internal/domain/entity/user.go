@@ -5,7 +5,7 @@ type User struct {
 	FirstName  string  `db:"nombre"`
 	LastName   string  `db:"apellido"`
 	IdTeam     int64   `db:"id_equipo"`
-	ApiAiToken *string `db:"api_token"`
+	ApiAiToken *string `db:"api_ai_token"`
 	UserProfile
 }
 

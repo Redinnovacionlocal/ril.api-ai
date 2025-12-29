@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"ril.api-ia/internal/domain/repository"
+	"ril.api-ia/internal/application/usecase"
 )
 
-func AuthMiddleware(userRepository repository.UserRepository) gin.HandlerFunc {
+func AuthMiddleware(userUseCase usecase.UserUseCase) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		apiAiToken := GetBearerToken(c)
 		if apiAiToken == "" {
@@ -20,12 +20,12 @@ func AuthMiddleware(userRepository repository.UserRepository) gin.HandlerFunc {
 			})
 			return
 		}
-		user, err := userRepository.FindByAiApiKey(apiAiToken)
+		user, err := userUseCase.GetUserByApiAiToken(apiAiToken)
 		if err != nil {
 			log.Print(err)
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-				"code":    http.StatusInternalServerError,
-				"message": "Server error",
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"code":    http.StatusUnauthorized,
+				"message": "Unauthorized",
 			})
 			return
 		}

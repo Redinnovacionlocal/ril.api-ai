@@ -67,9 +67,9 @@ func (sessionHandler *SessionHandler) GetSession(c *gin.Context) {
 	err, session := sessionHandler.sessionUseCase.GetSession(user, appName, sessionId)
 	if err != nil {
 		log.Printf("Error while getting session: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "Internal Server Error",
+		c.JSON(http.StatusNotFound, gin.H{
+			"code":    http.StatusNotFound,
+			"message": "Session not found",
 		})
 		return
 	}

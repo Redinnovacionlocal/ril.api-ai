@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - .:/app
+      - ~/.config/gcloud:/root/.config/gcloud:ro
+    ports:
+      - "8080:8080"
+    # IMPORTANTE: Esto evita que los logs se queden en el buffer
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json
+      - APP_ENV=local
+      - GIN_MODE=release # O debug
+    networks:
+      - ril_network
+      - go_app
+    depends_on:
+      - redis
+  redis:
+    image: redis:alpine
+    networks:
+      - go_app
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis-data:/data
+    command: [ "redis-server", "--save", "60", "1", "--appendonly", "yes" ]
+networks:
+  ril_network:
+    external: true
+  go_app:
+    driver: bridge
+volumes:
+  redis-data:
+    driver: local

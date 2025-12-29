@@ -73,7 +73,6 @@ func (rh *RunHandler) RunSSE(c *gin.Context) {
 			if p.Text == "" {
 				continue
 			}
-			// if its running in streaming mode, don't print the non partial llmResponses
 			if event.LLMResponse.Partial {
 				jsonEvent, err := json.Marshal(p)
 				if err != nil {

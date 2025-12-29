@@ -2,9 +2,11 @@ package usecase
 
 import (
 	"context"
+	"log"
 	"strconv"
 
 	"google.golang.org/adk/session"
+	"google.golang.org/genai"
 	"ril.api-ia/internal/domain/entity"
 	"ril.api-ia/internal/domain/repository"
 )
@@ -84,4 +86,30 @@ func (s *SessionUseCase) GetAllSessions(user *entity.User, appName string) (erro
 		return err, nil
 	}
 	return nil, response.Sessions
+}
+
+func (s *SessionUseCase) GenerateSessionTitle(ctx context.Context, userPrompt string, modelResponse string) (string, error) {
+	client, err := genai.NewClient(ctx, &genai.ClientConfig{
+		Backend: genai.BackendVertexAI,
+	})
+	if err != nil {
+		log.Fatal()
+	}
+
+	temperature := float32(0.5)
+	m := "gemini-2.5-flash-lite"
+	prompt := "Genera un título conciso y descriptivo (máximo 5 palabras) para una sesión de chat basada en el siguiente mensaje del usuario y la respuesta del agente.\n\nMensaje del usuario: \"" + userPrompt + "\"\n\nRespuesta del agente: \"" + modelResponse + "\"\n\nTítulo:"
+
+	result, err := client.Models.GenerateContent(ctx, m, genai.Text(prompt), &genai.GenerateContentConfig{
+		Temperature:     &temperature,
+		MaxOutputTokens: 100,
+	})
+	if err != nil {
+		log.Fatal("Error generating session title", err)
+	}
+	if len(result.Candidates) > 0 && len(result.Candidates[0].Content.Parts) > 0 {
+		text := result.Candidates[0].Content.Parts[0].Text
+		return text, nil
+	}
+	return "", nil
 }
