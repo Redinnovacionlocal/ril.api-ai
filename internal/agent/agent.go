@@ -258,6 +258,7 @@ func setTitleOfSession(ctx agent.CallbackContext, llmResponse *model.LLMResponse
 	userContent += ctx.UserContent().Parts[0].Text
 	m := "gemini-2.5-flash-lite"
 	prompt := fmt.Sprintf(`Genera un título conciso y descriptivo (máximo 5 palabras) que capture el tema principal o la pregunta.
+
 		Reglas:
 		- Sin signos de puntuación
 		- Sin prefijos como "Título:", "Title:", o similares

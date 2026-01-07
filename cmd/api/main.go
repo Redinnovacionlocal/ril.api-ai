@@ -108,13 +108,14 @@ func setupRouter(ctx context.Context, sessionUseCase *usecase.SessionUseCase, us
 	sessionHandler := handler.NewSessionHandler(sessionUseCase)
 	feedbackHandler := handler.NewFeedbackHandler(ctx, *feedbackUseCase)
 	runHandler := handler.NewRunHandler(ctx, *runn, *sessionUseCase)
+	speechToTextHandler := handler.NewSpeechToTextHandler(ctx)
 
-	registerRoutes(r, sessionHandler, runHandler, feedbackHandler)
+	registerRoutes(r, sessionHandler, runHandler, feedbackHandler, speechToTextHandler)
 
 	return r
 }
 
-func registerRoutes(r *gin.Engine, sessionHandler *handler.SessionHandler, runHandler *handler.RunHandler, feedbackHandler *handler.FeedbackHandler) {
+func registerRoutes(r *gin.Engine, sessionHandler *handler.SessionHandler, runHandler *handler.RunHandler, feedbackHandler *handler.FeedbackHandler, speechToTextHandler *handler.SpeechToTextHandler) {
 	sessions := r.Group("/sessions")
 	{
 		sessions.POST("", sessionHandler.CreateSession)
@@ -122,6 +123,7 @@ func registerRoutes(r *gin.Engine, sessionHandler *handler.SessionHandler, runHa
 		sessions.GET("/:session_id", sessionHandler.GetSession)
 		sessions.DELETE("/:session_id", sessionHandler.DeleteSession)
 	}
+	r.POST("/speech-to-text", speechToTextHandler.GenerateTranscription)
 	r.POST("/events/:invocation_id/feedback", feedbackHandler.SaveFeedback)
 	r.POST("/run-sse", runHandler.RunSSE)
 }
