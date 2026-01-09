@@ -162,7 +162,7 @@ const SYSTEM_INSTRUCTION = "" +
 	"</CIERRE_DE_INSTRUCCIONES>"
 
 func GetRilAgent(ctx context.Context) agent.Agent {
-	model, err := gemini.NewModel(ctx, "gemini-2.5-flash", nil)
+	model, err := gemini.NewModel(ctx, "gemini-3-flash", nil)
 	if err != nil {
 		log.Fatal(err)
 	}

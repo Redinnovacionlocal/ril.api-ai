@@ -48,9 +48,10 @@ func main() {
 	sessionUseCase := usecase.NewSessionUseCase(ctx, sessionService, userRepository)
 	userUseCase := usecase.NewUserUseCase(ctx, userRepository, rdb)
 	eventFeedbackUseCase := usecase.NewEventFeedbackUseCase(ctx, eventFeedbackRepository)
+	transcribeUseCase := usecase.NewTranscribeUseCase(ctx)
 
 	// HTTP Server and routes
-	router := setupRouter(ctx, sessionUseCase, userUseCase, eventFeedbackUseCase, runn)
+	router := setupRouter(ctx, sessionUseCase, userUseCase, eventFeedbackUseCase, transcribeUseCase, runn)
 	startServer(router)
 }
 
@@ -100,7 +101,7 @@ func initializeRunner(ctx context.Context, sessionService session.Service, artif
 	return runn
 }
 
-func setupRouter(ctx context.Context, sessionUseCase *usecase.SessionUseCase, userUseCase *usecase.UserUseCase, feedbackUseCase *usecase.EventFeedbackUseCase, runn *runner.Runner) *gin.Engine {
+func setupRouter(ctx context.Context, sessionUseCase *usecase.SessionUseCase, userUseCase *usecase.UserUseCase, feedbackUseCase *usecase.EventFeedbackUseCase, transcribeUseCase *usecase.TranscribeUseCase, runn *runner.Runner) *gin.Engine {
 	r := gin.Default()
 
 	r.Use(middleware.AuthMiddleware(*userUseCase))
@@ -108,7 +109,7 @@ func setupRouter(ctx context.Context, sessionUseCase *usecase.SessionUseCase, us
 	sessionHandler := handler.NewSessionHandler(sessionUseCase)
 	feedbackHandler := handler.NewFeedbackHandler(ctx, *feedbackUseCase)
 	runHandler := handler.NewRunHandler(ctx, *runn, *sessionUseCase)
-	speechToTextHandler := handler.NewSpeechToTextHandler(ctx)
+	speechToTextHandler := handler.NewSpeechToTextHandler(ctx, transcribeUseCase)
 
 	registerRoutes(r, sessionHandler, runHandler, feedbackHandler, speechToTextHandler)
 
