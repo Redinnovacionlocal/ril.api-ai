@@ -5,7 +5,7 @@ WORKDIR /app
 COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -mod=vendor -o app ./cmd/api
+     go build -mod=mod -o app ./cmd/api
 
 FROM gcr.io/distroless/base-debian12
 
