@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
 	"google.golang.org/adk/agent"
 	"google.golang.org/adk/agent/llmagent"
@@ -162,7 +163,7 @@ const SYSTEM_INSTRUCTION = "" +
 	"</CIERRE_DE_INSTRUCCIONES>"
 
 func GetRilAgent(ctx context.Context) agent.Agent {
-	model, err := gemini.NewModel(ctx, "gemini-3-flash", nil)
+	m, err := gemini.NewModel(ctx, os.Getenv("AGENT_MODEL"), nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -183,7 +184,7 @@ func GetRilAgent(ctx context.Context) agent.Agent {
 		Description:           "Eres un asistente especialista en todo lo relacionado al ambito público. Ayudas a los usuarios a encontrar información relevante y precisa sobre estos temas, utilizando un lenguaje claro y accesible.",
 		Instruction:           SYSTEM_INSTRUCTION,
 		GenerateContentConfig: contentConfiguration,
-		Model:                 model,
+		Model:                 m,
 		AfterModelCallbacks: []llmagent.AfterModelCallback{
 			setTitleOfSession,
 		},
