@@ -1,12 +1,12 @@
-name: DEV Deployment Workflow
+name: Production deployment workflow
 on:
   push:
     branches:
-      - dev
+      - main
 jobs:
   build_and_deploy_gcp:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     permissions:
       contents: read
@@ -32,13 +32,13 @@ jobs:
 
       - name: Build and Push Docker Image to Artifact Registry
         run: |
-          IMAGE_NAME="us-docker.pkg.dev/ril-admin/ril-ai-service-repository/go-ai-app-dev:${{ github.sha }}"
+          IMAGE_NAME="us-docker.pkg.dev/ril-admin/ril-ai-service-repository/go-ai-app:${{ github.sha }}"
           docker build -t $IMAGE_NAME .
           docker push $IMAGE_NAME
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v1
         with:
-          service: ril-ai-service-dev
+          service: ril-ai-service
           region: us-central1
-          image: us-docker.pkg.dev/ril-admin/ril-ai-service-repository/go-ai-app-dev:${{ github.sha }}
+          image: us-docker.pkg.dev/ril-admin/ril-ai-service-repository/go-ai-app:${{ github.sha }}
