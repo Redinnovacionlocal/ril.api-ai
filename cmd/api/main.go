@@ -103,7 +103,10 @@ func initializeRunner(ctx context.Context, sessionService session.Service, artif
 
 func setupRouter(ctx context.Context, sessionUseCase *usecase.SessionUseCase, userUseCase *usecase.UserUseCase, feedbackUseCase *usecase.EventFeedbackUseCase, runn *runner.Runner) *gin.Engine {
 	r := gin.Default()
-	r.Use(cors.Default())
+	configCors := cors.DefaultConfig()
+	configCors.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Accept", "Authorization"}
+	configCors.AllowAllOrigins = true
+	r.Use(cors.New(configCors))
 	r.Use(middleware.AuthMiddleware(*userUseCase))
 
 	sessionHandler := handler.NewSessionHandler(sessionUseCase)
