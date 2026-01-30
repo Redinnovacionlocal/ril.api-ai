@@ -49,9 +49,10 @@ func main() {
 	sessionUseCase := usecase.NewSessionUseCase(ctx, sessionService, userRepository)
 	userUseCase := usecase.NewUserUseCase(ctx, userRepository, rdb)
 	eventFeedbackUseCase := usecase.NewEventFeedbackUseCase(ctx, eventFeedbackRepository)
+	transcribeUseCase := usecase.NewTranscribeUseCase(ctx)
 
 	// HTTP Server and routes
-	router := setupRouter(ctx, sessionUseCase, userUseCase, eventFeedbackUseCase, runn)
+	router := setupRouter(ctx, sessionUseCase, userUseCase, eventFeedbackUseCase, transcribeUseCase, runn)
 	startServer(router)
 }
 
@@ -101,7 +102,7 @@ func initializeRunner(ctx context.Context, sessionService session.Service, artif
 	return runn
 }
 
-func setupRouter(ctx context.Context, sessionUseCase *usecase.SessionUseCase, userUseCase *usecase.UserUseCase, feedbackUseCase *usecase.EventFeedbackUseCase, runn *runner.Runner) *gin.Engine {
+func setupRouter(ctx context.Context, sessionUseCase *usecase.SessionUseCase, userUseCase *usecase.UserUseCase, feedbackUseCase *usecase.EventFeedbackUseCase, transcribeUseCase *usecase.TranscribeUseCase, runn *runner.Runner) *gin.Engine {
 	r := gin.Default()
 	configCors := cors.DefaultConfig()
 	configCors.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Accept", "Authorization"}
@@ -112,13 +113,14 @@ func setupRouter(ctx context.Context, sessionUseCase *usecase.SessionUseCase, us
 	sessionHandler := handler.NewSessionHandler(sessionUseCase)
 	feedbackHandler := handler.NewFeedbackHandler(ctx, *feedbackUseCase)
 	runHandler := handler.NewRunHandler(ctx, *runn, *sessionUseCase)
+	speechToTextHandler := handler.NewSpeechToTextHandler(ctx, transcribeUseCase)
 
-	registerRoutes(r, sessionHandler, runHandler, feedbackHandler)
+	registerRoutes(r, sessionHandler, runHandler, feedbackHandler, speechToTextHandler)
 
 	return r
 }
 
-func registerRoutes(r *gin.Engine, sessionHandler *handler.SessionHandler, runHandler *handler.RunHandler, feedbackHandler *handler.FeedbackHandler) {
+func registerRoutes(r *gin.Engine, sessionHandler *handler.SessionHandler, runHandler *handler.RunHandler, feedbackHandler *handler.FeedbackHandler, speechToTextHandler *handler.SpeechToTextHandler) {
 	sessions := r.Group("/sessions")
 	{
 		sessions.POST("", sessionHandler.CreateSession)
@@ -126,6 +128,7 @@ func registerRoutes(r *gin.Engine, sessionHandler *handler.SessionHandler, runHa
 		sessions.GET("/:session_id", sessionHandler.GetSession)
 		sessions.DELETE("/:session_id", sessionHandler.DeleteSession)
 	}
+	r.POST("/speech-to-text", speechToTextHandler.GenerateTranscription)
 	r.POST("/events/:invocation_id/feedback", feedbackHandler.SaveFeedback)
 	r.POST("/run-sse", runHandler.RunSSE)
 }
