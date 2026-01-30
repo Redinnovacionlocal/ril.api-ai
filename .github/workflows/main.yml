@@ -1,0 +1,44 @@
+name: Production deployment workflow
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build_and_deploy_gcp:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code repository
+        uses: actions/checkout@v3
+
+      - name: Auth GCP with Workload Identity Federation
+        uses: google-github-actions/auth@v1
+        with:
+          workload_identity_provider: projects/216087263834/locations/global/workloadIdentityPools/ril-ai-service-repository/providers/github
+          service_account: "ril-api-api-wif@ril-admin.iam.gserviceaccount.com"
+
+      # Configurar gcloud
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker us-docker.pkg.dev --quiet
+
+      - name: Build and Push Docker Image to Artifact Registry
+        run: |
+          IMAGE_NAME="us-docker.pkg.dev/ril-admin/ril-ai-service-repository/go-ai-app:${{ github.sha }}"
+          docker build -t $IMAGE_NAME .
+          docker push $IMAGE_NAME
+
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v1
+        with:
+          service: ril-ai-service
+          region: us-central1
+          image: us-docker.pkg.dev/ril-admin/ril-ai-service-repository/go-ai-app:${{ github.sha }}

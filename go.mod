@@ -4,6 +4,7 @@ go 1.25
 
 require (
 	cloud.google.com/go/speech v1.28.1
+	github.com/gin-contrib/cors v1.7.6
 	github.com/gin-gonic/gin v1.11.0
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/jackc/pgx/v5 v5.7.6
