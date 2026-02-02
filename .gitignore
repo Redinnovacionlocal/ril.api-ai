@@ -1,5 +1,4 @@
 .env
 /vendor
-tmp/
-.idea/data_source_mapping.xml
-.idea/sqldialects.xml
+tmp
+tmp/*

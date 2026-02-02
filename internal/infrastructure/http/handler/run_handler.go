@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 
@@ -56,32 +55,20 @@ func (rh *RunHandler) RunSSE(c *gin.Context) {
 	c.Writer.Header().Set("Connection", "keep-alive")
 	c.Writer.Header().Set("SessionId", s.ID())
 	c.Writer.Flush()
-	for event, err := range rh.runner.Run(rh.ctx,
+	resp := rh.runner.Run(rh.ctx,
 		s.UserID(),
 		s.ID(),
 		genai.NewContentFromParts(runSseRequest.Parts, genai.RoleUser),
-		agent.RunConfig{StreamingMode: agent.StreamingModeSSE}) {
+		agent.RunConfig{StreamingMode: agent.StreamingModeSSE})
+	for event, err := range resp {
 		if err != nil {
 			fmt.Fprintf(c.Writer, "data: %s\n\n", err.Error())
 			c.Writer.Flush()
 			return
 		}
-		if event.LLMResponse.Content == nil {
-			continue
-		}
-		for _, p := range event.LLMResponse.Content.Parts {
-			if p.Text == "" {
-				continue
-			}
-			if event.LLMResponse.Partial {
-				jsonEvent, err := json.Marshal(p)
-				if err != nil {
-					log.Println(err)
-				}
-				fmt.Fprintf(c.Writer, "data: %s\n\n", jsonEvent)
-				c.Writer.Flush()
-			}
-		}
+		jsonEvent, _ := json.Marshal(entity.FromSessionEvent(*event))
+		fmt.Fprintf(c.Writer, "data: %s\n\n", jsonEvent)
+		c.Writer.Flush()
 	}
 }
 
