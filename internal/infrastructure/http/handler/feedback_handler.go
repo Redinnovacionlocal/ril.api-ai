@@ -16,7 +16,7 @@ type FeedbackHandler struct {
 }
 
 type FeedbackRequest struct {
-	IsPositive bool    `json:"is_positive" binding:"required"`
+	IsPositive *bool   `json:"is_positive" binding:"required"`
 	Comments   *string `json:"comments"`
 	ErrorType  *string `json:"error_type"`
 }
