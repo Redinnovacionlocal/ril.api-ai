@@ -13,7 +13,7 @@ require (
 	github.com/oklog/ulid v1.3.1
 	github.com/oklog/ulid/v2 v2.1.1
 	github.com/redis/go-redis/v9 v9.17.2
-	google.golang.org/adk v0.3.0
+	google.golang.org/adk v0.4.0
 	google.golang.org/api v0.252.0
 	google.golang.org/genai v1.40.0
 	gorm.io/driver/postgres v1.6.0
