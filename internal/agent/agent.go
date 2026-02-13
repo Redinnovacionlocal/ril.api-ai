@@ -238,8 +238,10 @@ func GetRilAgent(ctx context.Context, memoryService memory2.Service, sessionServ
 		GenerateContentConfig: contentConfiguration,
 		Model:                 m,
 		AfterModelCallbacks: []llmagent.AfterModelCallback{
-			addSessionToMemory(sessionService, memoryService),
 			setTitleOfSession,
+		},
+		AfterAgentCallbacks: []agent.AfterAgentCallback{
+			addSessionToMemory(sessionService, memoryService),
 		},
 		Tools: []tool.Tool{
 			memorySearchTool,
@@ -249,11 +251,9 @@ func GetRilAgent(ctx context.Context, memoryService memory2.Service, sessionServ
 	return rilAgent
 }
 
-func addSessionToMemory(sessionService session.Service, memoryService memory2.Service) llmagent.AfterModelCallback {
-	return func(ctx agent.CallbackContext, llmResponse *model.LLMResponse, llmResponseError error) (*model.LLMResponse, error) {
-		if llmResponseError != nil || llmResponse == nil {
-			return llmResponse, llmResponseError
-		}
+func addSessionToMemory(sessionService session.Service, memoryService memory2.Service) agent.AfterAgentCallback {
+	return func(ctx agent.CallbackContext) (*genai.Content, error) {
+		fmt.Println("Add session to memory callback executed")
 		sessionID, _ := sessionService.Get(ctx,
 			&session.GetRequest{SessionID: ctx.SessionID(), UserID: ctx.UserID(), AppName: ctx.AppName()},
 		)
@@ -262,8 +262,7 @@ func addSessionToMemory(sessionService session.Service, memoryService memory2.Se
 		if err != nil {
 			fmt.Printf("failed to save to memory: %v\n", err)
 		}
-
-		return llmResponse, nil
+		return nil, nil
 	}
 }
 func setTitleOfSession(ctx agent.CallbackContext, llmResponse *model.LLMResponse, llmResponseError error) (*model.LLMResponse, error) {
