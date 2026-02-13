@@ -8,9 +8,13 @@ import (
 
 	"google.golang.org/adk/agent"
 	"google.golang.org/adk/agent/llmagent"
+	memory2 "google.golang.org/adk/memory"
 	"google.golang.org/adk/model"
 	"google.golang.org/adk/model/gemini"
+	"google.golang.org/adk/session"
 	"google.golang.org/adk/tool"
+	"google.golang.org/adk/tool/agenttool"
+	"google.golang.org/adk/tool/functiontool"
 	"google.golang.org/adk/tool/geminitool"
 	"google.golang.org/genai"
 )
@@ -162,7 +166,7 @@ const SYSTEM_INSTRUCTION = "" +
 	"5. Representa el espíritu RIL: cercanía, profesionalismo y foco en lo local.\n" +
 	"</CIERRE_DE_INSTRUCCIONES>"
 
-func GetRilAgent(ctx context.Context) agent.Agent {
+func GetRilAgent(ctx context.Context, memoryService memory2.Service, sessionService session.Service) agent.Agent {
 	m, err := gemini.NewModel(ctx, os.Getenv("AGENT_MODEL"), nil)
 	if err != nil {
 		log.Fatal(err)
@@ -179,15 +183,11 @@ func GetRilAgent(ctx context.Context) agent.Agent {
 		},
 	}
 	maxRagResults := int32(5)
-	rilAgent, _ := llmagent.New(llmagent.Config{
-		Name:                  "rilia_agent",
-		Description:           "Eres un asistente especialista en todo lo relacionado al ambito público. Ayudas a los usuarios a encontrar información relevante y precisa sobre estos temas, utilizando un lenguaje claro y accesible.",
-		Instruction:           SYSTEM_INSTRUCTION,
-		GenerateContentConfig: contentConfiguration,
-		Model:                 m,
-		AfterModelCallbacks: []llmagent.AfterModelCallback{
-			setTitleOfSession,
-		},
+	ragAgent, _ := llmagent.New(llmagent.Config{
+		Name:        "rilia_rag_agent",
+		Description: "Agente especializado en búsqueda de información dentro de las bases de conocimiento de RIL. Su función es responder consultas específicas utilizando exclusivamente la información disponible en las bases de datos, sin generar contenido adicional ni realizar inferencias más allá de los datos encontrados.",
+		Instruction: "Actúa como un motor de recuperación de información (RAG) especializado en RIL. Tu función es proveer datos crudos y verificados a otro agente de IA.\n\nREGLAS DE ORO:\n1. FIDELIDAD TOTAL: Responde única y exclusivamente con la información recuperada de las herramientas. Si la respuesta no está en las bases de datos, responde: \"INFORMACIÓN NO LOCALIZADA\".\n2. CERO INFERENCIAS: No interpretes, no supongas ni añadidas contexto externo. Prohibido alucinar o generar contenido creativo.\n3. TRAZABILIDAD: Es obligatorio citar la fuente exacta de cada dato (ej: [Fuente: inspire_case_rag]).\n4. FORMATO DE SALIDA: Entrega los resultados de forma estructurada mediante listas numeradas o puntos clave. No uses introducciones, saludos ni despedidas.\n5. SELECCIÓN LÓGICA: Analiza la consulta para usar el Datastore más adecuado (ej: casos de éxito en 'inspire_case_rag', políticas públicas en 'overall_knowledge_rag').\n\nOBJETIVO: Ser un filtro quirúrgico de información. Si los datos son contradictorios, expón ambos citando sus fuentes respectivas.",
+		Model:       m,
 		Tools: []tool.Tool{
 			geminitool.New("overall_knowledge_rag", &genai.Tool{
 				Retrieval: &genai.Retrieval{
@@ -231,9 +231,41 @@ func GetRilAgent(ctx context.Context) agent.Agent {
 			}),
 		},
 	})
+	rilAgent, _ := llmagent.New(llmagent.Config{
+		Name:                  "rilia_agent",
+		Description:           "Eres un asistente especialista en todo lo relacionado al ambito público. Ayudas a los usuarios a encontrar información relevante y precisa sobre estos temas, utilizando un lenguaje claro y accesible.",
+		Instruction:           SYSTEM_INSTRUCTION,
+		GenerateContentConfig: contentConfiguration,
+		Model:                 m,
+		AfterModelCallbacks: []llmagent.AfterModelCallback{
+			addSessionToMemory(sessionService, memoryService),
+			setTitleOfSession,
+		},
+		Tools: []tool.Tool{
+			memorySearchTool,
+			agenttool.New(ragAgent, &agenttool.Config{SkipSummarization: true}),
+		},
+	})
 	return rilAgent
 }
 
+func addSessionToMemory(sessionService session.Service, memoryService memory2.Service) llmagent.AfterModelCallback {
+	return func(ctx agent.CallbackContext, llmResponse *model.LLMResponse, llmResponseError error) (*model.LLMResponse, error) {
+		if llmResponseError != nil || llmResponse == nil {
+			return llmResponse, llmResponseError
+		}
+		sessionID, _ := sessionService.Get(ctx,
+			&session.GetRequest{SessionID: ctx.SessionID(), UserID: ctx.UserID(), AppName: ctx.AppName()},
+		)
+		sessionInstance := sessionID.Session
+		err := memoryService.AddSession(ctx, sessionInstance)
+		if err != nil {
+			fmt.Printf("failed to save to memory: %v\n", err)
+		}
+
+		return llmResponse, nil
+	}
+}
 func setTitleOfSession(ctx agent.CallbackContext, llmResponse *model.LLMResponse, llmResponseError error) (*model.LLMResponse, error) {
 	hasTitle, _ := ctx.State().Get("title")
 	if hasTitle != nil {
@@ -298,3 +330,46 @@ func setTitleOfSession(ctx agent.CallbackContext, llmResponse *model.LLMResponse
 	}
 	return llmResponse, nil
 }
+
+type Args struct {
+	Query string `json:"query" jsonschema:"The query to search for in the memory."`
+}
+
+// Result defines the output structure for the memory search tool.
+type Result struct {
+	Results []string `json:"results"`
+}
+
+func memorySearchToolFunc(tctx tool.Context, args Args) (Result, error) {
+	fmt.Printf("Tool: Searching memory for query: '%s'\n", args.Query)
+
+	searchResults, err := tctx.SearchMemory(context.Background(), args.Query)
+	if err != nil {
+		log.Printf("Error searching memory: %v", err)
+		return Result{}, fmt.Errorf("failed memory search")
+	}
+
+	// FIX: Initialize with an empty slice instead of leaving it nil
+	results := []string{}
+
+	for _, res := range searchResults.Memories {
+		if res.Content != nil {
+			for _, part := range res.Content.Parts {
+				if part.Text != "" {
+					results = append(results, part.Text)
+				}
+			}
+		}
+	}
+
+	// Now returns [] instead of null when no results are found
+	return Result{Results: results}, nil
+}
+
+var memorySearchTool, _ = functiontool.New(
+	functiontool.Config{
+		IsLongRunning: false,
+		Name:          "search_past_conversations",
+		Description:   "Busca en el historial de conversaciones pasadas del usuario para encontrar información relevante que pueda ayudar a responder su consulta actual."},
+	memorySearchToolFunc,
+)

@@ -175,6 +175,9 @@ github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
+# github.com/google/jsonschema-go v0.3.0
+## explicit; go 1.23.0
+github.com/google/jsonschema-go/jsonschema
 # github.com/google/s2a-go v0.1.9
 ## explicit; go 1.20
 github.com/google/s2a-go
@@ -497,6 +500,7 @@ google.golang.org/adk/internal/sessionutils
 google.golang.org/adk/internal/telemetry
 google.golang.org/adk/internal/toolinternal
 google.golang.org/adk/internal/toolinternal/toolutils
+google.golang.org/adk/internal/typeutil
 google.golang.org/adk/internal/utils
 google.golang.org/adk/internal/version
 google.golang.org/adk/memory
@@ -507,6 +511,8 @@ google.golang.org/adk/runner
 google.golang.org/adk/session
 google.golang.org/adk/session/database
 google.golang.org/adk/tool
+google.golang.org/adk/tool/agenttool
+google.golang.org/adk/tool/functiontool
 google.golang.org/adk/tool/geminitool
 google.golang.org/adk/tool/toolconfirmation
 # google.golang.org/api v0.252.0
