@@ -243,7 +243,7 @@ func GetRilAgent(ctx context.Context, memoryService memory2.Service, sessionServ
 		},
 		Tools: []tool.Tool{
 			memorySearchTool,
-			agenttool.New(ragAgent, &agenttool.Config{SkipSummarization: true}),
+			agenttool.New(ragAgent, &agenttool.Config{SkipSummarization: false}),
 		},
 	})
 	return rilAgent
