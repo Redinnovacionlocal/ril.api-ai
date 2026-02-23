@@ -30,7 +30,7 @@ jobs:
         run: |
           gcloud secrets versions add tools-dev --data-file=tools-dev.yaml --project=ril-admin
 
-      - name: Deploy to Cloud Run
+      - name: Deploy Toolbox to Cloud Run
         run: |
           gcloud run deploy toolbox-dev \
             --image us-central1-docker.pkg.dev/database-toolbox/toolbox/toolbox:latest \

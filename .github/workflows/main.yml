@@ -31,15 +31,13 @@ jobs:
         run: |
           gcloud secrets versions add tools --data-file=tools.yaml --project=ril-admin
 
-      - name: Toolbox deploy to cloud run
-        uses: google-github-actions/deploy-cloudrun@v1
-        with:
-          service: toolbox
-          region: us-central1
-          image: us-central1-docker.pkg.dev/database-toolbox/toolbox/toolbox:latest
-          flags: '"--args="--tools-file=/app/tools.yaml","--address=0.0.0.0","--port=8080""'
-          secrets: |-
-            /app/tools.yaml=tools:latest
+      - name: Deploy Toolbox to Cloud Run
+        run: |
+          gcloud run deploy toolbox \
+            --image us-central1-docker.pkg.dev/database-toolbox/toolbox/toolbox:latest \
+            --region us-central1 \
+            --update-secrets /app/tools.yaml=tools:latest \
+            --args="--tools-file=/app/tools.yaml,--address=0.0.0.0,--port=8080"
 
       - name: Configure Docker for Artifact Registry
         run: |

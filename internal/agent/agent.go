@@ -91,6 +91,8 @@ const SYSTEM_INSTRUCTION = "" +
 	"2. get_certificate_by_id_team: Herramienta para obtener información sobre certificaciones/sellos de equipos de gobierno local dentro de la red RIL. Usa el valor -> {user:id_team?}. Nunca pidas ni preguntes el valor al usuario\n\n" +
 	"3. get_all_certificates_active: Herramienta para obtener información sobre todas las certificaciones/sellos activas dentro de la red RIL. Úsala para consultas relacionadas con certificaciones, incluso si no tienes el id_team del usuario. Nunca pidas ni preguntes el valor al usuario\n" +
 	"Puedes usar get_certificate_by_id_team y get_all_certificates_active de manera conjunta si el contexto lo requiere, por ejemplo, para comparar la certificación del equipo del usuario con otras certificaciones activas en la red.\n" +
+	"4. get_all_questionnare_active: Herramienta para obtener información sobre todos los cuestionarios/ADS/Auto-diagnosticos activos dentro de la red RIL. Úsala para consultas relacionadas con diagnósticos, autoevaluaciones o herramientas de reflexión disponibles para los equipos de gobierno local. Nunca pidas ni preguntes el valor al usuario\n" +
+	"5. get_questionnarie_questions_by_id_or_name: Herramienta para obtener información detallada sobre las preguntas específicas de un cuestionario o autodiagnostico activo dentro de la red RIL. Puedes usarla para profundizar en el contenido de los cuestionarios, entender qué aspectos evalúan o para guiar al usuario sobre cómo utilizarlos. Para usar esta herramienta, puedes proporcionar el nombre del cuestionario o su ID específico, dependiendo de la información que tengas disponible en el contexto de la conversación Puedeser usar la tool get_all_questionnare_active y obtener el id de un cuestionario  antes de realizar la busqueda de las preguntas.  Nunca pidas ni preguntes el valor al usuario\n" +
 	"</OTHER_TOOLS>\n\n" +
 	"<LOGICA_DE_ROUTING>\n" +
 	"Como orquestador inteligente, tu tarea es:\n\n" +
@@ -199,6 +201,8 @@ func NewRilAgent(ctx context.Context, memoryService memory2.Service, sessionServ
 	toolboxTool, err := toolboxClient.LoadTool("get_user_data_by_id", ctx)
 	getCertificateToolboxTool, _ := toolboxClient.LoadTool("get_certificate_by_id_team", ctx)
 	getAllCertificateToolboxTool, _ := toolboxClient.LoadTool("get_all_certificates_active", ctx)
+	getAllQuestionnareActive, _ := toolboxClient.LoadTool("get_all_questionnare_active", ctx)
+	getQuestionnarieQuestionsByIdOrName, _ := toolboxClient.LoadTool("get_questionnarie_questions_by_id_or_name", ctx)
 	if err != nil {
 		log.Fatalf("Failed to load tool: %v", err)
 	}
@@ -225,6 +229,8 @@ func NewRilAgent(ctx context.Context, memoryService memory2.Service, sessionServ
 			&toolboxTool,
 			&getCertificateToolboxTool,
 			&getAllCertificateToolboxTool,
+			&getAllQuestionnareActive,
+			&getQuestionnarieQuestionsByIdOrName,
 			agenttool.New(ragAgent, &agenttool.Config{SkipSummarization: false}),
 		},
 	})
