@@ -1,0 +1,49 @@
+sources:
+  bigquery-source:
+    kind: bigquery
+    project: "ril-admin"
+tools:
+  get_user_data_by_id:
+    kind: bigquery-sql
+    source: bigquery-source
+    description: "Use this tool to retrieve user data from BigQuery based on the provided user ID. The user ID should be a string that can be cast to an integer, as the underlying BigQuery table expects an integer ID."
+    parameters:
+      - name: user_id
+        type: string
+        description: "The ID of the user to retrieve data for"
+    statement: |
+      SELECT * FROM `ril-admin.portalrilpril2022_staging.sitio_usuarios_recomendador`  as ur
+      INNER JOIN `ril-admin.portalrilpril2022_staging.sitio_conectarme_perfil` as cp
+      on cp.id_usuario_recomendador = ur.id_usuario_recomendador
+      WHERE ur.id_usuario_recomendador = CAST(@user_id AS INT64)
+  get_certificate_by_id_team:
+    kind: bigquery-sql
+    source: bigquery-source
+    description: "Use this tool to retrieve certificate data from BigQuery based on the provided team ID. The team ID should be a string that can be cast to an integer, as the underlying BigQuery table expects an integer ID."
+    parameters:
+      - name: team_id
+        type: string
+        description: "The ID of the team to retrieve certificate data for"
+    statement: |
+      SELECT
+      t1.*,
+      t2.nombre,
+      t2.descripcion,
+      FROM
+      `ril-admin`.`portalrilpril2022_staging`.`sitio_certificados_obtenidos` AS t1
+      INNER JOIN
+      `ril-admin`.`portalrilpril2022_staging`.`sitio_certificados` as t2
+      ON
+      t1.id_certificado = t2.id_certificado
+      WHERE t1.id_equipo = CAST(@team_id AS INT64)
+      ORDER BY
+      t1.created_at;
+  get_all_certificates_active:
+    kind: bigquery-sql
+    source: bigquery-source
+    description: "Use this tool to retrieve all active certificates from BigQuery. This will return a list of all certificates that are currently active, along with their details such as name and description."
+    statement: |
+      SELECT *, CONCAT( 'https://portalril.org/ar/certificarme/practicas?id_certificado=', cr.id_certificado) AS link_acceso_certificado
+      FROM  `ril-admin.portalrilpril2022_staging.sitio_certificados` as cr
+      INNER JOIN `ril-admin.portalrilpril2022_staging.sitio_certificados_tipos` as crt on crt.id_tipo = cr.id_tipo
+      where cr.baja = 0 order by cr.fecha_actualizacion DESC;

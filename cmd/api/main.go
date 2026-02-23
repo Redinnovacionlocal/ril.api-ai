@@ -15,6 +15,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/adk/artifact"
+	"google.golang.org/adk/memory"
 	"google.golang.org/adk/runner"
 	"google.golang.org/adk/session"
 	"google.golang.org/adk/session/database"
@@ -31,8 +32,8 @@ import (
 
 func main() {
 	ctx := context.Background()
-
 	_ = godotenv.Overload()
+	//Init redis
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     os.Getenv("REDIS_ADDR"),
 		Password: os.Getenv("REDIS_PASSWORD"),
@@ -42,7 +43,8 @@ func main() {
 	// Agents service and runners
 	sessionService := initializeSessionService()
 	artifactService := artifact.InMemoryService()
-	userRepository, eventFeedbackRepository := initializeRepositories(ctx)
+	userRepository, eventFeedbackRepository := InitializeRepositories(ctx)
+
 	runn := initializeRunner(ctx, sessionService, artifactService)
 
 	// Use cases
@@ -68,7 +70,7 @@ func initializeSessionService() session.Service {
 	return sessionService
 }
 
-func initializeRepositories(ctx context.Context) (repository.UserRepository, repository.EventFeedbackRepository) {
+func InitializeRepositories(ctx context.Context) (repository.UserRepository, repository.EventFeedbackRepository) {
 	if os.Getenv("APP_ENV") != "local" {
 		log.Println("Running id dis production modes with SQL user repository")
 		db, err := sqlx.ConnectContext(ctx, "mysql", os.Getenv("DATABASE_CORE_DSN"))
@@ -90,16 +92,23 @@ func initializeRepositories(ctx context.Context) (repository.UserRepository, rep
 }
 
 func initializeRunner(ctx context.Context, sessionService session.Service, artifactService artifact.Service) *runner.Runner {
-	runn, err := runner.New(runner.Config{
+	//TODO: change this in the future when VERTEX AI MEMORY BANK its available
+	rilAgent, err := agent.NewRilAgent(ctx, nil, sessionService)
+	if err != nil {
+		log.Fatal("Error initializing RilAgent:", err)
+	}
+	memoryService := memory.InMemoryService()
+	runnerClient, err := runner.New(runner.Config{
 		AppName:         os.Getenv("APP_NAME"),
-		Agent:           agent.GetRilAgent(ctx),
+		Agent:           rilAgent,
 		SessionService:  sessionService,
 		ArtifactService: artifactService,
+		MemoryService:   memoryService,
 	})
 	if err != nil {
 		log.Fatal("Error initializing runner:", err)
 	}
-	return runn
+	return runnerClient
 }
 
 func setupRouter(ctx context.Context, sessionUseCase *usecase.SessionUseCase, userUseCase *usecase.UserUseCase, feedbackUseCase *usecase.EventFeedbackUseCase, transcribeUseCase *usecase.TranscribeUseCase, runn *runner.Runner) *gin.Engine {

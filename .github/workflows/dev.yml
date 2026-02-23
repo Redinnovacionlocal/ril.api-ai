@@ -26,6 +26,20 @@ jobs:
       - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@v1
 
+      - name: Toolbox secret update
+        run: |
+          gcloud secrets versions add toolbox-dev --data-file=tools-dev.yaml --project=ril-admin
+
+      - name: Toolbox deploy to cloud run
+        uses: google-github-actions/deploy-cloudrun@v1
+        with:
+          service: toolbox-dev
+          region: us-central1
+          image: us-central1-docker.pkg.dev/database-toolbox/toolbox/toolbox:latest
+          flags: '"--args="--tools-file=/app/tools.yaml","--address=0.0.0.0","--port=8080""'
+          secrets: |-
+            /app/tools.yaml=tools-dev:latest
+
       - name: Configure Docker for Artifact Registry
         run: |
           gcloud auth configure-docker us-docker.pkg.dev --quiet

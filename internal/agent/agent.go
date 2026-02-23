@@ -2,17 +2,20 @@ package agent
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
+	"strconv"
 
+	"github.com/googleapis/mcp-toolbox-sdk-go/tbadk"
 	"google.golang.org/adk/agent"
 	"google.golang.org/adk/agent/llmagent"
-	"google.golang.org/adk/model"
+	memory2 "google.golang.org/adk/memory"
 	"google.golang.org/adk/model/gemini"
+	"google.golang.org/adk/session"
 	"google.golang.org/adk/tool"
-	"google.golang.org/adk/tool/geminitool"
+	"google.golang.org/adk/tool/agenttool"
 	"google.golang.org/genai"
+	"ril.api-ia/internal/agent/subagents"
 )
 
 const SYSTEM_INSTRUCTION = "" +
@@ -83,6 +86,12 @@ const SYSTEM_INSTRUCTION = "" +
 	"4. web_reinnovacionlocal_index_rag: Información institucional, programas, noticias.\n" +
 	"5. web_+comunidad_index_rag: Foros y discusiones de la comunidad.\n" +
 	"</HERRAMIENTAS_RAG_DISPONIBLES>\n\n" +
+	"<OTHER_TOOLS>\n" +
+	"1. get_user_data_by_id: Herramienta para obtener datos específicos del usuario autenticado  que no estén en el contexto inicial pero sean relevantes para la consulta. usa el valor -> {user:id?} \n\n" +
+	"2. get_certificate_by_id_team: Herramienta para obtener información sobre certificaciones/sellos de equipos de gobierno local dentro de la red RIL. Usa el valor -> {user:id_team?}. Nunca pidas ni preguntes el valor al usuario\n\n" +
+	"3. get_all_certificates_active: Herramienta para obtener información sobre todas las certificaciones/sellos activas dentro de la red RIL. Úsala para consultas relacionadas con certificaciones, incluso si no tienes el id_team del usuario. Nunca pidas ni preguntes el valor al usuario\n" +
+	"Puedes usar get_certificate_by_id_team y get_all_certificates_active de manera conjunta si el contexto lo requiere, por ejemplo, para comparar la certificación del equipo del usuario con otras certificaciones activas en la red.\n" +
+	"</OTHER_TOOLS>\n\n" +
 	"<LOGICA_DE_ROUTING>\n" +
 	"Como orquestador inteligente, tu tarea es:\n\n" +
 	"1. ANALIZAR la consulta del usuario (intención, ámbito, tipo de info).\n" +
@@ -162,15 +171,18 @@ const SYSTEM_INSTRUCTION = "" +
 	"5. Representa el espíritu RIL: cercanía, profesionalismo y foco en lo local.\n" +
 	"</CIERRE_DE_INSTRUCCIONES>"
 
-func GetRilAgent(ctx context.Context) agent.Agent {
+func NewRilAgent(ctx context.Context, memoryService memory2.Service, sessionService session.Service) (agent.Agent, error) {
+	// Overall configuration
 	m, err := gemini.NewModel(ctx, os.Getenv("AGENT_MODEL"), nil)
 	if err != nil {
 		log.Fatal(err)
 	}
-	temperature := float32(0.7)
+	temperature64, _ := strconv.ParseFloat(os.Getenv("TEMPERATURE"), 32)
+	temperature32 := float32(temperature64)
+	maxOutputTokens, _ := strconv.Atoi(os.Getenv("MAX_OUTPUT_TOKENS"))
 	contentConfiguration := &genai.GenerateContentConfig{
-		Temperature:     &temperature,
-		MaxOutputTokens: 30000,
+		Temperature:     &temperature32,
+		MaxOutputTokens: int32(maxOutputTokens),
 		SafetySettings: []*genai.SafetySetting{
 			{
 				Category:  genai.HarmCategoryDangerousContent,
@@ -178,8 +190,25 @@ func GetRilAgent(ctx context.Context) agent.Agent {
 			},
 		},
 	}
-	maxRagResults := int32(5)
-	rilAgent, _ := llmagent.New(llmagent.Config{
+
+	//Init Toolbox
+	toolboxClient, err := tbadk.NewToolboxClient(os.Getenv("TOOLBOX_CLIENT_URL"))
+	if err != nil {
+		log.Fatalf("Failed to create MCP Toolbox client: %v", err)
+	}
+	toolboxTool, err := toolboxClient.LoadTool("get_user_data_by_id", ctx)
+	getCertificateToolboxTool, _ := toolboxClient.LoadTool("get_certificate_by_id_team", ctx)
+	getAllCertificateToolboxTool, _ := toolboxClient.LoadTool("get_all_certificates_active", ctx)
+	if err != nil {
+		log.Fatalf("Failed to load tool: %v", err)
+	}
+
+	ragAgent, err := subagents.NewRagAgent(m)
+	if err != nil {
+		log.Fatalf("Failed to create RAG agent: %v", err)
+	}
+
+	return llmagent.New(llmagent.Config{
 		Name:                  "rilia_agent",
 		Description:           "Eres un asistente especialista en todo lo relacionado al ambito público. Ayudas a los usuarios a encontrar información relevante y precisa sobre estos temas, utilizando un lenguaje claro y accesible.",
 		Instruction:           SYSTEM_INSTRUCTION,
@@ -188,113 +217,15 @@ func GetRilAgent(ctx context.Context) agent.Agent {
 		AfterModelCallbacks: []llmagent.AfterModelCallback{
 			setTitleOfSession,
 		},
+		AfterAgentCallbacks: []agent.AfterAgentCallback{
+			addSessionToMemory(sessionService, memoryService),
+		},
 		Tools: []tool.Tool{
-			geminitool.New("overall_knowledge_rag", &genai.Tool{
-				Retrieval: &genai.Retrieval{
-					VertexAISearch: &genai.VertexAISearch{
-						MaxResults: &maxRagResults,
-						Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/agente-politicas-publicas-rag_1754580407685_gcs_store",
-					},
-				},
-			}),
-			geminitool.New("inspire_case_rag", &genai.Tool{
-				Retrieval: &genai.Retrieval{
-					VertexAISearch: &genai.VertexAISearch{
-						MaxResults: &maxRagResults,
-						Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/ril-inspirarme-casos_1757079342527_gcs_store",
-					},
-				},
-			}),
-			geminitool.New("webinars_rag", &genai.Tool{
-				Retrieval: &genai.Retrieval{
-					VertexAISearch: &genai.VertexAISearch{
-						MaxResults: &maxRagResults,
-						Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/ril-webinars_1759509706346_gcs_store",
-					},
-				},
-			}),
-			geminitool.New("web_reinnovacionlocal_index_rag", &genai.Tool{
-				Retrieval: &genai.Retrieval{
-					VertexAISearch: &genai.VertexAISearch{
-						MaxResults: &maxRagResults,
-						Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/portaril-web_1754602780931",
-					},
-				},
-			}),
-			geminitool.New("web_+comunidad_index_rag", &genai.Tool{
-				Retrieval: &genai.Retrieval{
-					VertexAISearch: &genai.VertexAISearch{
-						MaxResults: &maxRagResults,
-						Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/comunidad-web_1759777234319",
-					},
-				},
-			}),
+			memorySearchTool,
+			&toolboxTool,
+			&getCertificateToolboxTool,
+			&getAllCertificateToolboxTool,
+			agenttool.New(ragAgent, &agenttool.Config{SkipSummarization: false}),
 		},
 	})
-	return rilAgent
-}
-
-func setTitleOfSession(ctx agent.CallbackContext, llmResponse *model.LLMResponse, llmResponseError error) (*model.LLMResponse, error) {
-	hasTitle, _ := ctx.State().Get("title")
-	if hasTitle != nil {
-		return llmResponse, nil
-	}
-	client, err := genai.NewClient(ctx, &genai.ClientConfig{
-		Backend: genai.BackendVertexAI,
-	})
-	if err != nil {
-		log.Fatal()
-	}
-
-	temperature := float32(0.5)
-	var modelResponse, userContent string
-	if llmResponse.Content.Role == genai.RoleModel {
-		if len(llmResponse.Content.Parts) > 0 {
-			for _, part := range llmResponse.Content.Parts {
-				modelResponse += part.Text
-			}
-		}
-	}
-
-	userContent += ctx.UserContent().Parts[0].Text
-	m := "gemini-2.5-flash-lite"
-	prompt := fmt.Sprintf(`Genera un título conciso y descriptivo (máximo 5 palabras) que capture el tema principal o la pregunta.
-
-		Reglas:
-		- Sin signos de puntuación
-		- Sin prefijos como "Título:", "Title:", o similares
-		- Usa mayúsculas iniciales en palabras principales
-		- Sé específico y descriptivo
-		- Evita palabras genéricas como "Chat", "Conversación", "Discusión"
-		- Enfócate en el tema o acción principal
-		- Titulo humano y atractivo
-
-		Ejemplos:
-		- Usuario: "¿Cuáles son las mejores prácticas para la gestión de residuos en ciudades pequeñas?"
-		  Título: Gestión de Residuos en Ciudades Pequeñas
-		- Usuario: "Necesito ideas sobre cómo mejorar la participación ciudadana en proyectos locales."
-		  Título: Mejora de la Participación Ciudadana Local	
-		Mensaje del usuario: %s
-		Respuesta del asistente: %s
-		
-		Título:`, userContent, modelResponse)
-
-	result, err := client.Models.GenerateContent(ctx, m,
-		genai.Text(prompt),
-		&genai.GenerateContentConfig{
-			Temperature:     &temperature,
-			MaxOutputTokens: 20,
-		},
-	)
-	if err != nil {
-		log.Fatal("Error generating session title", err)
-	}
-	if len(result.Candidates) > 0 && len(result.Candidates[0].Content.Parts) > 0 {
-		text := result.Candidates[0].Content.Parts[0].Text
-		err = ctx.State().Set("title", text)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-	return llmResponse, nil
 }

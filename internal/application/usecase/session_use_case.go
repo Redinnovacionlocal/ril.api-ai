@@ -32,13 +32,16 @@ func (s *SessionUseCase) StoreSession(user *entity.User, appName string) (error,
 		AppName: appName,
 		UserID:  strconv.FormatInt(user.Id, 10),
 		State: map[string]any{
+			"user:id":         user.Id,
 			"user:first_name": user.FirstName,
+			"user:id_team":    user.IdTeam,
 			"user:last_name":  user.LastName,
 			"user:country":    userProfile.Country,
-			"user:charge":     userProfile.Charge,
-			"user:sector":     userProfile.Sector,
-			"user:area":       userProfile.Sector,
-			"user:job_title":  userProfile.JobTitle,
+
+			"user:charge":    userProfile.Charge,
+			"user:sector":    userProfile.Sector,
+			"user:area":      userProfile.Sector,
+			"user:job_title": userProfile.JobTitle,
 		},
 	}
 	response, err := s.SessionService.Create(s.ctx, request)
