@@ -28,7 +28,7 @@ jobs:
 
       - name: Toolbox secret update
         run: |
-          gcloud secrets versions add toolbox-dev --data-file=tools-dev.yaml --project=ril-admin
+          gcloud secrets versions add tools-dev --data-file=tools-dev.yaml --project=ril-admin
 
       - name: Toolbox deploy to cloud run
         uses: google-github-actions/deploy-cloudrun@v1
