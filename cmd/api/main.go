@@ -21,6 +21,7 @@ import (
 	"google.golang.org/adk/session/database"
 	"gorm.io/driver/postgres"
 	"ril.api-ia/internal/agent"
+	session2 "ril.api-ia/internal/application/service/session"
 	"ril.api-ia/internal/application/usecase"
 	"ril.api-ia/internal/domain/entity"
 	"ril.api-ia/internal/domain/repository"
@@ -58,16 +59,13 @@ func main() {
 	startServer(router)
 }
 
-func initializeSessionService() session.Service {
-	if os.Getenv("APP_ENV") == "local" {
-		return session.InMemoryService()
-	}
-
+func initializeSessionService() session2.Service {
 	sessionService, err := database.NewSessionService(postgres.Open(os.Getenv("DATABASE_AGENT_DSN")))
+	mySessionService := session2.NewMyDatabaseService(sessionService, postgres.Open(os.Getenv("DATABASE_AGENT_DSN")))
 	if err != nil {
 		log.Fatal("Error initializing session service:", err)
 	}
-	return sessionService
+	return mySessionService
 }
 
 func InitializeRepositories(ctx context.Context) (repository.UserRepository, repository.EventFeedbackRepository) {
@@ -136,6 +134,7 @@ func registerRoutes(r *gin.Engine, sessionHandler *handler.SessionHandler, runHa
 		sessions.GET("", sessionHandler.ListSessions)
 		sessions.GET("/:session_id", sessionHandler.GetSession)
 		sessions.DELETE("/:session_id", sessionHandler.DeleteSession)
+		sessions.PUT("/:session_id/title", sessionHandler.UpdateSessionTitle)
 	}
 	r.POST("/speech-to-text", speechToTextHandler.GenerateTranscription)
 	r.POST("/events/:invocation_id/feedback", feedbackHandler.SaveFeedback)

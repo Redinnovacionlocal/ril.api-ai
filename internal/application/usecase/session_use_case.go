@@ -5,17 +5,18 @@ import (
 	"strconv"
 
 	"google.golang.org/adk/session"
+	session2 "ril.api-ia/internal/application/service/session"
 	"ril.api-ia/internal/domain/entity"
 	"ril.api-ia/internal/domain/repository"
 )
 
 type SessionUseCase struct {
 	ctx            context.Context
-	SessionService session.Service
+	SessionService session2.Service
 	UserRepository repository.UserRepository
 }
 
-func NewSessionUseCase(ctx context.Context, sessionService session.Service, userRepository repository.UserRepository) *SessionUseCase {
+func NewSessionUseCase(ctx context.Context, sessionService session2.Service, userRepository repository.UserRepository) *SessionUseCase {
 	return &SessionUseCase{
 		ctx:            ctx,
 		SessionService: sessionService,
@@ -87,4 +88,18 @@ func (s *SessionUseCase) GetAllSessions(user *entity.User, appName string) (erro
 		return err, nil
 	}
 	return nil, response.Sessions
+}
+
+func (s *SessionUseCase) UpdateTitle(user *entity.User, appName string, sessionId string, title string) error {
+	request := &session2.UpdateTitleRequest{
+		AppName:   appName,
+		UserID:    strconv.FormatInt(user.Id, 10),
+		SessionID: sessionId,
+		Title:     title,
+	}
+	err := s.SessionService.UpdateTitle(s.ctx, request)
+	if err != nil {
+		return err
+	}
+	return nil
 }
