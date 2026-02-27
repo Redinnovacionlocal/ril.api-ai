@@ -12,8 +12,8 @@ tools:
         type: string
         description: "The ID of the user to retrieve data for"
     statement: |
-      SELECT * FROM `ril-admin.portalrilpril2022_prod.sitio_usuarios_recomendador`  as ur
-      INNER JOIN `ril-admin.portalrilpril2022_prod.sitio_conectarme_perfil` as cp
+      SELECT * FROM `ril-admin.portalrilpril2022_staging.sitio_usuarios_recomendador`  as ur
+      INNER JOIN `ril-admin.portalrilpril2022_staging.sitio_conectarme_perfil` as cp
       on cp.id_usuario_recomendador = ur.id_usuario_recomendador
       WHERE ur.id_usuario_recomendador = CAST(@user_id AS INT64)
   get_certificate_by_id_team:
@@ -30,9 +30,9 @@ tools:
       t2.nombre,
       t2.descripcion,
       FROM
-      `ril-admin`.`portalrilpril2022_prod`.`sitio_certificados_obtenidos` AS t1
+      `ril-admin`.`portalrilpril2022_staging`.`sitio_certificados_obtenidos` AS t1
       INNER JOIN
-      `ril-admin`.`portalrilpril2022_prod`.`sitio_certificados` as t2
+      `ril-admin`.`portalrilpril2022_staging`.`sitio_certificados` as t2
       ON
       t1.id_certificado = t2.id_certificado
       WHERE t1.id_equipo = CAST(@team_id AS INT64)
@@ -44,8 +44,8 @@ tools:
     description: "Use this tool to retrieve all active certificates from BigQuery. This will return a list of all certificates that are currently active, along with their details such as name and description."
     statement: |
       SELECT *, CONCAT( 'https://portalril.org/ar/certificarme/practicas?id_certificado=', cr.id_certificado) AS link_acceso_certificado
-      FROM  `ril-admin.portalrilpril2022_prod.sitio_certificados` as cr
-      INNER JOIN `ril-admin.portalrilpril2022_prod.sitio_certificados_tipos` as crt on crt.id_tipo = cr.id_tipo
+      FROM  `ril-admin.portalrilpril2022_staging.sitio_certificados` as cr
+      INNER JOIN `ril-admin.portalrilpril2022_staging.sitio_certificados_tipos` as crt on crt.id_tipo = cr.id_tipo
       where cr.baja = 0 order by cr.fecha_actualizacion DESC;
   get_all_questionnare_active:
     kind: bigquery-sql
@@ -58,10 +58,10 @@ tools:
         sct.nombre AS tipo_nombre,
         sc.duracion,
         sc.texto_libre
-      FROM `ril-admin.portalrilpril2022_prod.sitio_cuestionario` AS sc
+      FROM `ril-admin.portalrilpril2022_staging.sitio_cuestionario` AS sc
       -- Usamos LEFT JOIN UNNEST para no perder filas si el ID está vacío
       LEFT JOIN UNNEST(SPLIT(sc.id_cuestionario_tipo, ',')) AS id_individual
-      LEFT JOIN `ril-admin.portalrilpril2022_prod.sitio_cuestionario_tipo` AS sct
+      LEFT JOIN `ril-admin.portalrilpril2022_staging.sitio_cuestionario_tipo` AS sct
       -- SAFE_CAST devuelve NULL en vez de error si encuentra basura en el texto
       ON SAFE_CAST(TRIM(id_individual) AS INT64) = sct.id_cuestionario_tipo
       and sc.baja = 0
@@ -75,8 +75,8 @@ tools:
         type: string
         description: "The name of the questionnaire to retrieve questions for"
     statement: |
-      SELECT * FROM `portalrilpril2022_prod.sitio_cuestionario_pregunta` as scp
-      INNER JOIN `portalrilpril2022_prod.sitio_cuestionario` as sc on scp.id_cuestionario = sc.id_cuestionario
+      SELECT * FROM `portalrilpril2022_staging.sitio_cuestionario_pregunta` as scp
+      INNER JOIN `portalrilpril2022_staging.sitio_cuestionario` as sc on scp.id_cuestionario = sc.id_cuestionario
       where sc.baja = 0
       AND sc.nombre = @questionnaire_name
       order by scp.orden asc
