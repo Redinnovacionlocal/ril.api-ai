@@ -2,22 +2,21 @@ package usecase
 
 import (
 	"context"
-	"log"
 	"strconv"
 
 	"google.golang.org/adk/session"
-	"google.golang.org/genai"
+	session2 "ril.api-ia/internal/application/service/session"
 	"ril.api-ia/internal/domain/entity"
 	"ril.api-ia/internal/domain/repository"
 )
 
 type SessionUseCase struct {
 	ctx            context.Context
-	SessionService session.Service
+	SessionService session2.Service
 	UserRepository repository.UserRepository
 }
 
-func NewSessionUseCase(ctx context.Context, sessionService session.Service, userRepository repository.UserRepository) *SessionUseCase {
+func NewSessionUseCase(ctx context.Context, sessionService session2.Service, userRepository repository.UserRepository) *SessionUseCase {
 	return &SessionUseCase{
 		ctx:            ctx,
 		SessionService: sessionService,
@@ -34,13 +33,16 @@ func (s *SessionUseCase) StoreSession(user *entity.User, appName string) (error,
 		AppName: appName,
 		UserID:  strconv.FormatInt(user.Id, 10),
 		State: map[string]any{
+			"user:id":         user.Id,
 			"user:first_name": user.FirstName,
+			"user:id_team":    user.IdTeam,
 			"user:last_name":  user.LastName,
 			"user:country":    userProfile.Country,
-			"user:charge":     userProfile.Charge,
-			"user:sector":     userProfile.Sector,
-			"user:area":       userProfile.Sector,
-			"user:job_title":  userProfile.JobTitle,
+
+			"user:charge":    userProfile.Charge,
+			"user:sector":    userProfile.Sector,
+			"user:area":      userProfile.Sector,
+			"user:job_title": userProfile.JobTitle,
 		},
 	}
 	response, err := s.SessionService.Create(s.ctx, request)
@@ -88,28 +90,16 @@ func (s *SessionUseCase) GetAllSessions(user *entity.User, appName string) (erro
 	return nil, response.Sessions
 }
 
-func (s *SessionUseCase) GenerateSessionTitle(ctx context.Context, userPrompt string, modelResponse string) (string, error) {
-	client, err := genai.NewClient(ctx, &genai.ClientConfig{
-		Backend: genai.BackendVertexAI,
-	})
+func (s *SessionUseCase) UpdateTitle(user *entity.User, appName string, sessionId string, title string) error {
+	request := &session2.UpdateTitleRequest{
+		AppName:   appName,
+		UserID:    strconv.FormatInt(user.Id, 10),
+		SessionID: sessionId,
+		Title:     title,
+	}
+	err := s.SessionService.UpdateTitle(s.ctx, request)
 	if err != nil {
-		log.Fatal()
+		return err
 	}
-
-	temperature := float32(0.5)
-	m := "gemini-2.5-flash-lite"
-	prompt := "Genera un título conciso y descriptivo (máximo 5 palabras) para una sesión de chat basada en el siguiente mensaje del usuario y la respuesta del agente.\n\nMensaje del usuario: \"" + userPrompt + "\"\n\nRespuesta del agente: \"" + modelResponse + "\"\n\nTítulo:"
-
-	result, err := client.Models.GenerateContent(ctx, m, genai.Text(prompt), &genai.GenerateContentConfig{
-		Temperature:     &temperature,
-		MaxOutputTokens: 100,
-	})
-	if err != nil {
-		log.Fatal("Error generating session title", err)
-	}
-	if len(result.Candidates) > 0 && len(result.Candidates[0].Content.Parts) > 0 {
-		text := result.Candidates[0].Content.Parts[0].Text
-		return text, nil
-	}
-	return "", nil
+	return nil
 }

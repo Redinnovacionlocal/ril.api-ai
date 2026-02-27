@@ -22,7 +22,7 @@ func NewEventFeedbackUseCase(ctx context.Context, eventFeedbackRepository reposi
 	}
 }
 
-func (efuc *EventFeedbackUseCase) SaveFeedback(invocationId string, user *entity.User, isPositive bool, comments *string, errorType *string) error {
+func (efuc *EventFeedbackUseCase) SaveFeedback(invocationId string, user *entity.User, isPositive *bool, comments *string, errorType *string) error {
 	feedback, err := efuc.eventFeedbackRepository.GetFeedbackByInvocationId(invocationId)
 	if err != nil {
 		return err
@@ -36,7 +36,7 @@ func (efuc *EventFeedbackUseCase) SaveFeedback(invocationId string, user *entity
 			UpdatedAt:    time.Now(),
 		}
 	}
-	feedback.IsPositive = isPositive
+	feedback.IsPositive = *isPositive
 	feedback.Comments = comments
 	feedback.ErrorType = errorType
 	feedback.UpdatedAt = time.Now()

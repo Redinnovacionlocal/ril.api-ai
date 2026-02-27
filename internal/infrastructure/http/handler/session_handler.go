@@ -105,3 +105,34 @@ func (sessionHandler *SessionHandler) DeleteSession(c *gin.Context) {
 	})
 	return
 }
+
+func (sessionHandler *SessionHandler) UpdateSessionTitle(c *gin.Context) {
+	appName := os.Getenv("APP_NAME")
+	user := c.MustGet("user").(*entity.User)
+	sessionId := c.Param("session_id")
+	var request struct {
+		Title string `json:"title"`
+	}
+	if err := c.ShouldBindJSON(&request); err != nil {
+		log.Printf("Error while binding JSON: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": "Invalid request body",
+		})
+		return
+	}
+	err := sessionHandler.sessionUseCase.UpdateTitle(user, appName, sessionId, request.Title)
+	if err != nil {
+		log.Printf("Error while updating session title: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": "Internal Server Error",
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"code":    http.StatusOK,
+		"message": "Updated session title successfully",
+	})
+	return
+}

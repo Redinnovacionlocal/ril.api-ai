@@ -20,6 +20,21 @@ services:
       - go_app
     depends_on:
       - redis
+  mcp-toolbox:
+    image: us-central1-docker.pkg.dev/database-toolbox/toolbox/toolbox:latest
+    user: root
+    hostname: toolbox
+    working_dir: /app
+    ports:
+      - "5002:5000"
+    volumes:
+      - .:/app
+      - ~/.config/gcloud:/root/.config/gcloud:ro
+    command: >
+      --tools-file /app/tools-dev.yaml
+      --address 0.0.0.0
+    networks:
+      - go_app
   redis:
     image: redis:alpine
     networks:
