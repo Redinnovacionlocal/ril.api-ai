@@ -222,10 +222,10 @@ func NewRilAgent(ctx context.Context, memoryService memory2.Service, sessionServ
 			setTitleOfSession,
 		},
 		AfterAgentCallbacks: []agent.AfterAgentCallback{
-			addSessionToMemory(sessionService, memoryService),
+			//addSessionToMemory(sessionService, memoryService),
 		},
 		Tools: []tool.Tool{
-			memorySearchTool,
+			//memorySearchTool,
 			&toolboxTool,
 			&getCertificateToolboxTool,
 			&getAllCertificateToolboxTool,
