@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.45.0](https://github.com/googleapis/go-genai/compare/v1.44.0...v1.45.0) (2026-02-04)
+
+
+### Features
+
+* Update data types from discovery doc. ([10f6ed9](https://github.com/googleapis/go-genai/commit/10f6ed99013387f1435f9d0fbdd89bc15581485f))
+
+## [1.44.0](https://github.com/googleapis/go-genai/compare/v1.43.0...v1.44.0) (2026-01-30)
+
+
+### Features
+
+* Support distillation tuning ([cf4c39c](https://github.com/googleapis/go-genai/commit/cf4c39c1a88af7c00ebe92a4a04a9def3de7939d))
+* Support OSS Tuning in GenAI SDK ([9621775](https://github.com/googleapis/go-genai/commit/962177563194d9ff8021bec3afff45e4b9ec7ebc))
+
+
+### Bug Fixes
+
+* Add metadata in batch inlined response ([f8e6b9b](https://github.com/googleapis/go-genai/commit/f8e6b9b9fa6251f798ae581448bd291dfe5398ec))
+
 ## [1.43.0](https://github.com/googleapis/go-genai/compare/v1.42.0...v1.43.0) (2026-01-18)
 
 
