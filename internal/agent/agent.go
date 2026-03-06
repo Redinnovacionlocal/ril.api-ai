@@ -230,7 +230,7 @@ func NewRilAgent(ctx context.Context) (agent.Agent, error) {
 	return llmagent.New(llmagent.Config{
 		Name:                  "rilia_agent",
 		Description:           "Eres un asistente especialista en todo lo relacionado al ambito público. Ayudas a los usuarios a encontrar información relevante y precisa sobre estos temas, utilizando un lenguaje claro y accesible.",
-		Instruction:           systemInstruction,
+		Instruction:           SystemInstruction,
 		GenerateContentConfig: contentConfiguration,
 		Model:                 m,
 		AfterModelCallbacks: []llmagent.AfterModelCallback{
