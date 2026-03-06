@@ -42,13 +42,15 @@ type Render interface {
 
 type PdfRenderer struct {
 	pdf *gofpdf.Fpdf
+	tr  func(string) string
 }
 
 func NewPdfRenderer() *PdfRenderer {
 	pdf := gofpdf.New("P", "mm", "A4", "")
 	pdf.SetMargins(15, 15, 15)
 	pdf.AddPage() // ← esto faltaba
-	return &PdfRenderer{pdf: pdf}
+	tr := pdf.UnicodeTranslatorFromDescriptor("")
+	return &PdfRenderer{pdf: pdf, tr: tr}
 }
 
 func (r *PdfRenderer) Bytes() ([]byte, error) {
@@ -62,22 +64,22 @@ func (r *PdfRenderer) Heading(level int, text string) {
 	case 1:
 		r.pdf.SetFont("Arial", "B", 20)
 		r.pdf.SetTextColor(30, 30, 30)
-		r.pdf.MultiCell(0, 10, text, "", "L", false)
+		r.pdf.MultiCell(0, 10, r.tr(text), "", "L", false)
 		r.pdf.Ln(3)
 	case 2:
 		r.pdf.SetFont("Arial", "B", 15)
 		r.pdf.SetTextColor(50, 50, 50)
-		r.pdf.MultiCell(0, 9, text, "", "L", false)
+		r.pdf.MultiCell(0, 9, r.tr(text), "", "L", false)
 		r.pdf.Ln(2)
 	case 3:
 		r.pdf.SetFont("Arial", "B", 12)
 		r.pdf.SetTextColor(70, 70, 70)
-		r.pdf.MultiCell(0, 8, text, "", "L", false)
+		r.pdf.MultiCell(0, 8, r.tr(text), "", "L", false)
 		r.pdf.Ln(1)
 	default:
 		r.pdf.SetFont("Arial", "B", 15)
 		r.pdf.SetTextColor(50, 50, 50)
-		r.pdf.MultiCell(0, 9, text, "", "L", false)
+		r.pdf.MultiCell(0, 9, r.tr(text), "", "L", false)
 		r.pdf.Ln(2)
 	}
 }
@@ -85,13 +87,14 @@ func (r *PdfRenderer) Heading(level int, text string) {
 func (r *PdfRenderer) Paragraph(text string) {
 	r.pdf.SetFont("Arial", "", 11)
 	r.pdf.SetTextColor(0, 0, 0)
-	r.pdf.MultiCell(0, 7, text, "", "L", false)
+	r.pdf.MultiCell(0, 7, r.tr(text), "", "L", false)
 }
 
 func (r *PdfRenderer) Bullet(text string) {
 	r.pdf.SetFont("Arial", "", 11)
 	r.pdf.SetTextColor(0, 0, 0)
-	r.pdf.MultiCell(0, 7, "  • "+text, "", "L", false)
+	r.pdf.MultiCell(0, 7, r.tr("."+
+		text), "", "L", false)
 }
 
 func (r *PdfRenderer) Divider() {
@@ -117,7 +120,7 @@ func (r *PdfRenderer) Table(headers []string, rows [][]string) {
 	r.pdf.SetFillColor(79, 70, 229) // indigo
 	r.pdf.SetTextColor(255, 255, 255)
 	for _, h := range headers {
-		r.pdf.CellFormat(colWidth, 8, h, "1", 0, "C", true, 0, "")
+		r.pdf.CellFormat(colWidth, 8, r.tr(h), "1", 0, "C", true, 0, "")
 	}
 	r.pdf.Ln(-1)
 
@@ -133,7 +136,7 @@ func (r *PdfRenderer) Table(headers []string, rows [][]string) {
 		}
 		for j, cell := range row {
 			if j < len(headers) {
-				r.pdf.CellFormat(colWidth, 7, cell, "1", 0, "L", true, 0, "")
+				r.pdf.CellFormat(colWidth, 7, r.tr(cell), "1", 0, "L", true, 0, "")
 			}
 		}
 		r.pdf.Ln(-1)
