@@ -194,11 +194,11 @@ func NewRilAgent(ctx context.Context) (agent.Agent, error) {
 		},
 	}
 	//Get Instruction on cmd/internal/agent/global_instruction.xml
-	systemInstructionFile, _ := os.Open("cmd/internal/agent/global_instruction.xml")
-	defer systemInstructionFile.Close()
-	systemInstructionBytes := make([]byte, 10000)
-	n, _ := systemInstructionFile.Read(systemInstructionBytes)
-	systemInstruction := string(systemInstructionBytes[:n])
+	//systemInstructionFile, _ := os.Open("cmd/internal/agent/global_instruction.xml")
+	//defer systemInstructionFile.Close()
+	//systemInstructionBytes := make([]byte, 10000)
+	//n, _ := systemInstructionFile.Read(systemInstructionBytes)
+	//systemInstruction := string(systemInstructionBytes[:n])
 
 	// Toolbox tools
 	toolboxClient, err := tbadk.NewToolboxClient(os.Getenv("TOOLBOX_CLIENT_URL"))
@@ -230,7 +230,7 @@ func NewRilAgent(ctx context.Context) (agent.Agent, error) {
 	return llmagent.New(llmagent.Config{
 		Name:                  "rilia_agent",
 		Description:           "Eres un asistente especialista en todo lo relacionado al ambito público. Ayudas a los usuarios a encontrar información relevante y precisa sobre estos temas, utilizando un lenguaje claro y accesible.",
-		Instruction:           systemInstruction,
+		Instruction:           SystemInstruction,
 		GenerateContentConfig: contentConfiguration,
 		Model:                 m,
 		AfterModelCallbacks: []llmagent.AfterModelCallback{
