@@ -120,7 +120,7 @@ func (r *PdfRenderer) Table(headers []string, rows [][]string) {
 	r.pdf.SetFillColor(79, 70, 229) // indigo
 	r.pdf.SetTextColor(255, 255, 255)
 	for _, h := range headers {
-		r.pdf.CellFormat(colWidth, 8, r.tr(h), "1", 0, "C", true, 0, "")
+		r.pdf.CellFormat(colWidth, 8, h, "1", 0, "C", true, 0, "")
 	}
 	r.pdf.Ln(-1)
 
@@ -136,7 +136,7 @@ func (r *PdfRenderer) Table(headers []string, rows [][]string) {
 		}
 		for j, cell := range row {
 			if j < len(headers) {
-				r.pdf.CellFormat(colWidth, 7, r.tr(cell), "1", 0, "L", true, 0, "")
+				r.pdf.CellFormat(colWidth, 7, cell, "1", 0, "L", true, 0, "")
 			}
 		}
 		r.pdf.Ln(-1)
