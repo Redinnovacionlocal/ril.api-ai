@@ -13,9 +13,9 @@ import (
 )
 
 type GenerateDocumentsArgs struct {
-	Blocks   []Block `json:"blocks" jsonschema:"Array of structured content blocks. Each block MUST have a 'type' field. 'text' is required for types: h1, h2, h3, paragraph, bullet. 'text' is NOT required for types: table, divider. For 'table' type use 'headers' (string array) and 'rows' (array of string arrays) instead of 'text'. NEVER use markdown syntax inside text fields."`
-	MimeType string  `json:"mime_type" jsonschema:"The MIME type of the document to be generated. Enabled MIME types include 'application/pdf' for PDF documents, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' for Excel files, 'text/csv' for CSV files, 'text/plain' for plain text files"`
-	FileName string  `json:"file_name" jsonschema:"The desired name of the generated document, including the appropriate file extension, e.g., 'report.pdf', 'notes.txt'."`
+	Blocks   []Block `json:"blocks" jsonschema:"CRITICAL: Array of structured content blocks. You MUST decompose ALL content into typed blocks. FORBIDDEN in any text field: '#', '##', '**', '*', '-', '>', backticks, or ANY other markdown syntax. Violations will cause rendering errors. Block types and rules: (1) 'h1','h2','h3' = section headings, text field required, plain text only. (2) 'paragraph' = body text, text field required, plain text only. (3) 'bullet' = ONE bullet item per block, text field required, plain text only, do NOT use '-' or '*' prefix. (4) 'divider' = horizontal separator, no text field. (5) 'table' = structured data, requires headers array and rows array, no text field. CORRECT example: [{\"type\":\"h1\",\"text\":\"Annual Report\"},{\"type\":\"paragraph\",\"text\":\"This report covers Q1 results.\"},{\"type\":\"bullet\",\"text\":\"Revenue increased by 12 percent\"},{\"type\":\"table\",\"headers\":[\"Region\",\"Sales\"],\"rows\":[[\"North\",\"120k\"],[\"South\",\"98k\"]]}]. WRONG example: [{\"type\":\"paragraph\",\"text\":\"## Title\\n**bold** and - bullet\"}]"`
+	MimeType string  `json:"mime_type" jsonschema:"MIME type of the document. Allowed values: 'application/pdf', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/csv', 'text/plain'"`
+	FileName string  `json:"file_name" jsonschema:"File name with extension, e.g. 'report.pdf', 'data.xlsx'"`
 }
 
 type Block struct {
