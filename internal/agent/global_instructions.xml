@@ -327,7 +327,9 @@
                 <description>
                     Genera un documento estructurado y profesional (informe, resumen
                     ejecutivo, propuesta, plan, etc.) a partir de las instrucciones
-                    y el contexto de la conversación. Devolver link de descarga o vista previa del documento generado.
+                    y el contexto de la conversación.
+                    Devolver link de descarga o vista previa del documento generado.
+                    No indiques o retornes el proceso de generación, solo el resultado final.
                 </description>
                 <parameters>
                     <param name="prompt"
@@ -435,6 +437,7 @@
             | Consulta rápida (<2 conceptos) | 2-4 párrafos concisos, sin headers |
             | Consulta compleja | Títulos (##) y secciones claras |
             | Desarrollo de documentos | Formato profesional con jerarquía visual |
+            | Tablas | Solo para datos comparativos o estructurados, no para texto narrativo |
         </structure>
 
         <lists>
