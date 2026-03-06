@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/jung-kurt/gofpdf"
@@ -21,6 +22,7 @@ type GenerateDocumentResponse struct {
 	StatusCode int     `json:"status_code"`
 	Message    string  `json:"message"`
 	FilePath   *string `json:"file_path,omitempty"`
+	FileCdn    *string `json:"file_cdn,omitempty"`
 }
 
 func GenerateDocumentsToolFunc(tctx tool.Context, args GenerateDocumentsArgs) (GenerateDocumentResponse, error) {
@@ -80,9 +82,11 @@ func GenerateDocumentsToolFunc(tctx tool.Context, args GenerateDocumentsArgs) (G
 	}
 	version := response.Version
 	filePath := fmt.Sprintf("%s/%s/%s/%s/%d", tctx.AppName(), tctx.UserID(), tctx.SessionID(), args.FileName, version)
+	fileCdn := os.Getenv("ARTIFACT_BUCKET_URL")
 	return GenerateDocumentResponse{
 		StatusCode: 200,
 		FilePath:   &filePath,
+		FileCdn:    &fileCdn,
 		Message:    "Document generated with success",
 	}, nil
 }
