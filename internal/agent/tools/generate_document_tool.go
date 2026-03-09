@@ -6,6 +6,9 @@ import (
 	"log"
 	"os"
 
+	"github.com/gomutex/godocx"
+	"github.com/gomutex/godocx/docx"
+	"github.com/gomutex/godocx/wml/stypes"
 	"github.com/jung-kurt/gofpdf"
 	"github.com/tealeg/xlsx"
 	"google.golang.org/adk/tool"
@@ -14,7 +17,7 @@ import (
 
 type GenerateDocumentsArgs struct {
 	Blocks   []Block `json:"blocks" jsonschema:"CRITICAL: Array of structured content blocks. You MUST decompose ALL content into typed blocks. FORBIDDEN in any text field: '#', '##', '**', '*', '-', '>', backticks, or ANY other markdown syntax. Violations will cause rendering errors. Block types and rules: (1) 'h1','h2','h3' = section headings, text field required, plain text only. (2) 'paragraph' = body text, text field required, plain text only. (3) 'bullet' = ONE bullet item per block, text field required, plain text only, do NOT use '-' or '*' prefix. (4) 'divider' = horizontal separator, no text field. (5) 'table' = structured data, requires headers array and rows array, no text field. CORRECT example: [{\"type\":\"h1\",\"text\":\"Annual Report\"},{\"type\":\"paragraph\",\"text\":\"This report covers Q1 results.\"},{\"type\":\"bullet\",\"text\":\"Revenue increased by 12 percent\"},{\"type\":\"table\",\"headers\":[\"Region\",\"Sales\"],\"rows\":[[\"North\",\"120k\"],[\"South\",\"98k\"]]}]. WRONG example: [{\"type\":\"paragraph\",\"text\":\"## Title\\n**bold** and - bullet\"}]"`
-	MimeType string  `json:"mime_type" jsonschema:"MIME type of the document. Allowed values: 'application/pdf', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/csv', 'text/plain'"`
+	MimeType string  `json:"mime_type" jsonschema:"MIME type of the document. Allowed values: 'application/pdf', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/csv', 'text/plain', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'"`
 	FileName string  `json:"file_name" jsonschema:"File name with extension, e.g. 'report.pdf', 'data.xlsx'"`
 }
 
@@ -126,9 +129,9 @@ func (r *PdfRenderer) Table(headers []string, rows [][]string) {
 
 	// Rows
 	r.pdf.SetFont("Arial", "", 9)
+
 	r.pdf.SetTextColor(0, 0, 0)
 	for i, row := range rows {
-		// Filas alternadas
 		if i%2 == 0 {
 			r.pdf.SetFillColor(245, 245, 255)
 		} else {
@@ -136,7 +139,7 @@ func (r *PdfRenderer) Table(headers []string, rows [][]string) {
 		}
 		for j, cell := range row {
 			if j < len(headers) {
-				r.pdf.CellFormat(colWidth, 7, cell, "1", 0, "L", true, 0, "")
+				r.pdf.CellFormat(colWidth, 7, r.tr(cell), "1", 0, "L", true, 0, "")
 			}
 		}
 		r.pdf.Ln(-1)
@@ -232,6 +235,97 @@ func (r *ExcelRenderer) Bytes() ([]byte, error) {
 	return buf.Bytes(), err
 }
 
+type DocxRenderer struct {
+	dox *docx.RootDoc
+}
+
+func NewDocxRenderer() *DocxRenderer {
+	document, err := godocx.NewDocument()
+	if err != nil {
+		log.Fatalf("Error creating DOCX document: %v", err)
+	}
+	return &DocxRenderer{dox: document}
+}
+
+func (r *DocxRenderer) Heading(level int, text string) {
+	switch level {
+	case 1:
+		_, err := r.dox.AddHeading(text, 0)
+		if err != nil {
+			log.Printf("Error adding heading: %v", err)
+		}
+	case 2:
+		_, err := r.dox.AddHeading(text, 1)
+		if err != nil {
+			log.Printf("Error adding heading: %v", err)
+		}
+	case 3:
+		_, err := r.dox.AddHeading(text, 3)
+		if err != nil {
+			log.Printf("Error adding heading: %v", err)
+		}
+	default:
+		_, err := r.dox.AddHeading(text, 1)
+		if err != nil {
+			log.Printf("Error adding heading: %v", err)
+		}
+	}
+}
+
+func (r *DocxRenderer) Paragraph(text string) {
+	p := r.dox.AddParagraph(text)
+	p.Style("Italic")
+}
+
+func (r *DocxRenderer) Bullet(text string) {
+	p := r.dox.AddParagraph(text)
+	p.Style("List Bullet")
+	p.Style("Italic")
+}
+
+func (r *DocxRenderer) Divider() {
+	breakType := stypes.BreakTypeTextWrapping
+	r.dox.AddParagraph("").AddRun().AddBreak(&breakType)
+}
+
+func (r *DocxRenderer) Table(headers []string, rows [][]string) {
+	table := r.dox.AddTable()
+	headerRow := table.AddRow()
+	for _, h := range headers {
+		cell := headerRow.AddCell()
+		cell.AddParagraph(h).Style("Heading 3")
+	}
+	for _, row := range rows {
+		excelRow := table.AddRow()
+		for _, val := range row {
+			cell := excelRow.AddCell()
+			cell.AddParagraph(val)
+		}
+	}
+}
+
+func (r *DocxRenderer) Bytes() ([]byte, error) {
+	var buf bytes.Buffer
+	// save tmp file
+	tmpFile := "temp.docx"
+	err := r.dox.SaveTo(tmpFile)
+	if err != nil {
+		return nil, err
+	}
+	// read file to buffer
+	data, err := os.ReadFile(tmpFile)
+	if err != nil {
+		return nil, err
+	}
+	buf.Write(data)
+	// delete tmp file
+	err = os.Remove(tmpFile)
+	if err != nil {
+		log.Printf("Error deleting temp file: %v", err)
+	}
+	return buf.Bytes(), nil
+}
+
 func renderBlocks(blocks []Block, r Render) ([]byte, error) {
 	for _, block := range blocks {
 		switch block.Type {
@@ -261,6 +355,9 @@ func GenerateDocumentsToolFunc(tctx tool.Context, args GenerateDocumentsArgs) (G
 		},
 		"text/csv": func() Render {
 			return NewExcelRenderer()
+		},
+		"application/vnd.openxmlformats-officedocument.wordprocessingml.document": func() Render {
+			return NewDocxRenderer()
 		},
 	}
 	factory, ok := renderers[args.MimeType]
