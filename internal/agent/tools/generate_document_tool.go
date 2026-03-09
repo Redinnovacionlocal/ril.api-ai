@@ -306,23 +306,11 @@ func (r *DocxRenderer) Table(headers []string, rows [][]string) {
 
 func (r *DocxRenderer) Bytes() ([]byte, error) {
 	var buf bytes.Buffer
-	// save tmp file
-	tmpFile := "temp.docx"
-	err := r.dox.SaveTo(tmpFile)
+	err := r.dox.Write(&buf)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to write docx to buffer: %w", err)
 	}
-	// read file to buffer
-	data, err := os.ReadFile(tmpFile)
-	if err != nil {
-		return nil, err
-	}
-	buf.Write(data)
-	// delete tmp file
-	err = os.Remove(tmpFile)
-	if err != nil {
-		log.Printf("Error deleting temp file: %v", err)
-	}
+
 	return buf.Bytes(), nil
 }
 
