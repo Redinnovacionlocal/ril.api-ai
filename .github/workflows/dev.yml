@@ -53,4 +53,23 @@ jobs:
         with:
           service: ril-ai-service-dev
           region: us-central1
-          image: us-docker.pkg.dev/ril-admin/ril-ai-service-repository/go-ai-app-dev:${{ github.sha }}
+          image: us-docker.pkg.dev/ril-admin/ril-ai-service-repository/go-ai-app-dev:${{ github.sha
+
+  notify-google:
+    name: Notify-Google
+    needs: build_and_deploy_gcp
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Google Chat
+        run: |
+          COMMIT_URL="${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}"
+          BRANCH="${{ github.ref_name }}"
+          STATUS="${{ job.status == 'success' && '✅ Deploy exitoso' || '❌ Falló el deploy' }}"
+          PR_TITLE="${{ github.event.pull_request.title || '' }}"
+          PR_URL="${{ github.event.pull_request.html_url || '' }}"
+          MERGE_AUTHOR="${{ github.actor }}"
+          MESSAGE="*${STATUS}*\nRepositorio: \`${{ github.repository }}\`\nBranch: \`${BRANCH}\`\nCommit: [${{ github.sha }}](${COMMIT_URL})\nMergeado por: \`${MERGE_AUTHOR}\`"
+          curl -X POST \
+            -H 'Content-Type: application/json' \
+            -d "{\"text\": \"$MESSAGE\"}" \
+            "https://chat.googleapis.com/v1/spaces/AAQAA3F9pLA/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=5oLsjWqJRo9oKPeWbxFyu0EwY4XFSmadVYosJY-4Qlo"
