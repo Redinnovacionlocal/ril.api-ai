@@ -236,7 +236,6 @@ func NewRilAgent(ctx context.Context) (agent.Agent, error) {
 		AfterModelCallbacks: []llmagent.AfterModelCallback{
 			callbacks.SetTitleSessionBeforeCallback,
 		},
-		AfterAgentCallbacks: []agent.AfterAgentCallback{},
 		Tools: []tool.Tool{
 			toolGenerateDocument,
 			&toolboxTool,
@@ -244,7 +243,7 @@ func NewRilAgent(ctx context.Context) (agent.Agent, error) {
 			&getAllCertificateToolboxTool,
 			&getAllQuestionnareActive,
 			&getQuestionnarieQuestionsByIdOrName,
-			agenttool.New(ragAgent, &agenttool.Config{SkipSummarization: false}),
+			agenttool.New(ragAgent, &agenttool.Config{}),
 		},
 	})
 }

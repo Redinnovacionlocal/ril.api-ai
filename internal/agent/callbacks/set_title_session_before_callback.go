@@ -12,7 +12,7 @@ import (
 func SetTitleSessionBeforeCallback(ctx agent.CallbackContext, llmResponse *model.LLMResponse, llmResponseError error) (*model.LLMResponse, error) {
 	hasTitle, _ := ctx.State().Get("title")
 	if hasTitle != nil {
-		return llmResponse, nil
+		return nil, nil
 	}
 	client, err := genai.NewClient(ctx, &genai.ClientConfig{
 		Backend: genai.BackendVertexAI,
@@ -71,5 +71,5 @@ func SetTitleSessionBeforeCallback(ctx agent.CallbackContext, llmResponse *model
 			log.Fatal(err)
 		}
 	}
-	return llmResponse, nil
+	return nil, nil
 }

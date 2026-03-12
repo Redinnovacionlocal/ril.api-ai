@@ -51,6 +51,6 @@ jobs:
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v1
         with:
-          service: ril-ai-service-dev
+          service: ril-aiapiservice-sa1-dev
           region: us-central1
           image: us-docker.pkg.dev/ril-admin/ril-ai-service-repository/go-ai-app-dev:${{ github.sha }}
