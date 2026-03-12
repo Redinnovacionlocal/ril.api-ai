@@ -32,7 +32,7 @@ func SetTitleSessionBeforeCallback(ctx agent.CallbackContext, llmResponse *model
 	}
 
 	userContent += ctx.UserContent().Parts[0].Text
-	m := "gemini-2.5-flash-lite"
+	m := "gemini-2.5-flash"
 	prompt := fmt.Sprintf(`Genera un título conciso y descriptivo (máximo 5 palabras) que capture el tema principal o la pregunta.
 
 		Reglas:
