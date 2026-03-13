@@ -17,11 +17,13 @@ import (
 	"google.golang.org/adk/artifact"
 	"google.golang.org/adk/artifact/gcsartifact"
 	"google.golang.org/adk/memory"
+	"google.golang.org/adk/plugin"
 	"google.golang.org/adk/runner"
 	"google.golang.org/adk/session"
 	"google.golang.org/adk/session/database"
 	"gorm.io/driver/postgres"
 	"ril.api-ia/internal/agent"
+	"ril.api-ia/internal/agent/plugin/titleplugin"
 	session2 "ril.api-ia/internal/application/service/session"
 	"ril.api-ia/internal/application/usecase"
 	"ril.api-ia/internal/domain/entity"
@@ -95,12 +97,18 @@ func initializeRunner(ctx context.Context, sessionService session.Service, artif
 		log.Fatal("Error initializing RilAgent:", err)
 	}
 	memoryService := memory.InMemoryService()
+	titlePlugin, _ := titleplugin.New(ctx, "title_plugin")
 	runnerClient, err := runner.New(runner.Config{
 		AppName:         os.Getenv("APP_NAME"),
 		Agent:           rilAgent,
 		SessionService:  sessionService,
 		ArtifactService: artifactService,
 		MemoryService:   memoryService,
+		PluginConfig: runner.PluginConfig{
+			Plugins: []*plugin.Plugin{
+				titlePlugin,
+			},
+		},
 	})
 	if err != nil {
 		log.Fatal("Error initializing runner:", err)

@@ -14,7 +14,6 @@ import (
 	"google.golang.org/adk/tool/agenttool"
 	"google.golang.org/adk/tool/functiontool"
 	"google.golang.org/genai"
-	"ril.api-ia/internal/agent/callbacks"
 	"ril.api-ia/internal/agent/subagents"
 	"ril.api-ia/internal/agent/tools"
 )
@@ -193,14 +192,6 @@ func NewRilAgent(ctx context.Context) (agent.Agent, error) {
 			},
 		},
 	}
-	//Get Instruction on cmd/internal/agent/global_instruction.xml
-	//systemInstructionFile, _ := os.Open("cmd/internal/agent/global_instruction.xml")
-	//defer systemInstructionFile.Close()
-	//systemInstructionBytes := make([]byte, 10000)
-	//n, _ := systemInstructionFile.Read(systemInstructionBytes)
-	//systemInstruction := string(systemInstructionBytes[:n])
-
-	// Toolbox tools
 	toolboxClient, err := tbadk.NewToolboxClient(os.Getenv("TOOLBOX_CLIENT_URL"))
 	if err != nil {
 		log.Fatalf("Failed to create MCP Toolbox client: %v", err)
@@ -233,9 +224,6 @@ func NewRilAgent(ctx context.Context) (agent.Agent, error) {
 		Instruction:           SystemInstruction,
 		GenerateContentConfig: contentConfiguration,
 		Model:                 m,
-		AfterModelCallbacks: []llmagent.AfterModelCallback{
-			callbacks.SetTitleSessionBeforeCallback,
-		},
 		Tools: []tool.Tool{
 			toolGenerateDocument,
 			&toolboxTool,
