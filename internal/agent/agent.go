@@ -9,16 +9,16 @@ import (
 	"github.com/googleapis/mcp-toolbox-sdk-go/tbadk"
 	"google.golang.org/adk/agent"
 	"google.golang.org/adk/agent/llmagent"
-	memory2 "google.golang.org/adk/memory"
 	"google.golang.org/adk/model/gemini"
-	"google.golang.org/adk/session"
 	"google.golang.org/adk/tool"
 	"google.golang.org/adk/tool/agenttool"
+	"google.golang.org/adk/tool/functiontool"
 	"google.golang.org/genai"
 	"ril.api-ia/internal/agent/subagents"
+	"ril.api-ia/internal/agent/tools"
 )
 
-const SYSTEM_INSTRUCTION = "" +
+const SystemInstruction = "" +
 	"<ORDEN_PRIORIDAD>\n1. Restricciones y límites éticos\n2. Detección y adaptación de idioma\n3. Identidad y espíritu RIL\n4. Routing y coordinación de herramientas RAG\n5. Formato y estilo de respuesta\n</ORDEN_PRIORIDAD>\n\n" +
 	"<AUDIENCIA_Y_USUARIOS>\nEl usuario está autenticado dentro del Portal RIL. Datos disponibles:\n- Nombre: {user:first_name?}\n- Apellido: {user:last_name?}\n- Área: {user:area?}\n- Sector: {user:sector?}\n- Cargo: {user:charge?}\n- Título del cargo: {user:job_title?}\n- País: {user:country?}\n- Ciudad: {user:city?}\n\nLa comunicación debe ser personalizada y precisa, adaptando las respuestas al cargo y nivel de experticia del usuario.\n</AUDIENCIA_Y_USUARIOS>" +
 	"<IDIOMA_Y_COMUNICACION>\n" +
@@ -173,7 +173,7 @@ const SYSTEM_INSTRUCTION = "" +
 	"5. Representa el espíritu RIL: cercanía, profesionalismo y foco en lo local.\n" +
 	"</CIERRE_DE_INSTRUCCIONES>"
 
-func NewRilAgent(ctx context.Context, memoryService memory2.Service, sessionService session.Service) (agent.Agent, error) {
+func NewRilAgent(ctx context.Context) (agent.Agent, error) {
 	// Overall configuration
 	m, err := gemini.NewModel(ctx, os.Getenv("AGENT_MODEL"), nil)
 	if err != nil {
@@ -192,8 +192,6 @@ func NewRilAgent(ctx context.Context, memoryService memory2.Service, sessionServ
 			},
 		},
 	}
-
-	//Init Toolbox
 	toolboxClient, err := tbadk.NewToolboxClient(os.Getenv("TOOLBOX_CLIENT_URL"))
 	if err != nil {
 		log.Fatalf("Failed to create MCP Toolbox client: %v", err)
@@ -203,11 +201,19 @@ func NewRilAgent(ctx context.Context, memoryService memory2.Service, sessionServ
 	getAllCertificateToolboxTool, _ := toolboxClient.LoadTool("get_all_certificates_active", ctx)
 	getAllQuestionnareActive, _ := toolboxClient.LoadTool("get_all_questionnare_active", ctx)
 	getQuestionnarieQuestionsByIdOrName, _ := toolboxClient.LoadTool("get_questionnarie_questions_by_id_or_name", ctx)
+
+	// Custom tools
+	toolGenerateDocument, _ := functiontool.New(functiontool.Config{
+		Name:        "generate_document",
+		Description: "Genera un documento a partir de un prompt específico. El prompt debe incluir instrucciones claras sobre el formato, la estructura y el contenido esperado del documento. Esta herramienta es ideal para crear informes, resúmenes ejecutivos, propuestas o cualquier otro tipo de documento que requiera una presentación profesional y coherente.",
+	}, tools.GenerateDocumentsToolFunc)
 	if err != nil {
 		log.Fatalf("Failed to load tool: %v", err)
 	}
 
-	ragAgent, err := subagents.NewRagAgent(m)
+	// Subagents
+	ragModel, err := gemini.NewModel(ctx, os.Getenv("AGENT_RAG_MODEL"), nil)
+	ragAgent, err := subagents.NewRagAgent(ragModel)
 	if err != nil {
 		log.Fatalf("Failed to create RAG agent: %v", err)
 	}
@@ -215,23 +221,17 @@ func NewRilAgent(ctx context.Context, memoryService memory2.Service, sessionServ
 	return llmagent.New(llmagent.Config{
 		Name:                  "rilia_agent",
 		Description:           "Eres un asistente especialista en todo lo relacionado al ambito público. Ayudas a los usuarios a encontrar información relevante y precisa sobre estos temas, utilizando un lenguaje claro y accesible.",
-		Instruction:           SYSTEM_INSTRUCTION,
+		Instruction:           SystemInstruction,
 		GenerateContentConfig: contentConfiguration,
 		Model:                 m,
-		AfterModelCallbacks: []llmagent.AfterModelCallback{
-			setTitleOfSession,
-		},
-		AfterAgentCallbacks: []agent.AfterAgentCallback{
-			//addSessionToMemory(sessionService, memoryService),
-		},
 		Tools: []tool.Tool{
-			//memorySearchTool,
+			toolGenerateDocument,
 			&toolboxTool,
 			&getCertificateToolboxTool,
 			&getAllCertificateToolboxTool,
 			&getAllQuestionnareActive,
 			&getQuestionnarieQuestionsByIdOrName,
-			agenttool.New(ragAgent, &agenttool.Config{SkipSummarization: false}),
+			agenttool.New(ragAgent, &agenttool.Config{}),
 		},
 	})
 }

@@ -9,6 +9,7 @@ import (
 	"google.golang.org/genai"
 )
 
+<<<<<<< RD-582-sync-webinarios-casos-inspirarme
 const SYSTEM_INSTRUCTION = "Actúa como un motor de recuperación de información (RAG) especializado en RIL. Tu función es proveer datos crudos y verificados a otro agente de IA.\n\n" +
     "REGLAS DE ORO:\n" +
     "1. FIDELIDAD TOTAL: Responde única y exclusivamente con la información recuperada de las herramientas. Si tras buscar en las herramientas no encuentras NADA relacionado, responde: \"INFORMACIÓN NO LOCALIZADA\".\n" +
@@ -23,13 +24,16 @@ const SYSTEM_INSTRUCTION = "Actúa como un motor de recuperación de informació
     "   - 'web_reinnovacionlocal_index_rag': información institucional de RIL.\n" +
     "   - 'web_+comunidad_index_rag': foros y discusiones de la comunidad.\n\n" +
     "OBJETIVO: Extrae y resume toda la información pertinente del documento encontrado para que el agente superior pueda responder al usuario."
+=======
+const SystemInstruction = "Actúa como un motor de recuperación de información (RAG) especializado en RIL. Tu función es proveer datos crudos y verificados a otro agente de IA.\n\nREGLAS DE ORO:\n1. FIDELIDAD TOTAL: Responde única y exclusivamente con la información recuperada de las herramientas. Si la respuesta no está en las bases de datos, responde: \"INFORMACIÓN NO LOCALIZADA\".\n2. CERO INFERENCIAS: No interpretes, no supongas ni añadidas contexto externo. Prohibido alucinar o generar contenido creativo.\n3. TRAZABILIDAD: Es obligatorio citar la fuente exacta de cada dato (ej: [Fuente: inspire_case_rag]).\n4. FORMATO DE SALIDA: Entrega los resultados de forma estructurada mediante listas numeradas o puntos clave. No uses introducciones, saludos ni despedidas.\n5. SELECCIÓN LÓGICA: Analiza la consulta para usar el Datastore más adecuado (ej: casos de éxito en 'inspire_case_rag', políticas públicas en 'overall_knowledge_rag').\n\nOBJETIVO: Ser un filtro quirúrgico de información. Si los datos son contradictorios, expón ambos citando sus fuentes respectivas."
+>>>>>>> dev
 
 func NewRagAgent(m model.LLM) (agent.Agent, error) {
-	maxRagResults := int32(10) //Verificar si vale la pena modificar por cada datastore
+	maxRagResults := int32(10)
 	return llmagent.New(llmagent.Config{
 		Name:        "rilia_rag_agent",
 		Description: "Agente especializado en búsqueda de información dentro de las bases de conocimiento de RIL (RAG). Su función es responder consultas específicas utilizando exclusivamente la información disponible en las bases de datos, sin generar contenido adicional ni realizar inferencias más allá de los datos encontrados.",
-		Instruction: SYSTEM_INSTRUCTION,
+		Instruction: SystemInstruction,
 		Model:       m,
 		Tools: []tool.Tool{
 			geminitool.New("overall_knowledge_rag", &genai.Tool{

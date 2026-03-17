@@ -15,12 +15,15 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/adk/artifact"
+	"google.golang.org/adk/artifact/gcsartifact"
 	"google.golang.org/adk/memory"
+	"google.golang.org/adk/plugin"
 	"google.golang.org/adk/runner"
 	"google.golang.org/adk/session"
 	"google.golang.org/adk/session/database"
 	"gorm.io/driver/postgres"
 	"ril.api-ia/internal/agent"
+	"ril.api-ia/internal/agent/plugin/titleplugin"
 	session2 "ril.api-ia/internal/application/service/session"
 	"ril.api-ia/internal/application/usecase"
 	"ril.api-ia/internal/domain/entity"
@@ -43,7 +46,7 @@ func main() {
 
 	// Agents service and runners
 	sessionService := initializeSessionService()
-	artifactService := artifact.InMemoryService()
+	artifactService, _ := gcsartifact.NewService(ctx, os.Getenv("ARTIFACT_BUCKET_NAME"))
 	userRepository, eventFeedbackRepository := InitializeRepositories(ctx)
 
 	runn := initializeRunner(ctx, sessionService, artifactService)
@@ -53,7 +56,6 @@ func main() {
 	userUseCase := usecase.NewUserUseCase(ctx, userRepository, rdb)
 	eventFeedbackUseCase := usecase.NewEventFeedbackUseCase(ctx, eventFeedbackRepository)
 	transcribeUseCase := usecase.NewTranscribeUseCase(ctx)
-
 	// HTTP Server and routes
 	router := setupRouter(ctx, sessionUseCase, userUseCase, eventFeedbackUseCase, transcribeUseCase, runn)
 	startServer(router)
@@ -90,18 +92,23 @@ func InitializeRepositories(ctx context.Context) (repository.UserRepository, rep
 }
 
 func initializeRunner(ctx context.Context, sessionService session.Service, artifactService artifact.Service) *runner.Runner {
-	//TODO: change this in the future when VERTEX AI MEMORY BANK its available
-	rilAgent, err := agent.NewRilAgent(ctx, nil, sessionService)
+	rilAgent, err := agent.NewRilAgent(ctx)
 	if err != nil {
 		log.Fatal("Error initializing RilAgent:", err)
 	}
 	memoryService := memory.InMemoryService()
+	titlePlugin, _ := titleplugin.New(ctx, "title_plugin")
 	runnerClient, err := runner.New(runner.Config{
 		AppName:         os.Getenv("APP_NAME"),
 		Agent:           rilAgent,
 		SessionService:  sessionService,
 		ArtifactService: artifactService,
 		MemoryService:   memoryService,
+		PluginConfig: runner.PluginConfig{
+			Plugins: []*plugin.Plugin{
+				titlePlugin,
+			},
+		},
 	})
 	if err != nil {
 		log.Fatal("Error initializing runner:", err)
