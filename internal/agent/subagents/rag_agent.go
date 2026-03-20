@@ -44,7 +44,7 @@ func NewRagAgent(m model.LLM) (agent.Agent, error) {
 				Retrieval: &genai.Retrieval{
 					VertexAISearch: &genai.VertexAISearch{
 						MaxResults: &maxRagResults,
-						Datastore: "projects/ril-admin/locations/global/collections/default_collection/dataStores/ril-inspirarme-casos_1773239632591_vista_inspirarme_casos",
+						Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/ril-inspirarme-casos_1773239632591_vista_inspirarme_casos",
 					},
 				},
 			}),
