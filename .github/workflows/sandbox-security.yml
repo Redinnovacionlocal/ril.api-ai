@@ -51,6 +51,6 @@ jobs:
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v1
         with:
-          service: ril-aiapiservice-sa1-RD-618-subagente-seguridad
+          service: go-ai-app-dev
           region: southamerica-east1
           image: us-docker.pkg.dev/ril-admin/ril-ai-service-repository/go-ai-app-RD-618-subagente-seguridad:${{ github.sha }}
