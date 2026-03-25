@@ -13,6 +13,7 @@ WORKDIR /app
 COPY --from=builder /app/sandbox /app/sandbox
 
 ENV PORT=8080
+ENV APP_URL=https://go-ai-app-dev-216087263834.southamerica-east1.run.app
 EXPOSE 8080
 
 USER nonroot:nonroot
