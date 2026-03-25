@@ -1,4 +1,4 @@
-FROM golang:1.23-alpine AS builder
+FROM golang:1.25-alpine AS builder
 
 WORKDIR /app
 
@@ -16,5 +16,4 @@ ENV PORT=8080
 EXPOSE 8080
 
 USER nonroot:nonroot
-
 CMD ["/app/sandbox", "web", "-port", "8080", "api", "webui", "--api_server_address", "https://go-ai-app-dev-216087263834.southamerica-east1.run.app/api"]
