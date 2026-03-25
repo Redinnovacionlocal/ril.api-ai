@@ -16,4 +16,4 @@ ENV PORT=8080
 EXPOSE 8080
 
 USER nonroot:nonroot
-CMD ["/app/sandbox"]
+CMD ["/app/sandbox", "web", "webui"]
