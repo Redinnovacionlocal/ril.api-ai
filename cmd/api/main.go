@@ -56,6 +56,7 @@ func main() {
 	userUseCase := usecase.NewUserUseCase(ctx, userRepository, rdb)
 	eventFeedbackUseCase := usecase.NewEventFeedbackUseCase(ctx, eventFeedbackRepository)
 	transcribeUseCase := usecase.NewTranscribeUseCase(ctx)
+
 	// HTTP Server and routes
 	router := setupRouter(ctx, sessionUseCase, userUseCase, eventFeedbackUseCase, transcribeUseCase, runn)
 	startServer(router)
