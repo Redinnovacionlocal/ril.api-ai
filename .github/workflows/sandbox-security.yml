@@ -44,7 +44,7 @@ jobs:
 
       - name: Build and Push Docker Image to Artifact Registry
         run: |
-          IMAGE_NAME="us-docker.pkg.dev/ril-admin/ril-ai-service-repository/go-ai-app-RD-618-subagente-seguridad:${{ github.sha }}"
+          IMAGE_NAME="us-docker.pkg.dev/ril-admin/ril-ai-service-repository/go-ai-app-dev:${{ github.sha }}"
           docker build -f Dockerfile.sandbox -t $IMAGE_NAME .
           docker push $IMAGE_NAME
 
@@ -53,4 +53,4 @@ jobs:
         with:
           service: go-ai-app-dev
           region: southamerica-east1
-          image: us-docker.pkg.dev/ril-admin/ril-ai-service-repository/go-ai-app-RD-618-subagente-seguridad:${{ github.sha }}
+          image: us-docker.pkg.dev/ril-admin/ril-ai-service-repository/go-ai-app-dev:${{ github.sha }}
