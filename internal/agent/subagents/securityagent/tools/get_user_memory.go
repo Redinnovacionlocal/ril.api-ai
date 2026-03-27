@@ -1,6 +1,7 @@
 package tools
 
 import (
+	"database/sql"
 	"os"
 
 	"github.com/jmoiron/sqlx"
@@ -23,7 +24,8 @@ func GetUserMemoryToolFunc(ctx tool.Context, args GetUserMemoryToolArgs) (map[st
 	// return rows
 	var memories []map[string]any
 	for rows.Next() {
-		var id, recordType, adQuestionId, odmId string
+		var id, recordType string
+		var adQuestionId, odmId sql.NullString
 		var payload []byte
 		var createdAt string
 		if err := rows.Scan(&id, &recordType, &adQuestionId, &odmId, &payload, &createdAt); err != nil {
@@ -32,8 +34,8 @@ func GetUserMemoryToolFunc(ctx tool.Context, args GetUserMemoryToolArgs) (map[st
 		memories = append(memories, map[string]any{
 			"id":             id,
 			"record_type":    recordType,
-			"ad_question_id": adQuestionId,
-			"odm_id":         odmId,
+			"ad_question_id": adQuestionId.String,
+			"odm_id":         odmId.String,
 			"payload":        payload,
 			"created_at":     createdAt,
 		})

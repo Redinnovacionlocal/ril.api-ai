@@ -1,0 +1,2947 @@
+{
+  "metadata": {
+    "version": "2.0",
+    "generado": "2026-03-26T00:54:16.815844",
+    "script": "sync_buendato_v2.py",
+    "linea_accion": "Seguridad Ciudadana",
+    "total_preguntas": 58,
+    "completas": 22,
+    "provisionales": 36,
+    "por_definir": 0,
+    "cobertura": {
+      "con_tags": 58,
+      "con_odm": 46,
+      "con_criterios_calidad": 58,
+      "con_senales_alerta": 57,
+      "con_fuentes_rag": 58
+    }
+  },
+  "preguntas": [
+    {
+      "id": "P1",
+      "numero": 1,
+      "dimension": "Organización",
+      "pregunta": "¿El gobierno local cuenta en su estructura orgánica con un área específica para el abordaje de la seguridad ciudadana?",
+      "opciones": "No / Si, con rango de Dirección o Subsecretaría dependiente de otra área (Gobierno o similar) / Si, con rango de Secretaría propia",
+      "doc_respaldatoria": "Organigrama y/o designación",
+      "criterio_minimo_cert": "SÍ",
+      "formatos_validos": [
+        "Organigrama oficial publicado en web",
+        "Decreto de creación del área",
+        "Resolución del intendente",
+        "Captura de la web institucional mostrando el área",
+        "Acta del Concejo aprobando estructura orgánica"
+      ],
+      "que_hace_bueno": [
+        "El área tiene funciones específicas de seguridad ciudadana definidas en normativa",
+        "Tiene personal asignado con dedicación exclusiva o dedicación de tiempo",
+        "Está vigente en el organigrama actual (no de gestiones anteriores)",
+        "El rango permite interlocución directa con policía provincial y otras áreas municipales"
+      ],
+      "senales_alerta": [
+        "Área que solo existe en papel sin equipo real funcionando",
+        "\"Seguridad\" es un anexo de otra área sin funciones propias diferenciadas",
+        "Organigrama desactualizado de gestiones anteriores",
+        "Responsable con 5+ áreas simultáneamente",
+        "Sin presupuesto operativo identificable"
+      ],
+      "como_ayuda_agente": [
+        "Mostrar organigramas de ciudades certificadas en el programa",
+        "Sugerir modelo de decreto de creación con atribuciones claras",
+        "Explicar ventajas estratégicas de rango Secretaría vs. Dirección",
+        "Conectar con ciudades de similar población para aprender modelos"
+      ],
+      "tags": [
+        "estructura organizacional",
+        "normativa",
+        "presupuesto"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "estructura organizacional",
+          "normativa",
+          "presupuesto"
+        ]
+      },
+      "odm_ids": [
+        "OdM_01"
+      ],
+      "estado": "Completo"
+    },
+    {
+      "id": "P2",
+      "numero": 2,
+      "dimension": "Organización",
+      "pregunta": "El/la funcionario/a  a cargo del área de seguridad municipal: ¿es un/a profesional especializado en la materia?",
+      "opciones": "No / Es policía retirado / Es civil con formación en seguridad",
+      "doc_respaldatoria": "Designación/CV funcionario/ título/hoja de servicios",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Documento formal (decreto, resolución, ordenanza)",
+        "Documento de CV. Fotos o pdf de título u hoja de servició"
+      ],
+      "que_hace_bueno": [
+        "Tiene designación formal documentada (decreto/resolución)",
+        "Profesional con formación verificable en seguridad ciudadana",
+        "Experiencia previa en gestión de seguridad"
+      ],
+      "senales_alerta": [
+        "Sin designación formal actualizada",
+        "Funcionario sin formación específica comprobable",
+        "Permanencia inestable sin contrato formal"
+      ],
+      "como_ayuda_agente": [
+        "Mostrar cómo otras ciudades definieron requisitos en ordenanzas",
+        "Ofrecer templates de designación con requisitos de formación",
+        "Sugerir caminos de profesionalización (cursos, certificaciones)",
+        "Conectar con red de referentes de ciudades del programa"
+      ],
+      "tags": [
+        "estructura organizacional",
+        "formación",
+        "capital humano"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "estructura organizacional",
+          "formación",
+          "capital humano"
+        ]
+      },
+      "odm_ids": [],
+      "estado": "Completo"
+    },
+    {
+      "id": "P3",
+      "numero": 3,
+      "dimension": "Organización",
+      "pregunta": "¿Desde el gobierno local, se promueven instancias de formación para el equipo técnico-político a cargo de la seguridad?",
+      "opciones": "No / Ocasionalmente / Frecuentemente",
+      "doc_respaldatoria": "Plan o programa de formación o capacitación",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Plan de capacitación formal",
+        "Cronograma de actividades realizadas",
+        "Registro de asistencia",
+        "Certificados emitidos",
+        "Material de capacitación (presentaciones, folletos)",
+        "Publicaciones en redes/web"
+      ],
+      "que_hace_bueno": [
+        "Plan de capacitación con contenidos específicos en seguridad ciudadana",
+        "Se realizan al menos 2+ actividades anuales con registros",
+        "Participan funcionarios y técnicos de distintas áreas involucradas",
+        "Evaluación de participantes y aplicación de aprendizajes documentada"
+      ],
+      "senales_alerta": [
+        "Una charla aislada contada como \"capacitación sistemática\"",
+        "No participa ni el 50% del equipo",
+        "Contenidos genéricos de \"seguridad\" sin aplicación local",
+        "Sin registros, certificados o seguimiento de asistencia",
+        "Contenidos de tránsito y seguridad vial"
+      ],
+      "como_ayuda_agente": [
+        "Ofrecer modelos de programa anual de capacitación adaptado a municipios",
+        "Sugerir contenidos según problemáticas locales diagnosticadas",
+        "Template de planificación con responsables y cronograma",
+        "Mostrar cómo medir impacto en decisiones posteriores"
+      ],
+      "tags": [
+        "formación",
+        "capacitación",
+        "capital humano"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "formación",
+          "capacitación",
+          "capital humano"
+        ]
+      },
+      "odm_ids": [
+        "OdM_02"
+      ],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P4",
+      "numero": 4,
+      "dimension": "Organización",
+      "pregunta": "¿El presupuesto municipal tiene asignada una partida específica para la gestión de la seguridad ciudadana?",
+      "opciones": "No / Si, pero sólo para gastos operativos (funcionamiento y personal) / Si, para gastos operativos y proyectos de prevención.",
+      "doc_respaldatoria": "Informe de ejecución presupuestaria",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Presupuesto anual aprobado por Concejo Deliberante",
+        "Informe de ejecución presupuestaria",
+        "Partida presupuestaria identificada",
+        "Planilla de asignación de recursos",
+        "Captura del sistema presupuestario"
+      ],
+      "que_hace_bueno": [
+        "Partida presupuestaria específica y diferenciada (código contable único)",
+        "Ejecución presupuestaria mayor al 70% anual",
+        "Incluye gastos de funcionamiento, personal e inversión"
+      ],
+      "senales_alerta": [
+        "Presupuesto genérico sin partida diferenciada de seguridad",
+        "Ejecución menor al 50% año a año",
+        "Solo gastos de funcionamiento, sin inversión en prevención",
+        "No se puede rastrear montos asignados a seguridad ciudadana"
+      ],
+      "como_ayuda_agente": [
+        "Mostrar ejemplos de partidas presupuestarias de ciudades similares",
+        "Sugerir estructura de presupuesto por programa de seguridad",
+        "Ayudar a calcular inversión mínima según población y diagnóstico",
+        "Acompañar presentación ante Concejo Deliberante"
+      ],
+      "tags": [
+        "presupuesto",
+        "planificación",
+        "normativa"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "presupuesto",
+          "planificación",
+          "normativa"
+        ]
+      },
+      "odm_ids": [
+        "OdM_03",
+        "OdM_05",
+        "OdM_06"
+      ],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P5",
+      "numero": 5,
+      "dimension": "Organización",
+      "pregunta": "¿El gobierno local ha recibido financiamiento (en dinero, asistencia o aporte de recursos estratégicos) provenientes de otras fuentes tales como empresas y/o organismos públicos o de cooperación internacional?",
+      "opciones": "No / Hemos solicitado pero no lo recibimos / Sí, recibimos fondos de otras fuentes",
+      "doc_respaldatoria": "No penaliza ni suma, solo dato",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Presupuesto anual aprobado por Concejo Deliberante",
+        "Informe de ejecución presupuestaria",
+        "Partida presupuestaria identificada",
+        "Planilla de asignación de recursos",
+        "Captura del sistema presupuestario",
+        "Buscar en qué formato se efectiviza una alianza p-p (convenio, etc) y un financiamiento internacional"
+      ],
+      "que_hace_bueno": [
+        "Acceso a fondos de organismos de cooperación internacional",
+        "Convenios vigentes con entidades públicas/privadas para inversión",
+        "Documentación clara del origen y uso de recursos externos",
+        "Cofinanciamiento para proyectos estratégicos identificados"
+      ],
+      "senales_alerta": [
+        "Dependencia exclusiva de presupuesto municipal",
+        "Solicitudes de fondos rechazadas o ignoradas",
+        "Desconocimiento de líneas de financiamiento disponibles",
+        "Imposibilidad de acceder a recursos por trámites complejos"
+      ],
+      "como_ayuda_agente": [
+        "Mapear líneas de cooperación internacional disponibles para seguridad ciudadana",
+        "Ayudar a identificar y contactar potenciales cofinanciadores públicos/privados",
+        "Sugerir proyectos que faciliten acceso a fondos externos",
+        "Acompañar gestión de convenios"
+      ],
+      "tags": [
+        "presupuesto",
+        "financiamiento",
+        "gobernanza"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "presupuesto",
+          "financiamiento",
+          "gobernanza"
+        ]
+      },
+      "odm_ids": [
+        "OdM_04"
+      ],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P6",
+      "numero": 6,
+      "dimension": "Organización",
+      "pregunta": "¿El gobierno local cuenta con tasa de seguridad municipal o similar?",
+      "opciones": "No / Si",
+      "doc_respaldatoria": "No penaliza ni suma, solo dato",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Documento formal (decreto, resolución, ordenanza)",
+        "Informe o reporte escrito",
+        "Captura de pantalla o registro digital",
+        "Planilla o base de datos",
+        "Registro fotográfico o audiovisual"
+      ],
+      "que_hace_bueno": [
+        "Protocolo formal aprobado por ambas jurisdicciones (municipio-provincia)",
+        "Define claramente autoridades responsables de coordinación",
+        "Establece canales de comunicación operativa con policía",
+        "Incluye instancias de reunión periódica documentadas"
+      ],
+      "senales_alerta": [
+        "Acuerdos verbales sin documento normativo que los respalde",
+        "Coordinación solo ante emergencias puntuales",
+        "Desconexión operativa entre niveles de gobierno",
+        "Cambios de autoridades rompen continuidad de coordinación"
+      ],
+      "como_ayuda_agente": [
+        "Presentar modelos de protocolos de ciudades certificadas",
+        "Sugerir contenidos mínimos del protocolo según realidad provincial",
+        "Acompañar negociación con autoridades policiales",
+        "Ayudar a documentar acuerdos en formato vinculante"
+      ],
+      "tags": [
+        "presupuesto",
+        "normativa"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "presupuesto",
+          "normativa"
+        ]
+      },
+      "odm_ids": [],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P7",
+      "numero": 7,
+      "dimension": "Organización",
+      "pregunta": "¿El gobierno local está adherido a la última Ley de seguridad pública/seguridad ciudadana de su provincia?",
+      "opciones": "No / Si",
+      "doc_respaldatoria": "Ordenanza",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Documento formal (decreto, resolución, ordenanza)"
+      ],
+      "que_hace_bueno": [
+        "Documento aprobado formalmente con diagnóstico basado en datos",
+        "Define ejes, objetivos específicos y acciones concretas",
+        "Incluye indicadores medibles con metas por año",
+        "Presupuesto asignado e identificación de responsables"
+      ],
+      "senales_alerta": [
+        "Listado de deseos sin diagnóstico fundamentado",
+        "Objetivos vagos (\"mejorar la seguridad\") sin acciones específicas",
+        "Sin indicadores cuantitativos ni forma de medir",
+        "Diseñado por una sola persona sin participación interárea"
+      ],
+      "como_ayuda_agente": [
+        "Acompañar proceso de diagnóstico participativo con datos",
+        "Sugerir estructura: ejes estratégicos, objetivos, acciones, indicadores",
+        "Template de plan adaptable a municipios de distintos tamaños",
+        "Mostrar planes de otras ciudades como referencia"
+      ],
+      "tags": [
+        "normativa",
+        "gobernanza provincial"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "normativa",
+          "gobernanza provincial"
+        ]
+      },
+      "odm_ids": [
+        "OdM_09"
+      ],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P8",
+      "numero": 8,
+      "dimension": "Organización",
+      "pregunta": "¿El gobierno local cuenta con una normativa propia  (ordenanza/decreto) que delimite su alcance y responsabilidades en materia de seguridad ciudadana?",
+      "opciones": "No / Si",
+      "doc_respaldatoria": "Ordenanza",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Ordenanza del Concejo Deliberante",
+        "Decreto del Poder Ejecutivo",
+        "Artículo de la Carta Orgánica municipal"
+      ],
+      "que_hace_bueno": [
+        "Código aprobado por Concejo Deliberante vigente (máximo 5 años)",
+        "Define explícitamente qué puede/no puede hacer el municipio",
+        "Distingue competencias municipales de policiales",
+        "Incorpora mecanismos de resolución alternativa de conflictos"
+      ],
+      "senales_alerta": [
+        "Normativa genérica sin especificar alcances de seguridad ciudadana",
+        "Ordenanza de más de 10 años sin actualizar",
+        "Contradicción con normativa provincial vigente",
+        "Solo existe como borrador nunca aprobado por Concejo",
+        "Se concentra en inspectoría, seguridad vial, tránsito"
+      ],
+      "como_ayuda_agente": [
+        "Presentar modelos de códigos de ciudades certificadas",
+        "Sugerir inclusión de mecanismos de mediación comunitaria",
+        "Template con estructura clara: autoridades, competencias, procedimientos",
+        "Acompañar trámite de aprobación ante Concejo Deliberante"
+      ],
+      "tags": [
+        "normativa",
+        "estructura organizacional"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "normativa",
+          "estructura organizacional"
+        ]
+      },
+      "odm_ids": [
+        "OdM_07",
+        "OdM_09"
+      ],
+      "estado": "Completo"
+    },
+    {
+      "id": "P9",
+      "numero": 9,
+      "dimension": "Organización",
+      "pregunta": "El código de faltas municipal: ¿es una norma tradicional orientada a la inspección, control y sanción o es una norma moderna que incorpora también la prevención y resolución alternativa de controversias vecinales?",
+      "opciones": "Es un código tradicional / Es un código moderno",
+      "doc_respaldatoria": "Ordenanza",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Ordenanza del Concejo Deliberante"
+      ],
+      "que_hace_bueno": [
+        "Unifica normativa de convivencia en documento único",
+        "Incorpora mecanismos de resolución alternativa (mediación, tareas comunitarias)",
+        "Contempla espacios de participación ciudadana en sanciones",
+        "Lenguaje claro con enfoque pedagógico sobre derechos y deberes",
+        "Alineado con normativa provincial y nacional de DDHH"
+      ],
+      "senales_alerta": [
+        "Código que se enfoca solo en control y sanción de faltas",
+        "Orienta principalmente a seguridad vial e inspecciones",
+        "Lenguaje punitivo sin perspectiva preventiva",
+        "No incorpora mecanismos restaurativos",
+        "Desconectado de políticas municipales de inclusión social"
+      ],
+      "como_ayuda_agente": [
+        "Mostrar códigos \"modelo\" de ciudades con enfoque participativo",
+        "Sugerir redacción con lenguaje accesible para ciudadanía",
+        "Acompañar incorporación de instancias de participación",
+        "Ayudar a alinear con normativa provincial actualizando"
+      ],
+      "tags": [
+        "normativa",
+        "convivencia",
+        "prevención social"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "normativa",
+          "convivencia",
+          "prevención social"
+        ]
+      },
+      "odm_ids": [
+        "OdM_08"
+      ],
+      "estado": "Completo"
+    },
+    {
+      "id": "P10",
+      "numero": 10,
+      "dimension": "Planificación y seguimiento",
+      "pregunta": "¿La seguridad ciudadana es un eje estratégico dentro del plan general de gestión del gobierno local?",
+      "opciones": "No / Si",
+      "doc_respaldatoria": "Plan de Gestión. Publicación",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Discursos o conferencias del intendente/a",
+        "Resolución municipal",
+        "Plan de gobierno"
+      ],
+      "que_hace_bueno": [
+        "Seguridad ciudadana mencionada recurrentemente en discursos del ejecutivo",
+        "Figura en documentos de gestión municipal actualizados",
+        "Tiene acciones/proyectos/programas para abordar ese eje de gestión.",
+        "Tiene un área de seguridad para llevar adelante las acciones"
+      ],
+      "senales_alerta": [
+        "Seguridad como tema marginal o ausente en mensajes públicos",
+        "No aparece en planes de gestión municipal",
+        "Invisibilidad política de la temática",
+        "No hay un área a cargo"
+      ],
+      "como_ayuda_agente": [
+        "Ayudar a visibilizar seguridad ciudadana en comunicaciones públicas",
+        "Acompañar posicionamiento como tema central de gestión",
+        "Conectar con espacios de coordinación provincial"
+      ],
+      "tags": [
+        "planificación estratégica",
+        "diagnóstico"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "planificación estratégica",
+          "diagnóstico"
+        ]
+      },
+      "odm_ids": [],
+      "estado": "Completo"
+    },
+    {
+      "id": "P11",
+      "numero": 11,
+      "dimension": "Planificación y seguimiento",
+      "pregunta": "¿El gobierno local cuenta con un plan específico de seguridad local?  (escrito/publico/formalizado)",
+      "opciones": "No / Si",
+      "doc_respaldatoria": "Plan de Gestión",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Documento formal aprobado por decreto",
+        "PDF publicado en web",
+        "Documento Word en borrador avanzado",
+        "Capítulo dentro del plan de gestión general",
+        "PPT usada como plan operativo"
+      ],
+      "que_hace_bueno": [
+        "Diagnóstico documentado basado en datos cuantitativos y cualitativos",
+        "Analiza factores de riesgo según problemáticas locales",
+        "Identifica zonas críticas, poblaciones vulnerables, actores clave",
+        "Actualizado en último año y utilizado para planificación"
+      ],
+      "senales_alerta": [
+        "Solo percepciones locales sin datos sistemáticos",
+        "Diagnóstico de gestión anterior desactualizado",
+        "Copia de diagnóstico de otra municipalidad sin adaptar",
+        "Información dispersa, no sistematizada en documento único"
+      ],
+      "como_ayuda_agente": [
+        "Acompañar proceso de recolección de datos locales",
+        "Template de diagnóstico participativo con variables por problemática",
+        "Mostrar herramientas de análisis geoespacial de delitos",
+        "Conectar con fuentes de datos públicas disponibles"
+      ],
+      "tags": [
+        "planificación estratégica",
+        "normativa"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "planificación estratégica",
+          "normativa"
+        ]
+      },
+      "odm_ids": [
+        "OdM_10",
+        "OdM_12"
+      ],
+      "estado": "Completo"
+    },
+    {
+      "id": "P12",
+      "numero": 12,
+      "dimension": "Planificación y seguimiento",
+      "pregunta": "¿Dicho plan es elaborado en conjunto entre el área de seguridad y las demás secretarías municipales vinculadas a la gestión de la conflictividad? (secretaría de desarrollo social, educación, salud, espacio público, entre otras).\nAclaración: si el plan no ha sido elaborado marque no",
+      "opciones": "No, lo elabora principalmente el área de seguridad / Si, se elabora en conjunto con todas las áreas involucradas",
+      "doc_respaldatoria": "Plan de Gestión",
+      "criterio_minimo_cert": "SÍ",
+      "formatos_validos": [
+        "Documento formal aprobado por decreto",
+        "PDF publicado en web",
+        "Documento Word en borrador avanzado",
+        "Capítulo dentro del plan de gestión general",
+        "PPT usada como plan operativo"
+      ],
+      "que_hace_bueno": [
+        "Plan diseñado con participación de salud, educación, desarrollo social, gobierno",
+        "Incluye responsables interáreas con compromisos formales",
+        "Establece instancias de coordinación periódica documentadas",
+        "Reconoce interdependencia entre áreas en objetivos comunes"
+      ],
+      "senales_alerta": [
+        "Plan diseñado unilateralmente por área de seguridad",
+        "Otras áreas se enteran del plan pero no participaron",
+        "Responsables puntuales sin coordinación operativa",
+        "Abordaje fragmentado sin visión de complejidad"
+      ],
+      "como_ayuda_agente": [
+        "Acompañar convocatoria a áreas clave para participación",
+        "Facilitar mesas de trabajo para definición conjunta de objetivos",
+        "Template de plan con espacios de coordinación interárea",
+        "Ayudar a sistematizar acuerdos en documentos vinculantes"
+      ],
+      "tags": [
+        "planificación estratégica",
+        "gobernanza interárea"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "planificación estratégica",
+          "gobernanza interárea"
+        ]
+      },
+      "odm_ids": [],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P13",
+      "numero": 13,
+      "dimension": "Planificación y seguimiento",
+      "pregunta": "¿Dicho plan fue diseñado en función a un diagnóstico previo que contemple entre otros elementos los factores socio-delictuales de los habitantes, el perfil urbanístico del territorio, la\ndinámica delictual y las «zonas calientes» así como las principales demandas y percepciones de la ciudadanía sobre el delito y la violencia en la ciudad?\nAclaración: si el plan no ha sido elaborado marque no",
+      "opciones": "No / Si",
+      "doc_respaldatoria": "Informe diagnóstico",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Informe de encuesta/relevamiento propio",
+        "Estudio de consultora externa",
+        "Encuesta online (Google Forms)",
+        "Datos de aplicación o plataforma digital",
+        "Informe dentro de medición más amplia"
+      ],
+      "que_hace_bueno": [
+        "Metodología definida y documentada (encuesta, grupos focales, consultas)",
+        "Muestra representativa intencional de distintos sectores",
+        "Realizado más de una vez para identificar cambios",
+        "Resultados sistematizados y utilizados en decisiones posteriores",
+        "Integral: que identifique problemas securitarios, factores de riesgo, factores de protección."
+      ],
+      "senales_alerta": [
+        "Consulta informal sin metodología establecida",
+        "Se realizó una única vez hace más de 3 años",
+        "Participación sesgada (siempre mismos actores)",
+        "Datos no tabulados ni sistematizados"
+      ],
+      "como_ayuda_agente": [
+        "Template de metodología participativa para municipios chicos",
+        "Sugerir herramientas gratuitas (Google Forms, Ushahidi, Konceptos)",
+        "Acompañar sistematización de resultados",
+        "Mostrar cómo lo hicieron otras ciudades del programa",
+        "Guias para hacer diagnósticos"
+      ],
+      "tags": [
+        "diagnóstico",
+        "planificación estratégica",
+        "datos"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "diagnóstico",
+          "planificación estratégica",
+          "datos"
+        ]
+      },
+      "odm_ids": [
+        "OdM_10"
+      ],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P14",
+      "numero": 14,
+      "dimension": "Planificación y seguimiento",
+      "pregunta": "¿Dicho plan cuenta con objetivos, indicadores y metas?\nAclaración: si el plan no ha sido elaborado marque no",
+      "opciones": "No / Si",
+      "doc_respaldatoria": "Documento de objetivos y metas",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Documento formal (decreto, resolución, ordenanza)",
+        "Informe o reporte escrito",
+        "Captura de pantalla o registro digital",
+        "Planilla o base de datos",
+        "Registro fotográfico o audiovisual"
+      ],
+      "que_hace_bueno": [
+        "Creada por acto administrativo vigente (decreto, ordenanza)",
+        "Funciona operativamente con reuniones periódicas documentadas",
+        "Conocida y reconocida por actores municipales y policiales",
+        "Se mantiene activa y se adapta a nuevas necesidades"
+      ],
+      "senales_alerta": [
+        "Existe solo en papel sin operatividad real",
+        "Desactualizada de gestiones anteriores",
+        "Solo la conoce quien la creó",
+        "Se ha dejado de usar sin actualización"
+      ],
+      "como_ayuda_agente": [
+        "Presentar modelos de sistemas de ciudades certificadas",
+        "Sugerir cronograma de funcionamiento (reuniones mensuales/bimestrales)",
+        "Template de minuta de reuniones",
+        "Ayudar a visibilizar avances para mantener continuidad política"
+      ],
+      "tags": [
+        "planificación estratégica",
+        "indicadores",
+        "monitoreo"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "planificación estratégica",
+          "indicadores",
+          "monitoreo"
+        ]
+      },
+      "odm_ids": [
+        "OdM_11",
+        "OdM_14",
+        "OdM_20"
+      ],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P15",
+      "numero": 15,
+      "dimension": "Planificación y seguimiento",
+      "pregunta": "¿Realizan actividades de monitoreo a los programas y/o proyectos de seguridad local?",
+      "opciones": "No / Si, pero sin un tablero de gestión / Si, a través de un tablero de gestión",
+      "doc_respaldatoria": "Reporte de seguimiento",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Tablero en Excel/Google Sheets",
+        "Dashboard digital (PowerBI, Data Studio)",
+        "Reportes periódicos en Word/PDF",
+        "Minutas de reuniones con datos",
+        "Planilla simple de avance de metas"
+      ],
+      "que_hace_bueno": [
+        "Tablero actualizado periódicamente (mensual o trimestral)",
+        "Incluye indicadores cuantitativos medibles",
+        "Se utiliza activamente para toma de decisiones",
+        "Accesible a autoridades, técnicos y cuando es público, a ciudadanía"
+      ],
+      "senales_alerta": [
+        "Tablero armado una vez y nunca actualizado",
+        "Solo indicadores cualitativos (\"avanzamos bien\")",
+        "Nadie lo consulta ni lo usa para decidir",
+        "Indicadores imposibles de medir o verificar"
+      ],
+      "como_ayuda_agente": [
+        "Template de tablero en Excel adaptable a municipios",
+        "Mostrar dashboards de otras ciudades (PowerBI, Google Data Studio)",
+        "Acompañar definición de indicadores clave",
+        "Ayudar a establecer responsabilidad de actualización"
+      ],
+      "tags": [
+        "monitoreo",
+        "indicadores",
+        "evaluación"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "monitoreo",
+          "indicadores",
+          "evaluación"
+        ]
+      },
+      "odm_ids": [
+        "OdM_13",
+        "OdM_16",
+        "OdM_18"
+      ],
+      "estado": "Completo"
+    },
+    {
+      "id": "P16",
+      "numero": 16,
+      "dimension": "Planificación y seguimiento",
+      "pregunta": "¿Realizan evaluaciones de los proyectos de seguridad?",
+      "opciones": "No / Si",
+      "doc_respaldatoria": "Informe de evaluación",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Tablero en Excel/Google Sheets",
+        "Dashboard digital (PowerBI, Data Studio)",
+        "Reportes periódicos en Word/PDF",
+        "Minutas de reuniones con datos",
+        "Planilla simple de avance de metas"
+      ],
+      "que_hace_bueno": [
+        "Reporte periódico documentado (anual como mínimo)",
+        "Analiza avance en indicadores versus metas propuestas",
+        "Identifica cambios respecto a diagnóstico inicial",
+        "Utilizado para ajustar acciones siguiente período"
+      ],
+      "senales_alerta": [
+        "Reportes informales o inexistentes",
+        "Solo datos que lucen bien, sin autocrítica",
+        "Desconexión entre reporte y ejecución real",
+        "No hay mecanismos para ajustar en función de resultados"
+      ],
+      "como_ayuda_agente": [
+        "Template de reporte anual de seguridad ciudadana",
+        "Mostrar cómo lo hacen otras ciudades del programa",
+        "Acompañar sistematización de datos para reportes",
+        "Ayudar a comunicar resultados a ciudadanía"
+      ],
+      "tags": [
+        "evaluación",
+        "monitoreo",
+        "rendición de cuentas"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "evaluación",
+          "monitoreo",
+          "rendición de cuentas"
+        ]
+      },
+      "odm_ids": [
+        "OdM_15",
+        "OdM_19"
+      ],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P17",
+      "numero": 17,
+      "dimension": "Planificación y seguimiento",
+      "pregunta": "¿Realizan rendición de cuentas de los resultados del plan local de seguridad ante la ciudadanía?",
+      "opciones": "Nunca / Ocasionalmente / Frecuentemente",
+      "doc_respaldatoria": "Informes publicados, pág web, nota periódico, nota diario local",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Informe anual publicado",
+        "Página web con resultados",
+        "Nota en diario/medio local",
+        "Presentación ante Concejo Deliberante",
+        "Audiencia pública de rendición"
+      ],
+      "que_hace_bueno": [
+        "Realizada con periodicidad definida (anual como mínimo)",
+        "Presenta datos cuantitativos y cualitativos concretos",
+        "Accesible para ciudadanía común (lenguaje, formato)",
+        "Incluye avance en metas y cambios versus período anterior"
+      ],
+      "senales_alerta": [
+        "Se hizo una vez y no se repitió",
+        "Solo presenta datos positivos sin información de dificultades",
+        "Formato inaccesible (jerga técnica, tablas complejas)",
+        "No incluye indicadores ni datos concretos"
+      ],
+      "como_ayuda_agente": [
+        "Template de informe de rendición de cuentas con ejemplos",
+        "Sugerir medios de divulgación accesibles (web, redes, asambleas)",
+        "Mostrar cómo presentan otras ciudades certificadas",
+        "Acompañar sesión pública de presentación"
+      ],
+      "tags": [
+        "rendición de cuentas",
+        "comunicación",
+        "transparencia"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "rendición de cuentas",
+          "comunicación",
+          "transparencia"
+        ]
+      },
+      "odm_ids": [
+        "OdM_17"
+      ],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P18",
+      "numero": 18,
+      "dimension": "Gobernanza y participación ciudadana",
+      "pregunta": "¿Participa el municipio de alguna instancia de coordinación de la política de seguridad local con la Provincia? (ej.  Mesa conjunta con autoridades ministeriales, judiciales y policiales provinciales)",
+      "opciones": "No / Si, pero se reúne ante eventualidades / Si, existe un espacio institucionalizado con encuentros frecuentes",
+      "doc_respaldatoria": "Informes publicados, Notas periodísticas / acta del área si existe una mesa",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Minutas de reuniones",
+        "Ordenanza o decreto del intendente con institucionalización de una Mesa de trabajo",
+        "Políticas delineadas en conjunto municipio-provincia",
+        "Convenios interinstitucionales",
+        "Notas periodisticas de medios oficiales, publciadas",
+        "Informes internos municipales de gestión donde se reporte la actividad de la mesa para todo el gabinete / Comunicaciones oficiales",
+        "Calendario o plan de trabajo"
+      ],
+      "que_hace_bueno": [
+        "El municipio accede a información policial y judicial que de otro modo no tiene: estadísticas de delito, causas en trámite, operativos planificados",
+        "Permite alinear recursos: evita duplicar esfuerzos o que municipio y provincia trabajen en sentidos opuestos",
+        "Abre canales para gestionar problemas concretos: solicitar más presencia policial, coordinar respuesta ante eventos, articular con fiscalía",
+        "Mejora la capacidad de respuesta ante crisis porque los vínculos ya están construidos antes de que ocurran",
+        "El municipio puede influir en la agenda de seguridad provincial en lugar de solo recibirla",
+        "Genera confianza entre instituciones que comparten territorio pero tienen dependencias distintas",
+        "Permite aprender de lo que la provincia ya sabe sobre el territorio: patrones delictivos, zonas críticas, perfil de conflictividad",
+        "\""
+      ],
+      "senales_alerta": [
+        "Minutas que son tomas de nota sin estructura ni firmas",
+        "Proyectos de ordenanza sin aprobación del Concejo",
+        "Convenios vencidos o sin firma de una de las partes",
+        "Reuniones informales por correo/WhatsApp sin archivo oficial"
+      ],
+      "como_ayuda_agente": [
+        "Presentar protocolos de ciudades certificadas",
+        "Template de minuta con estructura formalizada",
+        "Acompañar trámite de aprobación de ordenanza ante Concejo",
+        "Ayudar a redactar convenios con claras responsabilidades"
+      ],
+      "tags": [
+        "gobernanza provincial",
+        "coordinación interinstitucional"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "gobernanza provincial",
+          "coordinación interinstitucional"
+        ]
+      },
+      "odm_ids": [
+        "OdM_24",
+        "OdM_25",
+        "OdM_27"
+      ],
+      "estado": "Completo"
+    },
+    {
+      "id": "P19",
+      "numero": 19,
+      "dimension": "Gobernanza y participación ciudadana",
+      "pregunta": "¿Participa el municipio de alguna instancia de coordinación de la política de seguridad local con la Nación? (ej. Mesa conjunta con autoridades ministeriales, judiciales y policiales nacionales)",
+      "opciones": "No / Si, pero se reúne ante eventualidades / Si, existe un espacio institucionalizado con encuentros frecuentes",
+      "doc_respaldatoria": "Informes publicados, Minuta o temario reunión, captura mail, pág web",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Minutas de reuniones",
+        "Ordenanza o decreto de institucionalización de mesa de trabajo",
+        "Políticas delineadas en conjunto",
+        "Convenios interinstitucionales",
+        "Notas periodísticas de actividades conjuntas"
+      ],
+      "que_hace_bueno": [
+        "El municipio accede a información policial y judicial que de otro modo no tiene: estadísticas de delito, causas en trámite, operativos planificados",
+        "Permite alinear recursos: evita duplicar esfuerzos o que municipio y provincia trabajen en sentidos opuestos",
+        "Abre canales para gestionar problemas concretos: solicitar más presencia policial, coordinar respuesta ante eventos, articular con fiscalía",
+        "Mejora la capacidad de respuesta ante crisis porque los vínculos ya están construidos antes de que ocurran",
+        "El municipio puede influir en la agenda de seguridad provincial en lugar de solo recibirla",
+        "Genera confianza entre instituciones que comparten territorio pero tienen dependencias distintas",
+        "Permite aprender de lo que la provincia ya sabe sobre el territorio: patrones delictivos, zonas críticas, perfil de conflictividad",
+        "\""
+      ],
+      "senales_alerta": [
+        "Minutas sin estructura, sin firmas ni fechas",
+        "Ordenanza solo como proyecto sin aprobación",
+        "Políticas unilaterales del municipio sin respaldo provincial",
+        "Solo coordinación ante emergencias específicas"
+      ],
+      "como_ayuda_agente": [
+        "Mostrar ordenanzas de ciudades con coordinación formalizada",
+        "Template de protocolo de coordinación municipio-policía",
+        "Acompañar presentación ante autoridades policiales",
+        "Conectar con ciudades que lograron coordinación operativa"
+      ],
+      "tags": [
+        "gobernanza nacional",
+        "coordinación interinstitucional"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "gobernanza nacional",
+          "coordinación interinstitucional"
+        ]
+      },
+      "odm_ids": [
+        "OdM_24",
+        "OdM_27"
+      ],
+      "estado": "Completo"
+    },
+    {
+      "id": "P20",
+      "numero": 20,
+      "dimension": "Gobernanza y participación ciudadana",
+      "pregunta": "¿El gobierno local cuenta con despliegue de fuerzas federales en su territorio?",
+      "opciones": "No / Si",
+      "doc_respaldatoria": "No penaliza ni suma, solo dato",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Operativos conjuntos (interfuerza)",
+        "Documento formal (decreto, resolución, ordenanza)",
+        "Informe o reporte escrito",
+        "Captura de pantalla o registro digital",
+        "Planilla o base de datos",
+        "Registro fotográfico o audiovisual"
+      ],
+      "que_hace_bueno": [
+        "Que los operativos interfuerza esten delineados previamente y con participación municipal",
+        "que reporten al ministerio de seguridad y al municipio las novedades"
+      ],
+      "senales_alerta": [],
+      "como_ayuda_agente": [
+        "Template de registro de actores con variables clave",
+        "Sugerir herramientas para mantenerlo actualizado",
+        "Acompañar mapeo participativo de actores locales",
+        "ayudar a delinear operativos interfuerza"
+      ],
+      "tags": [
+        "gobernanza nacional",
+        "fuerzas federales"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "gobernanza nacional",
+          "fuerzas federales"
+        ]
+      },
+      "odm_ids": [
+        "OdM_27"
+      ],
+      "estado": "Completo"
+    },
+    {
+      "id": "P21",
+      "numero": 21,
+      "dimension": "Gobernanza y participación ciudadana",
+      "pregunta": "¿El gobierno local promueve instancias de participación ciudadana en materia de seguridad? (Ej. foros vecinales de seguridad, juntas de participación ciudadanas, etc.)",
+      "opciones": "Nunca / Ocasionalmente / Frecuentemente",
+      "doc_respaldatoria": "Ordenanza. Pieza comunicacional",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Minutas de reuniones",
+        "Ordenanza o decreto del intendente con institucionalización de una Mesa de trabajo",
+        "Políticas delineadas en conjunto municipio-provincia",
+        "Convenios interinstitucionales",
+        "Notas periodisticas de medios oficiales, publciadas",
+        "Informes internos municipales de gestión donde se reporte la actividad de la mesa para todo el gabinete / Comunicaciones oficiales",
+        "Calendario o plan de trabajo"
+      ],
+      "que_hace_bueno": [
+        "El municipio accede a información policial y judicial que de otro modo no tiene: estadísticas de delito, causas en trámite, operativos planificados",
+        "Permite alinear recursos: evita duplicar esfuerzos o que municipio y provincia trabajen en sentidos opuestos",
+        "Abre canales para gestionar problemas concretos: solicitar más presencia policial, coordinar respuesta ante eventos, articular con fiscalía",
+        "Mejora la capacidad de respuesta ante crisis porque los vínculos ya están construidos antes de que ocurran",
+        "El municipio puede influir en la agenda de seguridad provincial en lugar de solo recibirla",
+        "Genera confianza entre instituciones que comparten territorio pero tienen dependencias distintas",
+        "Permite aprender de lo que la provincia ya sabe sobre el territorio: patrones delictivos, zonas críticas, perfil de conflictividad"
+      ],
+      "senales_alerta": [
+        "Minutas que son tomas de notas simples sin estructura, sin firmas ni fecha",
+        "Proyectos de ordenanza sin aprobación del Concejo",
+        "Políticas unilaterales que mencionan a la provincia de paso, sin firma o adhesión provincial",
+        "Convenios institucionales vencidos, sin firma de una de las partes o sin cláusula de implementación concreta",
+        "Notas periodísticas que son gacetillas del propio municipio, o que anuncian reuniones futuras sin confirmar que ocurrieron",
+        "Decretos internos sin publicación oficial, o que crean la mesa pero no definen su funcionamiento ni periodicidad",
+        "Calendarios informales sin respaldo institucional, o planes de trabajo que nunca se actualizan",
+        "Comunicaciones por WhatsApp o correos personales sin membrete ni sistema de archivo formal"
+      ],
+      "como_ayuda_agente": [
+        "Generar modelos de minutas estandarizadas con estructura completa para completar",
+        "Adaptar las capacidades del municipio al objetivo de formalización de vínculos planteado",
+        "Identificar lo que ya existe en manteria de mesas de trabajo, políticas conjuntas o comunicación institucional.",
+        "Acercar modelos de ordenanzas de institucionalización adaptables al municipio",
+        "Verificar si la política o acuerdo acredita autoría conjunta real de ambos niveles",
+        "revisar organigrama para identificar responsable/s posibles que hagan seguimiento",
+        "Generar modelo de convenio marco interinstitucional adaptable",
+        "Acercar modelos de decretos ejecutivos municipales para creación de mesas",
+        "Generar modelo de plan de trabajo anual de la mesa en consonancia con los objetivos de la gestión"
+      ],
+      "tags": [
+        "participación ciudadana",
+        "gobernanza comunitaria"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "participación ciudadana",
+          "gobernanza comunitaria"
+        ]
+      },
+      "odm_ids": [
+        "OdM_28"
+      ],
+      "estado": "Completo"
+    },
+    {
+      "id": "P22",
+      "numero": 22,
+      "dimension": "Gobernanza y participación ciudadana",
+      "pregunta": "Dichas instancias de participación ciudadana: ¿son representativas de los diversos grupos poblacionales? (mujeres, colectivo LGBTQ+, adultos mayores, población migrante, personas con discapacidad, etc.)",
+      "opciones": "No / Algunas veces / Siempre",
+      "doc_respaldatoria": "Minuta de reuniones, Listado de participantes (de contar con ellos)",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Ordenanza de creación del espacio participativo",
+        "Actas de reuniones",
+        "Listado de participantes",
+        "Pieza comunicacional de convocatoria",
+        "Minuta con resultados"
+      ],
+      "que_hace_bueno": [
+        "Realización periódica de consultas sobre percepción de inseguridad",
+        "Participan ciudadanos de distintos barrios y sectores",
+        "Resultados se utilizan para ajustar estrategias",
+        "Se documentan cambios en percepción período a período"
+      ],
+      "senales_alerta": [
+        "Una única consulta sin repetición",
+        "Solo participan ciudadanos de zonas céntricas",
+        "Resultados no se utilizan en decisiones posteriores",
+        "Sin sistematización de datos"
+      ],
+      "como_ayuda_agente": [
+        "Template de encuesta de percepción de inseguridad",
+        "Sugerir metodología participativa para validar resultados",
+        "Mostrar herramientas tecnológicas simples (Google Forms)",
+        "Acompañar análisis e incorporación en diagnóstico"
+      ],
+      "tags": [
+        "participación ciudadana",
+        "inclusión",
+        "diversidad"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "participación ciudadana",
+          "inclusión",
+          "diversidad"
+        ]
+      },
+      "odm_ids": [
+        "OdM_29"
+      ],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P23",
+      "numero": 23,
+      "dimension": "Gobernanza y participación ciudadana",
+      "pregunta": "Dichas instancias de participación ciudadana: ¿tienen impacto real en la toma de decisiones?",
+      "opciones": "No, se toma principalmente como insumo para  el diagnóstico / Si, se toma de insumo para diagnóstico y toma de decisiones",
+      "doc_respaldatoria": "Minutas reuniones",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Ordenanza de creación del espacio participativo",
+        "Actas de reuniones",
+        "Listado de participantes",
+        "Pieza comunicacional de convocatoria",
+        "Minuta con resultados"
+      ],
+      "que_hace_bueno": [
+        "Instancias formales donde ciudadanía contribuye a diagnóstico y decisiones",
+        "Participan ciudadanos de distintos sectores y territorios",
+        "Los aportes se documentan y se comunica cómo fueron considerados",
+        "Hay mecanismos de retroalimentación"
+      ],
+      "senales_alerta": [
+        "Participación solo para recopilación de datos",
+        "Nunca se consulta sobre decisiones de política",
+        "Los aportes se reciben pero no se comunica resultado",
+        "Participación meramente informativa"
+      ],
+      "como_ayuda_agente": [
+        "Acompañar diseño de espacios con poder de incidencia real",
+        "Template de protocolo de participación ciudadana",
+        "Mostrar cómo lo hacen ciudades con participación activa",
+        "Ayudar a comunicar cómo se incorporan aportes"
+      ],
+      "tags": [
+        "participación ciudadana",
+        "toma de decisiones"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "participación ciudadana",
+          "toma de decisiones"
+        ]
+      },
+      "odm_ids": [
+        "OdM_30"
+      ],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P24",
+      "numero": 24,
+      "dimension": "Gobernanza y participación ciudadana",
+      "pregunta": "¿Cuentan con un mapeo de los actores  estratégicos que conforman el ecosistema de seguridad en la ciudad?",
+      "opciones": "No / Los  conocemos pero no hay un registro exhaustivo / Contamos con un registro exhaustivo de todos los actores",
+      "doc_respaldatoria": "Hoja tablero o registro",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Mapa/listado de actores con datos de contacto",
+        "Documento de análisis de stakeholders",
+        "Base de datos de organizaciones",
+        "Directorio actualizado"
+      ],
+      "que_hace_bueno": [
+        "Registro exhaustivo actualizado de actores clave",
+        "Incluye datos de contacto, roles y capacidades de cada uno",
+        "Actores de diversos sectores (público, privado, sociedad civil)",
+        "Se actualiza periódicamente y se utiliza para convocatoria"
+      ],
+      "senales_alerta": [
+        "Información dispersa en correos o archivos personales",
+        "Datos desactualizados de gestión anterior",
+        "Solo se conocen actores de trabajos previos",
+        "No hay sistemática de actualización"
+      ],
+      "como_ayuda_agente": [
+        "Template de mapeo de actores de seguridad ciudadana",
+        "Sugerir frecuencia de actualización (semestral)",
+        "Mostrar cómo lo hacen redes de seguridad en otras ciudades",
+        "Conectar con plataforma de actores del programa"
+      ],
+      "tags": [
+        "actores territoriales",
+        "mapeo",
+        "gobernanza comunitaria"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "actores territoriales",
+          "mapeo",
+          "gobernanza comunitaria"
+        ]
+      },
+      "odm_ids": [
+        "OdM_21"
+      ],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P25",
+      "numero": 25,
+      "dimension": "Gobernanza y participación ciudadana",
+      "pregunta": "¿Articulan la política de seguridad local con las iniciativas de actores territoriales cuya labor pueda contribuir a disminuir la conflictividad social en los barrios?  (clubes, ONG, iglesias, etc)",
+      "opciones": "No / Algunas veces/ informalmente / Frecuentemente y de manera formal",
+      "doc_respaldatoria": "Listado de actores",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Documento del programa con objetivos",
+        "Convenio con instituciones",
+        "Decreto de creación",
+        "Informe de actividades",
+        "Registro de beneficiarios/participantes"
+      ],
+      "que_hace_bueno": [
+        "Focalizado en población o problemática identificada",
+        "Tiene continuidad (no evento aislado)",
+        "Involucra más de un área municipal",
+        "Tiene indicadores de resultado",
+        "Basado en diagnóstico previo"
+      ],
+      "senales_alerta": [
+        "Un taller aislado que se hizo una vez",
+        "No focalizado: para \"toda la ciudadanía\" sin criterio",
+        "Sin indicadores de resultado",
+        "Lo lleva una sola persona",
+        "Confunde actividad con programa"
+      ],
+      "como_ayuda_agente": [
+        "1. Modelos de programas de otras ciudades",
+        "2. Ayudar a diseñar programa focalizado",
+        "3. Sugerir indicadores de proceso y resultado",
+        "4. Guía de articulación interáreas"
+      ],
+      "tags": [
+        "actores territoriales",
+        "prevención social",
+        "articulación"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "actores territoriales",
+          "prevención social",
+          "articulación"
+        ]
+      },
+      "odm_ids": [
+        "OdM_23"
+      ],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P26",
+      "numero": 26,
+      "dimension": "Gobernanza y participación ciudadana",
+      "pregunta": "¿Existe alguna instancia de coordinación o intercambio con los gobiernos locales vecinos en materia de seguridad?",
+      "opciones": "No / Si,  coordinamos ante eventualidades / Si, existe un espacio institucionalizado con encuentros frecuentes",
+      "doc_respaldatoria": "Minuta o temario reunión, captura mail, pág web",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Minutas de reuniones",
+        "Ordenanza o decreto de institucionalización de mesa de trabajo",
+        "Políticas delineadas en conjunto",
+        "Convenios interinstitucionales",
+        "Notas periodísticas de actividades conjuntas"
+      ],
+      "que_hace_bueno": [
+        "Minutas con objetivo, participantes con cargo, compromisos, plazos y responsables",
+        "Ordenanza publicada y aprobada",
+        "Ambos niveles de gobierno firman documentos conjuntos",
+        "Encuentros periódicos (no solo ante emergencias)"
+      ],
+      "senales_alerta": [
+        "Minutas sin estructura, sin firmas ni fecha",
+        "Proyectos de ordenanza sin aprobación",
+        "Políticas unilaterales que mencionan a la otra jurisdicción de paso",
+        "Solo se coordinan ante emergencias"
+      ],
+      "como_ayuda_agente": [
+        "1. Generar modelos de minutas estandarizadas",
+        "2. Adaptar capacidades del municipio al objetivo de formalización",
+        "3. Identificar lo que ya existe y puede formalizarse",
+        "4. Conectar con experiencias de otras ciudades"
+      ],
+      "tags": [
+        "coordinación intermunicipal",
+        "gobernanza"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "coordinación intermunicipal",
+          "gobernanza"
+        ]
+      },
+      "odm_ids": [
+        "OdM_26"
+      ],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P27",
+      "numero": 27,
+      "dimension": "Gobernanza y participación ciudadana",
+      "pregunta": "¿Existe alguna instancia de coordinación de la política de seguridad local con los prestadores de seguridad privada?",
+      "opciones": "No / Si,  coordinamos ante eventualidades / Si, existe un espacio institucionalizado con encuentros frecuentes",
+      "doc_respaldatoria": "Minuta o temario reunión, captura mail, pág web",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Minutas de reuniones",
+        "Ordenanza o decreto de institucionalización de mesa de trabajo",
+        "Políticas delineadas en conjunto",
+        "Convenios interinstitucionales",
+        "Notas periodísticas de actividades conjuntas"
+      ],
+      "que_hace_bueno": [
+        "Minutas con objetivo, participantes con cargo, compromisos, plazos y responsables",
+        "Ordenanza publicada y aprobada",
+        "Ambos niveles de gobierno firman documentos conjuntos",
+        "Encuentros periódicos (no solo ante emergencias)"
+      ],
+      "senales_alerta": [
+        "Minutas sin estructura, sin firmas ni fecha",
+        "Proyectos de ordenanza sin aprobación",
+        "Políticas unilaterales que mencionan a la otra jurisdicción de paso",
+        "Solo se coordinan ante emergencias"
+      ],
+      "como_ayuda_agente": [
+        "1. Generar modelos de minutas estandarizadas",
+        "2. Adaptar capacidades del municipio al objetivo de formalización",
+        "3. Identificar lo que ya existe y puede formalizarse",
+        "4. Conectar con experiencias de otras ciudades"
+      ],
+      "tags": [
+        "seguridad privada",
+        "coordinación",
+        "gobernanza"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "seguridad privada",
+          "coordinación",
+          "gobernanza"
+        ]
+      },
+      "odm_ids": [],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P28",
+      "numero": 28,
+      "dimension": "Gobernanza y participación ciudadana",
+      "pregunta": "¿Existe alguna instancia de coordinación de la política de seguridad local con el sector productivo? (cámaras empresariales, comerciales, áreas industriales, sector agropecuario, etc)",
+      "opciones": "No / Si,  coordinamos ante eventualidades / Si, existe un espacio institucionalizado con encuentros frecuentes",
+      "doc_respaldatoria": "Listado de actores",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Minutas de reuniones",
+        "Ordenanza o decreto de institucionalización de mesa de trabajo",
+        "Políticas delineadas en conjunto",
+        "Convenios interinstitucionales",
+        "Notas periodísticas de actividades conjuntas"
+      ],
+      "que_hace_bueno": [
+        "Minutas con objetivo, participantes con cargo, compromisos, plazos y responsables",
+        "Ordenanza publicada y aprobada",
+        "Ambos niveles de gobierno firman documentos conjuntos",
+        "Encuentros periódicos (no solo ante emergencias)"
+      ],
+      "senales_alerta": [
+        "Minutas sin estructura, sin firmas ni fecha",
+        "Proyectos de ordenanza sin aprobación",
+        "Políticas unilaterales que mencionan a la otra jurisdicción de paso",
+        "Solo se coordinan ante emergencias"
+      ],
+      "como_ayuda_agente": [
+        "1. Generar modelos de minutas estandarizadas",
+        "2. Adaptar capacidades del municipio al objetivo de formalización",
+        "3. Identificar lo que ya existe y puede formalizarse",
+        "4. Conectar con experiencias de otras ciudades"
+      ],
+      "tags": [
+        "sector productivo",
+        "coordinación",
+        "gobernanza"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "sector productivo",
+          "coordinación",
+          "gobernanza"
+        ]
+      },
+      "odm_ids": [
+        "OdM_22"
+      ],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P29",
+      "numero": 29,
+      "dimension": "Gestión de la información",
+      "pregunta": "¿El gobierno local cuenta con  un organismo (observatorio o similar) para la producción de conocimiento, sistematización de información en materia delictual y el apoyo en el diseño de políticas públicas basadas en evidencia?",
+      "opciones": "No / Si",
+      "doc_respaldatoria": "Ordenanza y/o reporte de datos, informes publicados, designación de director/a y personal del organismo",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Captura del sistema en funcionamiento",
+        "Captura de página web institucional",
+        "PDF con Organigrama de dicho organismo/designación de personal",
+        "PDF con ordenanza de creación",
+        "Informe técnico del sistema",
+        "Contrato o licitación de adquisición",
+        "Manual de usuario",
+        "Convenio de uso si es de terceros"
+      ],
+      "que_hace_bueno": [
+        "Tiene marco normativo de respaldo",
+        "Estructura proporcional al territorio/necesidad",
+        "Operativo y en uso regular (no solo instalado)",
+        "Provee insumos que son utilizados en la gestión del área"
+      ],
+      "senales_alerta": [
+        "Estructura creada pero sin funcionamiento activo",
+        "Sin publicación periódica de información.",
+        "Sin integración de diferentes fuentes de información"
+      ],
+      "como_ayuda_agente": [
+        "1. Dimensionar según territorio y necesidades",
+        "2. Modelo de normativa de respaldo",
+        "3. Ejemplo de soluciones de otras ciudades"
+      ],
+      "tags": [
+        "datos",
+        "observatorio",
+        "gestión de información"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "datos",
+          "observatorio",
+          "gestión de información"
+        ]
+      },
+      "odm_ids": [
+        "OdM_31",
+        "OdM_33",
+        "OdM_36",
+        "OdM_37"
+      ],
+      "estado": "Completo"
+    },
+    {
+      "id": "P30",
+      "numero": 30,
+      "dimension": "Gestión de la información",
+      "pregunta": "¿El gobierno local cuenta con alguna plataforma tecnológica para georreferenciar eventos en el territorio? (mapas del delito, conflictos, faltas, etc.)",
+      "opciones": "No / Si",
+      "doc_respaldatoria": "Sistema o plataforma",
+      "criterio_minimo_cert": "SÍ",
+      "formatos_validos": [
+        "Google forms linkeado a Mymaps",
+        "Dashboard digital (PowerBI, Data Studio)",
+        "Softwares de información geográfica (Gqis, MyMaps, Shiny)",
+        "Desarrollos tecnologicos y plataformas de georreferencia (Multiagencia, bots, agentes de mapeo)"
+      ],
+      "que_hace_bueno": [
+        "Que se actualice periodicamente y/o sistemáticamente",
+        "Que tenga un único criterio de división geoespacial del territorio",
+        "Que las categorías de registro de incidentes sean mutuamente excluyentes y respondan a los estándares nacionales para dicha categorización.",
+        "En caso de tener información de varios canales, que no se repita."
+      ],
+      "senales_alerta": [
+        "Que no se actualice regularmente",
+        "Información mal cruzada o compartimentada por área",
+        "Sin categorización de incidentes",
+        "No exista un único criterio (alguna información dividada por \"barrios\" y otra por \"zonas\")"
+      ],
+      "como_ayuda_agente": [],
+      "tags": [
+        "datos",
+        "georreferenciación",
+        "gestión de información"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "datos",
+          "georreferenciación",
+          "gestión de información"
+        ]
+      },
+      "odm_ids": [
+        "OdM_32",
+        "OdM_35",
+        "OdM_41"
+      ],
+      "estado": "Completo"
+    },
+    {
+      "id": "P31",
+      "numero": 31,
+      "dimension": "Gestión de la información",
+      "pregunta": "¿Acceden a información estadística delictual sobre su jurisdicción elaborada por algún ente público provincial? (Ministerio Público, Policía u Observatorio)",
+      "opciones": "No accedemos a esas estadísticas / Accedemos solo a requerimiento puntual / Accedemos de manera frecuente",
+      "doc_respaldatoria": "",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Documento formal (decreto, resolución, ordenanza)",
+        "Informe o reporte escrito",
+        "Captura de pantalla o registro digital",
+        "Planilla o base de datos compartida",
+        "Registro fotográfico o audiovisual"
+      ],
+      "que_hace_bueno": [
+        "Tiene respaldo documental verificable",
+        "Es consistente con el plan de seguridad ciudadana",
+        "Involucra a los actores relevantes",
+        "Se puede medir o verificar su implementación"
+      ],
+      "senales_alerta": [
+        "Sin respaldo documental",
+        "Desconectado de la estrategia general",
+        "Implementación parcial o inconsistente",
+        "No se puede verificar objetivamente"
+      ],
+      "como_ayuda_agente": [
+        "1. Mostrar cómo lo resolvieron otras ciudades del programa",
+        "2. Ofrecer templates o modelos adaptables",
+        "3. Sugerir pasos concretos para avanzar",
+        "4. Conectar con experiencias y recursos de la Red"
+      ],
+      "tags": [
+        "datos",
+        "estadística delictual",
+        "gestión de información"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "datos",
+          "estadística delictual",
+          "gestión de información"
+        ]
+      },
+      "odm_ids": [],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P32",
+      "numero": 32,
+      "dimension": "Gestión de la información",
+      "pregunta": "¿Cuentan con un convenio o similar para asegurar el acceso a los datos delictuales producidos por otras jurisdicciones?",
+      "opciones": "No / Si",
+      "doc_respaldatoria": "Convenio",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Documento formal convenio firmado",
+        "Informe o reporte escrito de datos compartidos",
+        "Captura de pantalla o registro digital",
+        "Planilla o base de datos compartidos"
+      ],
+      "que_hace_bueno": [
+        "Tiene respaldo documental verificable",
+        "Es consistente con el plan de seguridad ciudadana",
+        "Involucra a los actores relevantes",
+        "Se puede medir o verificar su implementación"
+      ],
+      "senales_alerta": [
+        "Sin respaldo documental",
+        "Desconectado de la estrategia general",
+        "Implementación parcial o inconsistente",
+        "No se puede verificar objetivamente"
+      ],
+      "como_ayuda_agente": [
+        "1. Mostrar cómo lo resolvieron otras ciudades del programa",
+        "2. Ofrecer templates o modelos adaptables",
+        "3. Sugerir pasos concretos para avanzar",
+        "4. Conectar con experiencias y recursos de la Red"
+      ],
+      "tags": [
+        "datos",
+        "convenio",
+        "gestión de información"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "datos",
+          "convenio",
+          "gestión de información"
+        ]
+      },
+      "odm_ids": [],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P33",
+      "numero": 33,
+      "dimension": "Gestión de la información",
+      "pregunta": "¿Realizan mapeo y análisis de factores de riesgo y protección sociodelictuales presentes en el territorio?  (condiciones individuales, familiares o sociales que estimulan o evitan el desarrollo del comportamiento delictivo)",
+      "opciones": "No / Si",
+      "doc_respaldatoria": "Listado de indicadores o reporte",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Mapa/listado de personas intervenidas por el municipio",
+        "Documento de análisis de factores de riesgo/territoriales",
+        "Base de datos de organizaciones",
+        "Informe de redes y articulaciones",
+        "evidencia de reuniones con áreas sociales"
+      ],
+      "que_hace_bueno": [
+        "Incluye actores de distintos sectores (público intermunicipal, privado, sociedad civil)",
+        "Tiene datos de contacto actualizados",
+        "Identifica roles y capacidades de cada actor",
+        "Se actualiza periódicamente",
+        "Se usa para convocar y articular"
+      ],
+      "senales_alerta": [
+        "Lista informal incompleta",
+        "Datos de contacto desactualizados",
+        "Solo incluye actores con los que ya se trabaja",
+        "No distingue roles ni capacidades",
+        "Conocimiento en la cabeza de una persona"
+      ],
+      "como_ayuda_agente": [
+        "1. Template de mapeo de actores",
+        "2. Metodología para identificación sistemática",
+        "3. Mostrar mapeos de otras ciudades",
+        "4. Sugerir herramienta digital para mantenerlo actualizado"
+      ],
+      "tags": [
+        "diagnóstico",
+        "factores de riesgo",
+        "prevención social"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "diagnóstico",
+          "factores de riesgo",
+          "prevención social"
+        ]
+      },
+      "odm_ids": [
+        "OdM_36",
+        "OdM_38",
+        "OdM_39",
+        "OdM_41"
+      ],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P34",
+      "numero": 34,
+      "dimension": "Gestión de la información",
+      "pregunta": "¿Realizan mapeo y análisis  sobre factores situacional-ambientales vinculados a la seguridad? (iluminación, requerimiento de poda, terrenos baldíos, basurales, etc.)",
+      "opciones": "No / Si",
+      "doc_respaldatoria": "Listado de indicadores o reporte",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Mapa/listado de actores con datos de contacto",
+        "Documento de análisis de stakeholders",
+        "Base de datos de organizaciones",
+        "Informe de redes y articulaciones",
+        "Directorio actualizado"
+      ],
+      "que_hace_bueno": [
+        "Incluye actores de distintos sectores (público, privado, sociedad civil)",
+        "Tiene datos de contacto actualizados",
+        "Identifica roles y capacidades de cada actor",
+        "Se actualiza periódicamente",
+        "Se usa para convocar y articular"
+      ],
+      "senales_alerta": [
+        "Lista informal incompleta",
+        "Datos de contacto desactualizados",
+        "Solo incluye actores con los que ya se trabaja",
+        "No distingue roles ni capacidades",
+        "Conocimiento en la cabeza de una persona"
+      ],
+      "como_ayuda_agente": [
+        "1. Template de mapeo de actores",
+        "2. Metodología para identificación sistemática",
+        "3. Mostrar mapeos de otras ciudades",
+        "4. Sugerir herramienta digital para mantenerlo actualizado"
+      ],
+      "tags": [
+        "diagnóstico",
+        "prevención situacional",
+        "espacio público"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "diagnóstico",
+          "prevención situacional",
+          "espacio público"
+        ]
+      },
+      "odm_ids": [
+        "OdM_38",
+        "OdM_42"
+      ],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P35",
+      "numero": 35,
+      "dimension": "Gestión de la información",
+      "pregunta": "¿Realizan encuestas de victimización y percepción del delito?",
+      "opciones": "Nunca / Alguna vez / Frecuentemente",
+      "doc_respaldatoria": "Reporte de resultados",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Informe de encuesta propia",
+        "Estudio de consultora externa",
+        "Encuesta online (Google Forms)",
+        "Datos de app con módulo percepción",
+        "Encuesta dentro de medición más amplia"
+      ],
+      "que_hace_bueno": [
+        "Tiene metodología definida",
+        "Muestra representativa o al menos intencional",
+        "Se hace periodicamente lo que permite su comparación",
+        "Los resultados se usaron para algo"
+      ],
+      "senales_alerta": [
+        "Consulta informal en reunión barrial",
+        "Se hizo una vez hace varios años y no se repitió",
+        "Muestra sesgada (algún grupo/barrio/etc sobre o subrepresentado)",
+        "No se tabularon resultados"
+      ],
+      "como_ayuda_agente": [
+        "Ofrecer modelo adaptado a municipios chicos",
+        "Sugerir herramientas gratuitas (Google Forms + guía)",
+        "Mostrar cómo lo hicieron otras ciudades",
+        "Ayudar a tabular y analizar",
+        "Asistencia para construir la muestra"
+      ],
+      "tags": [
+        "diagnóstico",
+        "victimización",
+        "datos"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "diagnóstico",
+          "victimización",
+          "datos"
+        ]
+      },
+      "odm_ids": [
+        "OdM_40"
+      ],
+      "estado": "Completo"
+    },
+    {
+      "id": "P36",
+      "numero": 36,
+      "dimension": "Gestión de la información",
+      "pregunta": "¿Se brinda acceso a la ciudadanía a la información vinculada a las problemáticas de seguridad del distrito? (a través de página web o similar)",
+      "opciones": "No / Si",
+      "doc_respaldatoria": "Pág WEB",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Link a página web/ portal de datos abiertos",
+        "Captura de página",
+        "Publicación en redes sociales oficiales",
+        "Presentación de datos en medios (radio; tv; diario)"
+      ],
+      "que_hace_bueno": [
+        "Tienen publicación periódica (semestral o con mayor frecuencia)",
+        "Son abiertos y accesibles (se pueden descargar y utilizar)",
+        "Los resultados se presentan en instancias que permiten la participación ciudadana",
+        "Se publican siempre los mismos tipos de datos o categorías (permite comparación)",
+        "Se integran fuentes de información (Denuncias MPF/Policía; Registro de Guardia Local, etc.)"
+      ],
+      "senales_alerta": [
+        "Los datos no son accesibles por la ciudadanía",
+        "Se publican con frecuencias variables",
+        "No siempre se publica la misma información",
+        "Se presentan datos sin especificar la fuente"
+      ],
+      "como_ayuda_agente": [
+        "Propone recategorizaciones que permitan la integración de la información",
+        "Integra diferentes fuentes en una única base"
+      ],
+      "tags": [
+        "transparencia",
+        "datos",
+        "comunicación"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "transparencia",
+          "datos",
+          "comunicación"
+        ]
+      },
+      "odm_ids": [
+        "OdM_34",
+        "OdM_42"
+      ],
+      "estado": "Completo"
+    },
+    {
+      "id": "P37",
+      "numero": 37,
+      "dimension": "Prevención situacional y gestión del espacio público",
+      "pregunta": "¿El gobierno local cuenta con un Centro o Comando de Operaciones que articule a diversos actores vinculados a la seguridad en la localidad?",
+      "opciones": "No / Si",
+      "doc_respaldatoria": "Ordenanza o plan de coordinación",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Documento formal (decreto, resolución, ordenanza)",
+        "Informe o reporte escrito",
+        "Captura de pantalla o registro digital",
+        "Planilla o base de datos",
+        "Registro fotográfico o audiovisual"
+      ],
+      "que_hace_bueno": [
+        "Existe formalmente (aprobado/creado por acto administrativo)",
+        "Está operativo y en uso regular",
+        "Es conocido por los actores relevantes",
+        "Se actualiza o mantiene periódicamente"
+      ],
+      "senales_alerta": [
+        "Existe en el papel pero no opera en la práctica",
+        "Está desactualizado o en desuso",
+        "Solo lo conoce quien lo creó",
+        "No se ha adaptado a las necesidades actuales"
+      ],
+      "como_ayuda_agente": [
+        "1. Mostrar cómo lo resolvieron otras ciudades del programa",
+        "2. Ofrecer templates o modelos adaptables",
+        "3. Sugerir pasos concretos para avanzar",
+        "4. Conectar con experiencias y recursos de la Red"
+      ],
+      "tags": [
+        "centro de operaciones",
+        "coordinación",
+        "prevención situacional"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "centro de operaciones",
+          "coordinación",
+          "prevención situacional"
+        ]
+      },
+      "odm_ids": [
+        "OdM_43",
+        "OdM_44"
+      ],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P38",
+      "numero": 38,
+      "dimension": "Prevención situacional y gestión del espacio público",
+      "pregunta": "¿El área de seguridad municipal participa en la definición de intervenciones en el espacio público? (tareas de desmalezamiento, iluminación, planeamiento urbano, etc?",
+      "opciones": "No / Si",
+      "doc_respaldatoria": "Captura tablero de incidentes y derivaciones/ misiones y funciones del área",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Documento formal (decreto, resolución, ordenanza)",
+        "Informe o reporte escrito",
+        "Captura de pantalla o registro digital",
+        "Planilla o base de datos",
+        "Registro fotográfico o audiovisual"
+      ],
+      "que_hace_bueno": [
+        "Tiene respaldo documental verificable",
+        "Es consistente con el plan de seguridad ciudadana",
+        "Involucra a los actores relevantes",
+        "Se puede medir o verificar su implementación"
+      ],
+      "senales_alerta": [
+        "Sin respaldo documental",
+        "Desconectado de la estrategia general",
+        "Implementación parcial o inconsistente",
+        "No se puede verificar objetivamente"
+      ],
+      "como_ayuda_agente": [
+        "1. Mostrar cómo lo resolvieron otras ciudades del programa",
+        "2. Ofrecer templates o modelos adaptables",
+        "3. Sugerir pasos concretos para avanzar",
+        "4. Conectar con experiencias y recursos de la Red"
+      ],
+      "tags": [
+        "espacio público",
+        "prevención situacional",
+        "coordinación interárea"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "espacio público",
+          "prevención situacional",
+          "coordinación interárea"
+        ]
+      },
+      "odm_ids": [
+        "OdM_45",
+        "OdM_46",
+        "OdM_47"
+      ],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P39",
+      "numero": 39,
+      "dimension": "Prevención situacional y gestión del espacio público",
+      "pregunta": "¿El municipio contrata servicios adicionales de vigilancia y seguridad a la policía provincial? (para patrullaje, seguridad en escuelas y espacios públicos u otros).",
+      "opciones": "No / Ocasionalmente / Frecuentemente",
+      "doc_respaldatoria": "",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Documento formal (decreto, resolución, ordenanza)",
+        "Informe o reporte escrito",
+        "Captura de pantalla o registro digital",
+        "Planilla o base de datos",
+        "Registro fotográfico o audiovisual"
+      ],
+      "que_hace_bueno": [
+        "Tiene respaldo documental verificable",
+        "Es consistente con el plan de seguridad ciudadana",
+        "Involucra a los actores relevantes",
+        "Se puede medir o verificar su implementación"
+      ],
+      "senales_alerta": [
+        "Sin respaldo documental",
+        "Desconectado de la estrategia general",
+        "Implementación parcial o inconsistente",
+        "No se puede verificar objetivamente"
+      ],
+      "como_ayuda_agente": [
+        "1. Mostrar cómo lo resolvieron otras ciudades del programa",
+        "2. Ofrecer templates o modelos adaptables",
+        "3. Sugerir pasos concretos para avanzar",
+        "4. Conectar con experiencias y recursos de la Red"
+      ],
+      "tags": [
+        "policía provincial",
+        "patrullaje",
+        "coordinación"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "policía provincial",
+          "patrullaje",
+          "coordinación"
+        ]
+      },
+      "odm_ids": [],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P40",
+      "numero": 40,
+      "dimension": "Prevención situacional y gestión del espacio público",
+      "pregunta": "¿Cuenta el gobierno local con un cuerpo civil de prevención propio? (guardia urbana, local o similar)",
+      "opciones": "No / Si",
+      "doc_respaldatoria": "Ordenenza",
+      "criterio_minimo_cert": "SÍ",
+      "formatos_validos": [
+        "Ordenanza del Concejo Deliberante",
+        "Decreto de creación",
+        "Resolución que designa personal",
+        "Nómina actualizada de agentes",
+        "Registro fotográfico",
+        "Convenio si es con terceros",
+        "Capacitaciones realizadas por los agentes"
+      ],
+      "que_hace_bueno": [
+        "Ordenanza o decreto vigente que especifique función del cuerpo de prevención",
+        "Dotación proporcional (ref: 1 cada 3.000-5.000 hab)",
+        "Personal capacitado",
+        "Protocolos de actuación escritos",
+        "Cobertura horaria definida (no solo días hábiles 8-14)"
+      ],
+      "senales_alerta": [
+        "12 agentes para 50.000 habitantes",
+        "Sin protocolos formales",
+        "Sin capacitación en seguridad",
+        "Solo función de tránsito",
+        "No operan fines de semana/noche",
+        "Ordenanza sin reglamentar"
+      ],
+      "como_ayuda_agente": [
+        "Calcular dotación sugerida según población",
+        "Modelo de ordenanza de ciudades certificadas",
+        "Template de protocolos de patrullaje",
+        "Calcular costo estimado",
+        "Conectar con ciudades de referencia"
+      ],
+      "tags": [
+        "cuerpos de prevención",
+        "normativa",
+        "estructura organizacional"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "cuerpos de prevención",
+          "normativa",
+          "estructura organizacional"
+        ]
+      },
+      "odm_ids": [
+        "OdM_49",
+        "OdM_51"
+      ],
+      "estado": "Completo"
+    },
+    {
+      "id": "P41",
+      "numero": 41,
+      "dimension": "Prevención situacional y gestión del espacio público",
+      "pregunta": "Dicho cuerpo de prevención: ¿posee móviles destinados a patrullaje?",
+      "opciones": "No / Si",
+      "doc_respaldatoria": "copia licitación/acta de entrega",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Documento formal (decreto, resolución, ordenanza)",
+        "Informe o reporte escrito",
+        "Captura de pantalla o registro digital",
+        "Planilla o base de datos",
+        "Registro fotográfico o audiovisual"
+      ],
+      "que_hace_bueno": [
+        "Tiene respaldo documental verificable",
+        "Es consistente con el plan de seguridad ciudadana",
+        "Involucra a los actores relevantes",
+        "Se puede medir o verificar su implementación"
+      ],
+      "senales_alerta": [
+        ".Subejecución"
+      ],
+      "como_ayuda_agente": [
+        "1. Mostrar cómo lo resolvieron otras ciudades del programa",
+        "4. Conectar con experiencias y recursos de la Red",
+        "cruzar gps del móvil con mapa del delito para analiar el buen uso del móvil, cantidad suficiente, etc."
+      ],
+      "tags": [
+        "cuerpos de prevención",
+        "patrullaje",
+        "recursos"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "cuerpos de prevención",
+          "patrullaje",
+          "recursos"
+        ]
+      },
+      "odm_ids": [],
+      "estado": "Completo"
+    },
+    {
+      "id": "P42",
+      "numero": 42,
+      "dimension": "Prevención situacional y gestión del espacio público",
+      "pregunta": "¿El gobierno local promueve instancias de formación para el personal de guardia urbana? (propias o en colaboración con otro nivel de gobierno o instituciones)",
+      "opciones": "No / Ocasionalmente / Frecuentemente",
+      "doc_respaldatoria": "Plan o programa de formación",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Plan de capacitación formal",
+        "Cronograma de actividades realizadas",
+        "Registro de asistencia",
+        "Certificados emitidos",
+        "Material de capacitación (presentaciones, folletos)",
+        "Publicaciones en redes/web"
+      ],
+      "que_hace_bueno": [
+        "Tiene contenido específico de seguridad ciudadana (no genérico)",
+        "Se hizo más de una vez en el año",
+        "Llega a distintos públicos (no siempre los mismos)",
+        "Fortalece la capacidad de resolución de conflictos del cuerpo de prevención",
+        "Responde a una demanda del propio cuerpo como oportunidad de mejora",
+        "Permite profesionalizar a los agentes"
+      ],
+      "senales_alerta": [
+        "Una charla aislada cuenta como \"capacitación\"",
+        "Siempre van las mismas personas",
+        "Contenido genérico sin adaptar al territorio o a problemas de seguridad",
+        "No hay registro de participantes",
+        "Se confunde difusión con capacitación"
+      ],
+      "como_ayuda_agente": [
+        "1. Ofrecer modelos de programa de capacitación",
+        "2. Sugerir contenidos según problemáticas locales",
+        "3. Template de planificación de actividades",
+        "4. Mostrar cómo medir impacto de capacitaciones"
+      ],
+      "tags": [
+        "cuerpos de prevención",
+        "formación",
+        "capacitación"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "cuerpos de prevención",
+          "formación",
+          "capacitación"
+        ]
+      },
+      "odm_ids": [],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P43",
+      "numero": 43,
+      "dimension": "Prevención situacional y gestión del espacio público",
+      "pregunta": "¿El gobierno local cuenta con un sistema público de videovigilancia urbana?",
+      "opciones": "No / Si, monitoreado por la policía / Si, monitoreado por el municipio",
+      "doc_respaldatoria": "Licitación",
+      "criterio_minimo_cert": "SÍ",
+      "formatos_validos": [
+        "Ordenanza de creación del sistema",
+        "Convenio con policía",
+        "Licitación o contrato",
+        "Informe técnico con ubicación de cámaras",
+        "Captura del centro de monitoreo"
+      ],
+      "que_hace_bueno": [
+        "Tiene marco normativo",
+        "Cámaras proporcionales al territorio",
+        "Centro de monitoreo operativo (no solo graba)",
+        "Protocolo de privacidad",
+        "Mantenimiento activo",
+        "Imágenes se usan para investigaciones"
+      ],
+      "senales_alerta": [
+        "Cámaras sin centro de monitoreo activo",
+        "50%+ fuera de servicio",
+        "Sin protocolo de privacidad",
+        "Solo graban, nadie mira",
+        "Sin convenio con fiscalía para uso"
+      ],
+      "como_ayuda_agente": [
+        "Dimensionar según territorio y puntos críticos",
+        "Modelo de ordenanza de videovigilancia",
+        "Template de protocolo de privacidad",
+        "Costo estimado",
+        "Conectar con ciudades con sistemas activos"
+      ],
+      "tags": [
+        "videovigilancia",
+        "centro de monitoreo",
+        "normativa"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "videovigilancia",
+          "centro de monitoreo",
+          "normativa"
+        ]
+      },
+      "odm_ids": [
+        "OdM_52",
+        "OdM_56"
+      ],
+      "estado": "Completo"
+    },
+    {
+      "id": "P44",
+      "numero": 44,
+      "dimension": "Prevención situacional y gestión del espacio público",
+      "pregunta": "¿Reciben las imágenes un tratamiento de confidencialidad, resguardo de autenticidad y reserva de la información para su potencial utilización en causas judiciales?",
+      "opciones": "No / Si",
+      "doc_respaldatoria": "Ordenanza",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Plan de capacitación formal",
+        "Cronograma de actividades realizadas",
+        "Registro de asistencia",
+        "Certificados emitidos",
+        "Material de capacitación (presentaciones, folletos)",
+        "Publicaciones en redes/web"
+      ],
+      "que_hace_bueno": [
+        "Tiene contenido específico de seguridad ciudadana (no genérico)",
+        "Se hizo más de una vez en el año",
+        "Llega a distintos públicos (no siempre los mismos)",
+        "Los participantes evalúan la actividad",
+        "Contenido basado en diagnóstico local"
+      ],
+      "senales_alerta": [
+        "Una charla aislada cuenta como \"capacitación\"",
+        "Siempre van las mismas personas",
+        "Contenido genérico sin adaptar al territorio",
+        "No hay registro de participantes",
+        "Se confunde difusión con capacitación"
+      ],
+      "como_ayuda_agente": [
+        "1. Ofrecer modelos de programa de capacitación",
+        "2. Sugerir contenidos según problemáticas locales",
+        "3. Template de planificación de actividades",
+        "4. Mostrar cómo medir impacto de capacitaciones"
+      ],
+      "tags": [
+        "videovigilancia",
+        "protocolos",
+        "normativa"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "videovigilancia",
+          "protocolos",
+          "normativa"
+        ]
+      },
+      "odm_ids": [
+        "OdM_55"
+      ],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P45",
+      "numero": 45,
+      "dimension": "Prevención situacional y gestión del espacio público",
+      "pregunta": "¿El gobierno local participa de procesos investigativos aportando pruebas o evidencias en colaboración con las autoridades judiciales?",
+      "opciones": "No / Ocasionalmente / Frecuentemente",
+      "doc_respaldatoria": "norma regulatoria cámaras/ misión y funciones del área",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Documento formal (decreto, resolución, ordenanza)",
+        "Informe o reporte escrito",
+        "Captura de pantalla o registro digital",
+        "Planilla o base de datos",
+        "Registro fotográfico o audiovisual"
+      ],
+      "que_hace_bueno": [
+        "Tiene respaldo documental verificable",
+        "Es consistente con el plan de seguridad ciudadana",
+        "Involucra a los actores relevantes",
+        "Se puede medir o verificar su implementación"
+      ],
+      "senales_alerta": [
+        "Sin respaldo documental",
+        "Desconectado de la estrategia general",
+        "Implementación parcial o inconsistente",
+        "No se puede verificar objetivamente"
+      ],
+      "como_ayuda_agente": [
+        "1. Mostrar cómo lo resolvieron otras ciudades del programa",
+        "2. Ofrecer templates o modelos adaptables",
+        "3. Sugerir pasos concretos para avanzar",
+        "4. Conectar con experiencias y recursos de la Red"
+      ],
+      "tags": [
+        "videovigilancia",
+        "protocolos",
+        "justicia"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "videovigilancia",
+          "protocolos",
+          "justicia"
+        ]
+      },
+      "odm_ids": [
+        "OdM_55"
+      ],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P46",
+      "numero": 46,
+      "dimension": "Prevención situacional y gestión del espacio público",
+      "pregunta": "¿Cuenta con protocolos o procedimientos de trabajo documentados sobre la actuación de cuerpo civil de prevención, monitoreo de cámaras, entre otros?",
+      "opciones": "No / Si",
+      "doc_respaldatoria": "Documentos/manual de procedimientos",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Tablero en Excel/Google Sheets",
+        "Dashboard digital (PowerBI, Data Studio)",
+        "Reportes periódicos en Word/PDF",
+        "Minutas de reuniones con datos",
+        "Planilla simple de avance de metas"
+      ],
+      "que_hace_bueno": [
+        "Se actualiza periódicamente (mensual/trimestral)",
+        "Tiene indicadores cuantitativos",
+        "Se usa para tomar decisiones",
+        "Lo ven más personas que el responsable"
+      ],
+      "senales_alerta": [
+        "Tablero armado una vez y nunca actualizado",
+        "Solo datos cualitativos (\"avanzamos bien\")",
+        "Nadie lo mira ni lo usa para decidir",
+        "Indicadores imposibles de medir"
+      ],
+      "como_ayuda_agente": [
+        "1. Ofrecer template de tablero adaptado al plan de seguridad ciudadana",
+        "2. Sugerir indicadores medibles y relevantes",
+        "3. Mostrar dashboards de otras ciudades",
+        "4. Ayudar a definir frecuencia y responsable de actualización"
+      ],
+      "tags": [
+        "protocolos",
+        "cuerpos de prevención",
+        "centro de monitoreo"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "protocolos",
+          "cuerpos de prevención",
+          "centro de monitoreo"
+        ]
+      },
+      "odm_ids": [
+        "OdM_48"
+      ],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P47",
+      "numero": 47,
+      "dimension": "Prevención situacional y gestión del espacio público",
+      "pregunta": "¿Hay coordinación operativa entre el sistema de seguridad local y los servicios de las empresas de seguridad privada?",
+      "opciones": "No / Si",
+      "doc_respaldatoria": "minuta o temario reunión, notas en medios, etc",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Documento formal (decreto, resolución, ordenanza)",
+        "Informe o reporte escrito",
+        "Captura de pantalla o registro digital",
+        "Planilla o base de datos",
+        "Registro fotográfico o audiovisual"
+      ],
+      "que_hace_bueno": [
+        "Tiene respaldo documental verificable",
+        "Es consistente con el plan de seguridad ciudadana",
+        "Involucra a los actores relevantes",
+        "Se puede medir o verificar su implementación"
+      ],
+      "senales_alerta": [
+        "Sin respaldo documental",
+        "Desconectado de la estrategia general",
+        "Implementación parcial o inconsistente",
+        "No se puede verificar objetivamente"
+      ],
+      "como_ayuda_agente": [
+        "1. Mostrar cómo lo resolvieron otras ciudades del programa",
+        "2. Ofrecer templates o modelos adaptables",
+        "3. Sugerir pasos concretos para avanzar",
+        "4. Conectar con experiencias y recursos de la Red"
+      ],
+      "tags": [
+        "seguridad privada",
+        "coordinación",
+        "videovigilancia"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "seguridad privada",
+          "coordinación",
+          "videovigilancia"
+        ]
+      },
+      "odm_ids": [
+        "OdM_50"
+      ],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P48",
+      "numero": 48,
+      "dimension": "Prevención situacional y gestión del espacio público",
+      "pregunta": "¿El sistema de videovigilancia pública integra las cámaras del sector privado?",
+      "opciones": "No / Si",
+      "doc_respaldatoria": "Captura de registro/normativa;",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Documento formal (decreto, resolución, ordenanza)",
+        "Informe o reporte escrito",
+        "Captura de pantalla o registro digital",
+        "Planilla o base de datos",
+        "Registro fotográfico o audiovisual"
+      ],
+      "que_hace_bueno": [
+        "Tiene respaldo documental verificable",
+        "Es consistente con el plan de seguridad ciudadana",
+        "Involucra a los actores relevantes",
+        "Se puede medir o verificar su implementación"
+      ],
+      "senales_alerta": [
+        "Sin respaldo documental",
+        "Desconectado de la estrategia general",
+        "Implementación parcial o inconsistente",
+        "No se puede verificar objetivamente"
+      ],
+      "como_ayuda_agente": [
+        "1. Mostrar cómo lo resolvieron otras ciudades del programa",
+        "2. Ofrecer templates o modelos adaptables",
+        "3. Sugerir pasos concretos para avanzar",
+        "4. Conectar con experiencias y recursos de la Red"
+      ],
+      "tags": [
+        "videovigilancia",
+        "seguridad privada",
+        "integración"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "videovigilancia",
+          "seguridad privada",
+          "integración"
+        ]
+      },
+      "odm_ids": [
+        "OdM_53"
+      ],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P49",
+      "numero": 49,
+      "dimension": "Prevención situacional y gestión del espacio público",
+      "pregunta": "¿El gobierno local cuenta con  tecnologías aplicadas a la seguridad? (reconocimiento facial, lectura de matrículas,  Inteligencia Artificial, otras.)",
+      "opciones": "No / Si",
+      "doc_respaldatoria": "Sistemas tecnológicos ()",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Captura del sistema en funcionamiento",
+        "Informe técnico del sistema",
+        "Contrato o licitación de adquisición",
+        "Manual de usuario",
+        "Convenio de uso si es de terceros"
+      ],
+      "que_hace_bueno": [
+        "Tiene marco normativo de respaldo",
+        "Sistema proporcional al territorio/necesidad",
+        "Operativo y en uso regular (no solo instalado)",
+        "Protocolo de uso documentado",
+        "Mantenimiento activo"
+      ],
+      "senales_alerta": [
+        "Sistema instalado pero no utilizado",
+        "Porcentaje significativo fuera de servicio",
+        "Sin protocolo de uso o privacidad",
+        "Sin mantenimiento ni actualización",
+        "No se integra con otros sistemas"
+      ],
+      "como_ayuda_agente": [
+        "1. Dimensionar según territorio y necesidades",
+        "2. Modelo de normativa de respaldo",
+        "3. Template de protocolo de uso",
+        "4. Comparativa de soluciones de otras ciudades"
+      ],
+      "tags": [
+        "tecnología",
+        "videovigilancia",
+        "innovación"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "tecnología",
+          "videovigilancia",
+          "innovación"
+        ]
+      },
+      "odm_ids": [
+        "OdM_54"
+      ],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P50",
+      "numero": 50,
+      "dimension": "Gestión socio-comunitaria y comunicación",
+      "pregunta": "¿El gobierno local implementa proyectos de prevención social del delito? (acciones focalizadas sobre grupos considerados en riesgo para su integración social)",
+      "opciones": "No / Si",
+      "doc_respaldatoria": "Listado de proyectos\nDocumento de presentación de proyecto",
+      "criterio_minimo_cert": "SÍ",
+      "formatos_validos": [
+        "Documento del programa/proyecto con objetivos directamente vinculados a la prevención de delitos y/o violencias",
+        "Convenio con instituciones educativas/salud/culturales/deportivas/tercer sector",
+        "Decreto de creación y/o reglamentación del programa/ proyecto de prevención social del delito y/o violencias",
+        "Informe de actividades",
+        "Registro de beneficiarios",
+        "Publicación en página web oficial del municipio del programa/proyecto",
+        "Portal de gestión virtual del programa/proyecto"
+      ],
+      "que_hace_bueno": [
+        "Focalizado en población de riesgo identificada",
+        "Tiene continuidad en el tiempo",
+        "Involucra más de un área municipal y/o provincial",
+        "Tiene indicador de resultado",
+        "Basado en diagnóstico de factores de riesgo",
+        "Tiene indicadores de impacto vinculados a la reducción del delito/violencias",
+        "Cuenta con recursos para su sostenibilidad en el tiempo: recursos humanos capacitados e idóneos y partida presupuestaria asignada y actualizada"
+      ],
+      "senales_alerta": [
+        "Un taller aislado que se hizo una vez",
+        "No focalizado: para 'toda la ciudadanía'",
+        "Sin indicadores",
+        "Lo lleva una sola persona",
+        "Confunde prevención con comunicación",
+        "No cuenta con los recursos humanos suficientes",
+        "Los recursos humanos no están capacitados en la temática",
+        "Los recursos presupuestarios no sonsificientes ni se actualizan anualmente"
+      ],
+      "como_ayuda_agente": [
+        "Modelos de programas de otras ciudades",
+        "Ayudar a diseñar programa focalizado",
+        "Sugerir indicadores de proceso y resultado",
+        "Guía de articulación entre áreas"
+      ],
+      "tags": [
+        "prevención social",
+        "jóvenes",
+        "programas"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "prevención social",
+          "jóvenes",
+          "programas"
+        ]
+      },
+      "odm_ids": [
+        "OdM_57",
+        "OdM_58"
+      ],
+      "estado": "Completo"
+    },
+    {
+      "id": "P51",
+      "numero": 51,
+      "dimension": "Gestión socio-comunitaria y comunicación",
+      "pregunta": "¿El gobierno local cuenta con una instancia municipal que preste servicios de acceso a la justicia y mediación comunitaria?\n(asesoramiento en temas vinculados con el acceso a derechos, resolución de conflictos vecinales, etc)",
+      "opciones": "No / Si",
+      "doc_respaldatoria": "Documento del programa o creación del área",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Documento del programa con objetivos",
+        "Convenio con instituciones",
+        "Decreto/ordenanza de creación",
+        "Informe de actividades"
+      ],
+      "que_hace_bueno": [
+        "Focalizado en población o problemática identificada",
+        "Tiene continuidad (no evento aislado)",
+        "Involucra más de un área municipal",
+        "Tiene indicadores de resultado",
+        "Basado en diagnóstico previo",
+        "Cuenta con un protocolo de articulación entre áreas"
+      ],
+      "senales_alerta": [
+        "Sin indicadores de resultado",
+        "Lo lleva una sola persona",
+        "Confunde actividad con programa",
+        "Depende de otro nivel de gobierno y el municipio no tiene ingerencia"
+      ],
+      "como_ayuda_agente": [
+        "1. Modelos de programas/ áreas de otras ciudades",
+        "2. Ayudar a diseñar programa focalizado",
+        "3. Guía de articulación interáreas"
+      ],
+      "tags": [
+        "acceso a la justicia",
+        "mediación",
+        "convivencia"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "acceso a la justicia",
+          "mediación",
+          "convivencia"
+        ]
+      },
+      "odm_ids": [
+        "OdM_60",
+        "OdM_61"
+      ],
+      "estado": "Completo"
+    },
+    {
+      "id": "P52",
+      "numero": 52,
+      "dimension": "Gestión socio-comunitaria y comunicación",
+      "pregunta": "¿El gobierno local  cuenta con dispositivos de asistencia a la víctima?",
+      "opciones": "No / Si",
+      "doc_respaldatoria": "Documento del programa o creción del área",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Documento del programa con objetivos",
+        "Convenio con instituciones",
+        "Decreto de creación",
+        "Informe de actividades",
+        "Registro de beneficiarios/participantes"
+      ],
+      "que_hace_bueno": [
+        "Focalizado en población o problemática identificada",
+        "Tiene continuidad (no evento aislado)",
+        "Involucra más de un área municipal",
+        "Tiene indicadores de resultado",
+        "Basado en diagnóstico previo"
+      ],
+      "senales_alerta": [
+        "Un taller aislado que se hizo una vez",
+        "No focalizado: para \"toda la ciudadanía\" sin criterio",
+        "Sin indicadores de resultado",
+        "Lo lleva una sola persona",
+        "Confunde actividad con programa"
+      ],
+      "como_ayuda_agente": [
+        "1. Modelos de programas de otras ciudades",
+        "2. Ayudar a diseñar programa focalizado",
+        "3. Sugerir indicadores de proceso y resultado",
+        "4. Guía de articulación interáreas"
+      ],
+      "tags": [
+        "asistencia a víctimas",
+        "prevención social"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "asistencia a víctimas",
+          "prevención social"
+        ]
+      },
+      "odm_ids": [],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P53",
+      "numero": 53,
+      "dimension": "Gestión socio-comunitaria y comunicación",
+      "pregunta": "¿El gobierno local tiene un programa y equipo en el territorio dedicado al trabajo de prevención de consumos problemáticos?",
+      "opciones": "No / Si",
+      "doc_respaldatoria": "Documento del programa o creción del área",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Documento del proyecto",
+        ".Página web que muestra el proyecto/acción/servicio"
+      ],
+      "que_hace_bueno": [
+        "El área tiene funciones específicas de seguridad ciudadana (no es genérica)",
+        "Tiene personal asignado (al menos un responsable formal)",
+        "Está vigente (no es un organigrama de otra gestión)",
+        "El rango permite interlocución con otras áreas relevantes"
+      ],
+      "senales_alerta": [
+        "Área que solo existe en el papel sin equipo real",
+        "Es apéndice de otra área sin funciones propias",
+        "Organigrama de gestión anterior no actualizado",
+        "Responsable con múltiples áreas a cargo sin dedicación"
+      ],
+      "como_ayuda_agente": [
+        "1. Mostrar organigramas de ciudades que certificaron en seguridad ciudadana",
+        "2. Sugerir modelo de decreto de creación del área",
+        "3. Explicar ventajas de diferentes rangos jerárquicos",
+        "4. Conectar con ciudades similares que avanzaron"
+      ],
+      "tags": [
+        "consumos problemáticos",
+        "prevención social",
+        "salud"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "consumos problemáticos",
+          "prevención social",
+          "salud"
+        ]
+      },
+      "odm_ids": [
+        "OdM_58",
+        "OdM_59",
+        "OdM_62"
+      ],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P54",
+      "numero": 54,
+      "dimension": "Gestión socio-comunitaria y comunicación",
+      "pregunta": "¿Cuenta el gobierno local con alguna política de prevención de la reincidencia y la reintegración social post penitenciaria?",
+      "opciones": "No / Si",
+      "doc_respaldatoria": "Documento del programa o creción del área",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Documento formal (decreto, resolución, ordenanza)",
+        "Informe o reporte escrito",
+        "Captura de pantalla o registro digital",
+        "Planilla o base de datos",
+        "Registro fotográfico o audiovisual"
+      ],
+      "que_hace_bueno": [
+        "Tiene respaldo documental verificable",
+        "Es consistente con el plan de seguridad ciudadana",
+        "Involucra a los actores relevantes",
+        "Se puede medir o verificar su implementación"
+      ],
+      "senales_alerta": [
+        "Sin respaldo documental",
+        "Desconectado de la estrategia general",
+        "Implementación parcial o inconsistente",
+        "No se puede verificar objetivamente"
+      ],
+      "como_ayuda_agente": [
+        "1. Mostrar cómo lo resolvieron otras ciudades del programa",
+        "2. Ofrecer templates o modelos adaptables",
+        "3. Sugerir pasos concretos para avanzar",
+        "4. Conectar con experiencias y recursos de la Red"
+      ],
+      "tags": [
+        "reincidencia",
+        "reinserción",
+        "prevención social"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "reincidencia",
+          "reinserción",
+          "prevención social"
+        ]
+      },
+      "odm_ids": [
+        "OdM_63"
+      ],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P55",
+      "numero": 55,
+      "dimension": "Gestión socio-comunitaria y comunicación",
+      "pregunta": "¿El gobierno local  tiene un plan de comunicación a la ciudadanía en materia de seguridad que incluya la difusión de iniciativas del gobierno?",
+      "opciones": "No / Forma parte de la estrategia de comunicación general / Tenemos una estrategia específica de comunicación sobre el tema",
+      "doc_respaldatoria": "Plan de comunicación",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Documento del programa con objetivos",
+        "Convenio con instituciones",
+        "Decreto de creación",
+        "Informe de actividades",
+        "Registro de beneficiarios/participantes"
+      ],
+      "que_hace_bueno": [
+        "Focalizado en población o problemática identificada",
+        "Tiene continuidad (no evento aislado)",
+        "Involucra más de un área municipal",
+        "Tiene indicadores de resultado",
+        "Basado en diagnóstico previo"
+      ],
+      "senales_alerta": [
+        "Un taller aislado que se hizo una vez",
+        "No focalizado: para \"toda la ciudadanía\" sin criterio",
+        "Sin indicadores de resultado",
+        "Lo lleva una sola persona",
+        "Confunde actividad con programa"
+      ],
+      "como_ayuda_agente": [
+        "1. Modelos de programas de otras ciudades",
+        "2. Ayudar a diseñar programa focalizado",
+        "3. Sugerir indicadores de proceso y resultado",
+        "4. Guía de articulación interáreas"
+      ],
+      "tags": [
+        "comunicación",
+        "transparencia",
+        "rendición de cuentas"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "comunicación",
+          "transparencia",
+          "rendición de cuentas"
+        ]
+      },
+      "odm_ids": [
+        "OdM_65",
+        "OdM_67",
+        "OdM_68"
+      ],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P56",
+      "numero": 56,
+      "dimension": "Gestión socio-comunitaria y comunicación",
+      "pregunta": "¿La ciudadanía tiene algún medio de comunicación distinto al 911 para informar al municipio una emergencia, evento delictivo o denuncia? (aplicación telefónica, WhatsApp, buzones ciudadanos, herramienta de gobierno electrónico u otra)",
+      "opciones": "No / Si",
+      "doc_respaldatoria": "Sistema o canal utilizado",
+      "criterio_minimo_cert": "SÍ",
+      "formatos_validos": [
+        "App municipal con botón de alerta",
+        "Línea telefónica municipal",
+        "Grupo de WhatsApp con protocolo",
+        "Sistema tipo 'Ojos en alerta'",
+        "Plataforma web de reporte",
+        "Chatbot de atención"
+      ],
+      "que_hace_bueno": [
+        "Funciona 24/7",
+        "Tiene protocolo de respuesta con tiempos",
+        "La ciudadanía lo conoce y lo usa",
+        "Se registran reportes para análisis",
+        "Hay alguien que responde"
+      ],
+      "senales_alerta": [
+        "App que nadie descargó",
+        "Solo atiende lunes a viernes 8-14",
+        "Sin protocolo de respuesta",
+        "No se sistematizan reportes",
+        "Se confunde con canal de reclamos general"
+      ],
+      "como_ayuda_agente": [
+        "Evaluar opciones según presupuesto",
+        "Comparativa de sistemas de otras ciudades",
+        "Ayudar a diseñar protocolo de respuesta",
+        "Sugerir cómo difundir el canal",
+        "Métricas de efectividad"
+      ],
+      "tags": [
+        "comunicación ciudadana",
+        "alertas",
+        "sistemas de alerta"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "comunicación ciudadana",
+          "alertas",
+          "sistemas de alerta"
+        ]
+      },
+      "odm_ids": [
+        "OdM_66"
+      ],
+      "estado": "Completo"
+    },
+    {
+      "id": "P57",
+      "numero": 57,
+      "dimension": "Gestión socio-comunitaria y comunicación",
+      "pregunta": "¿Se impulsan iniciativas de sensibilización y difusión para fomentar una cultura de convivencia ciudadana?",
+      "opciones": "No / Ocasionalmente / Frecuentemente",
+      "doc_respaldatoria": "Plan de sensibilización o difusión",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Documento del programa con objetivos",
+        "Convenio con instituciones",
+        "Decreto de creación",
+        "Informe de actividades",
+        "Registro de beneficiarios/participantes"
+      ],
+      "que_hace_bueno": [
+        "Focalizado en población o problemática identificada",
+        "Tiene continuidad (no evento aislado)",
+        "Involucra más de un área municipal",
+        "Tiene indicadores de resultado",
+        "Basado en diagnóstico previo"
+      ],
+      "senales_alerta": [
+        "Un taller aislado que se hizo una vez",
+        "No focalizado: para \"toda la ciudadanía\" sin criterio",
+        "Sin indicadores de resultado",
+        "Lo lleva una sola persona",
+        "Confunde actividad con programa"
+      ],
+      "como_ayuda_agente": [
+        "1. Modelos de programas de otras ciudades",
+        "2. Ayudar a diseñar programa focalizado",
+        "3. Sugerir indicadores de proceso y resultado",
+        "4. Guía de articulación interáreas"
+      ],
+      "tags": [
+        "convivencia",
+        "sensibilización",
+        "comunicación"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "convivencia",
+          "sensibilización",
+          "comunicación"
+        ]
+      },
+      "odm_ids": [
+        "OdM_64",
+        "OdM_67",
+        "OdM_68"
+      ],
+      "estado": "Provisional"
+    },
+    {
+      "id": "P58",
+      "numero": 58,
+      "dimension": "Gestión socio-comunitaria y comunicación",
+      "pregunta": "¿El gobierno local capacita a la ciudadanía en materia de seguridad ciudadana? (incluyendo recomendaciones sobre medidas de autoprotección como horarios de retiro de basura, desmalezado y otras medidas de cuidado)",
+      "opciones": "No / Ocasionalmente / Frecuentemente",
+      "doc_respaldatoria": "Plan de capacitación",
+      "criterio_minimo_cert": "NO",
+      "formatos_validos": [
+        "Plan de capacitación formal",
+        "Cronograma de actividades realizadas",
+        "Registro de asistencia",
+        "Certificados emitidos",
+        "Material de capacitación (presentaciones, folletos)",
+        "Publicaciones en redes/web con fotos"
+      ],
+      "que_hace_bueno": [
+        "Tiene contenido específico de seguridad (no genérico)",
+        "Se hizo más de una vez en el año",
+        "Llega a distintos públicos (no siempre los mismos)",
+        "Los participantes evalúan la actividad",
+        "El contenido se actualiza"
+      ],
+      "senales_alerta": [
+        "Una charla aislada cuenta como 'capacitación'",
+        "Siempre van las mismas 20 personas",
+        "Contenido genérico sin adaptar al territorio",
+        "No hay registro de quién participó",
+        "Se confunde difusión/campaña con capacitación"
+      ],
+      "como_ayuda_agente": [
+        "Ofrecer modelos de programa de capacitación",
+        "Sugerir contenidos según problemáticas locales",
+        "Template de planificación de actividades",
+        "Mostrar cómo medir impacto de capacitaciones",
+        "Distinguir capacitación vs. campaña de comunicación"
+      ],
+      "tags": [
+        "capacitación ciudadana",
+        "prevención",
+        "comunicación"
+      ],
+      "fuentes_rag": {
+        "temas": [
+          "capacitación ciudadana",
+          "prevención",
+          "comunicación"
+        ]
+      },
+      "odm_ids": [],
+      "estado": "Completo"
+    }
+  ]
+}

@@ -13,6 +13,7 @@ type LookupTreeRequest struct {
 }
 
 func LookupThreeToolFunc(ctx tool.Context, args LookupTreeRequest) (LookupTreeResponse, error) {
+
 	jsonContent := `{
   "metadata": {
     "generado": "2026-03-11T14:10:13.601657",
