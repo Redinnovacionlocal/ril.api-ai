@@ -81,10 +81,11 @@ const SystemInstruction = "" +
 	"<HERRAMIENTAS_RAG_DISPONIBLES>\n" +
 	"Tienes acceso a 5 bases de conocimiento especializadas:\n\n" +
 	"1. overall_knowledge_rag: Marcos conceptuales, metodologías, buenas prácticas.\n" +
-	"2. inspire_case_rag: Casos de éxito e iniciativas inspiradoras de ciudades.\n" +
-	"3. webinars_rag: Contenido de webinars y capacitaciones.\n" +
+	"2. buscar_en_inspirarme_casos: Casos 'inspirarme' reales de municipios, soluciones implementadas y resultados.\n" +
+	"3. buscar_webinarios_y_capacitaciones: Para contenido audiovisual, charlas de expertos y encuentros sincrónicos grabados.\n" +
 	"4. web_reinnovacionlocal_index_rag: Información institucional, programas, noticias.\n" +
 	"5. web_+comunidad_index_rag: Foros y discusiones de la comunidad.\n" +
+	"6. buscar_cursos_de_academia: Cursos de la academia RIL, rutas de aprendizaje y certificaciones.\n" +
 	"</HERRAMIENTAS_RAG_DISPONIBLES>\n\n" +
 	"<OTHER_TOOLS>\n" +
 	"1. get_user_data_by_id: Herramienta para obtener datos específicos del usuario autenticado  que no estén en el contexto inicial pero sean relevantes para la consulta. usa el valor -> {user:id?} \n\n" +
@@ -93,6 +94,9 @@ const SystemInstruction = "" +
 	"Puedes usar get_certificate_by_id_team y get_all_certificates_active de manera conjunta si el contexto lo requiere, por ejemplo, para comparar la certificación del equipo del usuario con otras certificaciones activas en la red.\n" +
 	"4. get_all_questionnare_active: Herramienta para obtener información sobre todos los cuestionarios/ADS/Auto-diagnosticos activos dentro de la red RIL. Úsala para consultas relacionadas con diagnósticos, autoevaluaciones o herramientas de reflexión disponibles para los equipos de gobierno local. Nunca pidas ni preguntes el valor al usuario\n" +
 	"5. get_questionnarie_questions_by_id_or_name: Herramienta para obtener información detallada sobre las preguntas específicas de un cuestionario o autodiagnostico activo dentro de la red RIL. Puedes usarla para profundizar en el contenido de los cuestionarios, entender qué aspectos evalúan o para guiar al usuario sobre cómo utilizarlos. Para usar esta herramienta, puedes proporcionar el nombre del cuestionario o su ID específico, dependiendo de la información que tengas disponible en el contexto de la conversación Puedeser usar la tool get_all_questionnare_active y obtener el id de un cuestionario  antes de realizar la busqueda de las preguntas.  Nunca pidas ni preguntes el valor al usuario\n" +
+	"6. get_ril_aliances: Herramienta para obtener el listado de las alianzas activas de RIL.\n" +
+	"7. get_ril_aliances_by_account_name: Herramienta para buscar alianzas activas de RIL por nombre de cuenta.\n" +
+	"8. get_ril_aliances_by_year: Herramienta para listar alianzas activas de RIL que cierran en un año específico.\n" +
 	"</OTHER_TOOLS>\n\n" +
 	"<LOGICA_DE_ROUTING>\n" +
 	"Como orquestador inteligente, tu tarea es:\n\n" +
@@ -201,6 +205,9 @@ func NewRilAgent(ctx context.Context) (agent.Agent, error) {
 	getAllCertificateToolboxTool, _ := toolboxClient.LoadTool("get_all_certificates_active", ctx)
 	getAllQuestionnareActive, _ := toolboxClient.LoadTool("get_all_questionnare_active", ctx)
 	getQuestionnarieQuestionsByIdOrName, _ := toolboxClient.LoadTool("get_questionnarie_questions_by_id_or_name", ctx)
+	getRilAliances, _ := toolboxClient.LoadTool("get_ril_aliances", ctx)
+	getRilAliancesByAccountName, _ := toolboxClient.LoadTool("get_ril_aliances_by_account_name", ctx)
+	getRilAliancesByYear, _ := toolboxClient.LoadTool("get_ril_aliances_by_year", ctx)
 
 	// Custom tools
 	toolGenerateDocument, _ := functiontool.New(functiontool.Config{
@@ -231,6 +238,9 @@ func NewRilAgent(ctx context.Context) (agent.Agent, error) {
 			&getAllCertificateToolboxTool,
 			&getAllQuestionnareActive,
 			&getQuestionnarieQuestionsByIdOrName,
+			&getRilAliances,
+			&getRilAliancesByAccountName,
+			&getRilAliancesByYear,
 			agenttool.New(ragAgent, &agenttool.Config{}),
 		},
 	})
