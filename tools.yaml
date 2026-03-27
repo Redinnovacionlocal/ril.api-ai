@@ -80,3 +80,65 @@ tools:
       where sc.baja = 0
       AND sc.nombre = @questionnaire_name
       order by scp.orden asc
+  get_ril_aliances:
+    kind: bigquery-sql
+    source: bigquery-source
+    description: "Tool to retrieve the list of active RIL alliances."
+    maxQueryResultRows: 200
+    statement: |
+      SELECT
+        a.Name as Nombre,
+        MIN(op.CloseDate) as `Fecha_de_cierre`
+      FROM `ril-admin.salesforce_raw.Opportunity` op
+      INNER JOIN `ril-admin.salesforce_raw.RecordType` rt ON op.RecordTypeId = rt.Id
+      INNER JOIN `salesforce_raw.Account` a ON a.Id = op.AccountId
+      WHERE rt.DeveloperName != 'Alianza_con_Gobierno_Local'
+        AND op.IsDeleted = false
+        AND a.IsDeleted = false
+        AND op.CloseDate > CURRENT_DATE()
+      GROUP BY a.Name
+      ORDER BY SUM(op.Amount) DESC
+      LIMIT 200
+  get_ril_aliances_by_account_name:
+    kind: bigquery-sql
+    source: bigquery-source
+    description: "Search for RIL alliances by account name. Use this when the user asks for a specific company or organization."
+    parameters:
+      - name: nombre_cuenta
+        type: string
+        description: "The name or part of the name of the account."
+    statement: |
+      SELECT
+        a.Name as Nombre,
+        MIN(op.CloseDate) as `Fecha_de_cierre`
+      FROM `ril-admin.salesforce_raw.Opportunity` op
+      INNER JOIN `ril-admin.salesforce_raw.RecordType` rt ON op.RecordTypeId = rt.Id
+      INNER JOIN `salesforce_raw.Account` a ON a.Id = op.AccountId
+      WHERE rt.DeveloperName != 'Alianza_con_Gobierno_Local'
+        AND op.IsDeleted = false
+        AND a.IsDeleted = false
+        AND op.CloseDate > CURRENT_DATE()
+        AND LOWER(a.Name) LIKE CONCAT('%', LOWER(@nombre_cuenta), '%')
+      GROUP BY a.Name
+  get_ril_aliances_by_year:
+    kind: bigquery-sql
+    source: bigquery-source
+    description: "List RIL alliances that close in a specific year."
+    parameters:
+      - name: anio_cierre
+        type: string
+        description: "The 4-digit year (e.g., 2025)."
+    statement: |
+      SELECT
+        a.Name as Nombre,
+        MIN(op.CloseDate) as `Fecha_de_cierre`
+      FROM `ril-admin.salesforce_raw.Opportunity` op
+      INNER JOIN `ril-admin.salesforce_raw.RecordType` rt ON op.RecordTypeId = rt.Id
+      INNER JOIN `salesforce_raw.Account` a ON a.Id = op.AccountId
+      WHERE rt.DeveloperName != 'Alianza_con_Gobierno_Local'
+        AND op.IsDeleted = false
+        AND a.IsDeleted = false
+        AND EXTRACT(YEAR FROM op.CloseDate) = @anio_cierre
+      GROUP BY a.Name
+      ORDER BY SUM(op.Amount) DESC
+      LIMIT 200
