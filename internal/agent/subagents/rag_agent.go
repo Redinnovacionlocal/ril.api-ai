@@ -22,7 +22,7 @@ const SystemInstruction = "Actúa como un motor de recuperación de información
 	"   - 'buscar_webinarios_y_capacitaciones': Para contenido audiovisual, charlas de expertos y encuentros sincrónicos grabados. (OBLIGATORIO: Al resumir un webinario, incluye SIEMPRE la URL del portal).\n" +
 	"   - 'web_reinnovacionlocal_index_rag': información institucional de RIL.\n" +
 	"   - 'web_+comunidad_index_rag': foros y discusiones de la comunidad.\n\n" +
-	"   - 'buscar_cursos_de_academia': Usa este para formación estructurada, rutas de aprendizaje y certificaciones. (OBLIGATORIO: Incluir URL del portal).\n" +
+	"   - 'buscar_cursos_de_academia': Usa este para formación estructurada, rutas de aprendizaje y certificaciones. (OBLIGATORIO: Incluir siempre el Link de acceso).\n" +
 	"OBJETIVO: Extrae y resume toda la información pertinente del documento encontrado para que el agente superior pueda responder al usuario."
 
 func NewRagAgent(m model.LLM) (agent.Agent, error) {
@@ -77,7 +77,7 @@ func NewRagAgent(m model.LLM) (agent.Agent, error) {
 				Retrieval: &genai.Retrieval{
 					VertexAISearch: &genai.VertexAISearch{
 						MaxResults: &maxRagResults,
-						Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/ril-academia-cursos_1774462532188_vista_academia_cursos",
+						Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/ril-academia-cursos_1774889502369_vista_academia_cursos",
 					},
 				},
 			}),
