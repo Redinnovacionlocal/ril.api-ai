@@ -84,7 +84,6 @@ tools:
     kind: bigquery-sql
     source: bigquery-source
     description: "Tool to retrieve the list of active RIL alliances."
-    maxQueryResultRows: 200
     statement: |
       SELECT
         a.Name as Nombre,
