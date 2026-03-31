@@ -9,16 +9,16 @@ import (
 	"github.com/googleapis/mcp-toolbox-sdk-go/tbadk"
 	"google.golang.org/adk/agent"
 	"google.golang.org/adk/agent/llmagent"
-	memory2 "google.golang.org/adk/memory"
 	"google.golang.org/adk/model/gemini"
-	"google.golang.org/adk/session"
 	"google.golang.org/adk/tool"
 	"google.golang.org/adk/tool/agenttool"
+	"google.golang.org/adk/tool/functiontool"
 	"google.golang.org/genai"
 	"ril.api-ia/internal/agent/subagents"
+	"ril.api-ia/internal/agent/tools"
 )
 
-const SYSTEM_INSTRUCTION = "" +
+const SystemInstruction = "" +
 	"<ORDEN_PRIORIDAD>\n1. Restricciones y límites éticos\n2. Detección y adaptación de idioma\n3. Identidad y espíritu RIL\n4. Routing y coordinación de herramientas RAG\n5. Formato y estilo de respuesta\n</ORDEN_PRIORIDAD>\n\n" +
 	"<AUDIENCIA_Y_USUARIOS>\nEl usuario está autenticado dentro del Portal RIL. Datos disponibles:\n- Nombre: {user:first_name?}\n- Apellido: {user:last_name?}\n- Área: {user:area?}\n- Sector: {user:sector?}\n- Cargo: {user:charge?}\n- Título del cargo: {user:job_title?}\n- País: {user:country?}\n- Ciudad: {user:city?}\n\nLa comunicación debe ser personalizada y precisa, adaptando las respuestas al cargo y nivel de experticia del usuario.\n</AUDIENCIA_Y_USUARIOS>" +
 	"<IDIOMA_Y_COMUNICACION>\n" +
@@ -81,10 +81,11 @@ const SYSTEM_INSTRUCTION = "" +
 	"<HERRAMIENTAS_RAG_DISPONIBLES>\n" +
 	"Tienes acceso a 5 bases de conocimiento especializadas:\n\n" +
 	"1. overall_knowledge_rag: Marcos conceptuales, metodologías, buenas prácticas.\n" +
-	"2. inspire_case_rag: Casos de éxito e iniciativas inspiradoras de ciudades.\n" +
-	"3. webinars_rag: Contenido de webinars y capacitaciones.\n" +
+	"2. buscar_en_inspirarme_casos: Casos 'inspirarme' reales de municipios, soluciones implementadas y resultados.\n" +
+	"3. buscar_webinarios_y_capacitaciones: Para contenido audiovisual, charlas de expertos y encuentros sincrónicos grabados.\n" +
 	"4. web_reinnovacionlocal_index_rag: Información institucional, programas, noticias.\n" +
 	"5. web_+comunidad_index_rag: Foros y discusiones de la comunidad.\n" +
+	"6. buscar_cursos_de_academia: Cursos de la academia RIL, rutas de aprendizaje y certificaciones.\n" +
 	"</HERRAMIENTAS_RAG_DISPONIBLES>\n\n" +
 	"<OTHER_TOOLS>\n" +
 	"1. get_user_data_by_id: Herramienta para obtener datos específicos del usuario autenticado  que no estén en el contexto inicial pero sean relevantes para la consulta. usa el valor -> {user:id?} \n\n" +
@@ -93,6 +94,9 @@ const SYSTEM_INSTRUCTION = "" +
 	"Puedes usar get_certificate_by_id_team y get_all_certificates_active de manera conjunta si el contexto lo requiere, por ejemplo, para comparar la certificación del equipo del usuario con otras certificaciones activas en la red.\n" +
 	"4. get_all_questionnare_active: Herramienta para obtener información sobre todos los cuestionarios/ADS/Auto-diagnosticos activos dentro de la red RIL. Úsala para consultas relacionadas con diagnósticos, autoevaluaciones o herramientas de reflexión disponibles para los equipos de gobierno local. Nunca pidas ni preguntes el valor al usuario\n" +
 	"5. get_questionnarie_questions_by_id_or_name: Herramienta para obtener información detallada sobre las preguntas específicas de un cuestionario o autodiagnostico activo dentro de la red RIL. Puedes usarla para profundizar en el contenido de los cuestionarios, entender qué aspectos evalúan o para guiar al usuario sobre cómo utilizarlos. Para usar esta herramienta, puedes proporcionar el nombre del cuestionario o su ID específico, dependiendo de la información que tengas disponible en el contexto de la conversación Puedeser usar la tool get_all_questionnare_active y obtener el id de un cuestionario  antes de realizar la busqueda de las preguntas.  Nunca pidas ni preguntes el valor al usuario\n" +
+	"6. get_ril_aliances: Herramienta para obtener el listado de las alianzas activas de RIL.\n" +
+	"7. get_ril_aliances_by_account_name: Herramienta para buscar alianzas activas de RIL por nombre de cuenta.\n" +
+	"8. get_ril_aliances_by_year: Herramienta para listar alianzas activas de RIL que cierran en un año específico.\n" +
 	"</OTHER_TOOLS>\n\n" +
 	"<LOGICA_DE_ROUTING>\n" +
 	"Como orquestador inteligente, tu tarea es:\n\n" +
@@ -173,7 +177,7 @@ const SYSTEM_INSTRUCTION = "" +
 	"5. Representa el espíritu RIL: cercanía, profesionalismo y foco en lo local.\n" +
 	"</CIERRE_DE_INSTRUCCIONES>"
 
-func NewRilAgent(ctx context.Context, memoryService memory2.Service, sessionService session.Service) (agent.Agent, error) {
+func NewRilAgent(ctx context.Context) (agent.Agent, error) {
 	// Overall configuration
 	m, err := gemini.NewModel(ctx, os.Getenv("AGENT_MODEL"), nil)
 	if err != nil {
@@ -192,8 +196,6 @@ func NewRilAgent(ctx context.Context, memoryService memory2.Service, sessionServ
 			},
 		},
 	}
-
-	//Init Toolbox
 	toolboxClient, err := tbadk.NewToolboxClient(os.Getenv("TOOLBOX_CLIENT_URL"))
 	if err != nil {
 		log.Fatalf("Failed to create MCP Toolbox client: %v", err)
@@ -203,11 +205,22 @@ func NewRilAgent(ctx context.Context, memoryService memory2.Service, sessionServ
 	getAllCertificateToolboxTool, _ := toolboxClient.LoadTool("get_all_certificates_active", ctx)
 	getAllQuestionnareActive, _ := toolboxClient.LoadTool("get_all_questionnare_active", ctx)
 	getQuestionnarieQuestionsByIdOrName, _ := toolboxClient.LoadTool("get_questionnarie_questions_by_id_or_name", ctx)
+	getRilAliances, _ := toolboxClient.LoadTool("get_ril_aliances", ctx)
+	getRilAliancesByAccountName, _ := toolboxClient.LoadTool("get_ril_aliances_by_account_name", ctx)
+	getRilAliancesByYear, _ := toolboxClient.LoadTool("get_ril_aliances_by_year", ctx)
+
+	// Custom tools
+	toolGenerateDocument, _ := functiontool.New(functiontool.Config{
+		Name:        "generate_document",
+		Description: "Genera un documento a partir de un prompt específico. El prompt debe incluir instrucciones claras sobre el formato, la estructura y el contenido esperado del documento. Esta herramienta es ideal para crear informes, resúmenes ejecutivos, propuestas o cualquier otro tipo de documento que requiera una presentación profesional y coherente.",
+	}, tools.GenerateDocumentsToolFunc)
 	if err != nil {
 		log.Fatalf("Failed to load tool: %v", err)
 	}
 
-	ragAgent, err := subagents.NewRagAgent(m)
+	// Subagents
+	ragModel, err := gemini.NewModel(ctx, os.Getenv("AGENT_RAG_MODEL"), nil)
+	ragAgent, err := subagents.NewRagAgent(ragModel)
 	if err != nil {
 		log.Fatalf("Failed to create RAG agent: %v", err)
 	}
@@ -215,23 +228,20 @@ func NewRilAgent(ctx context.Context, memoryService memory2.Service, sessionServ
 	return llmagent.New(llmagent.Config{
 		Name:                  "rilia_agent",
 		Description:           "Eres un asistente especialista en todo lo relacionado al ambito público. Ayudas a los usuarios a encontrar información relevante y precisa sobre estos temas, utilizando un lenguaje claro y accesible.",
-		Instruction:           SYSTEM_INSTRUCTION,
+		Instruction:           SystemInstruction,
 		GenerateContentConfig: contentConfiguration,
 		Model:                 m,
-		AfterModelCallbacks: []llmagent.AfterModelCallback{
-			setTitleOfSession,
-		},
-		AfterAgentCallbacks: []agent.AfterAgentCallback{
-			//addSessionToMemory(sessionService, memoryService),
-		},
 		Tools: []tool.Tool{
-			//memorySearchTool,
+			toolGenerateDocument,
 			&toolboxTool,
 			&getCertificateToolboxTool,
 			&getAllCertificateToolboxTool,
 			&getAllQuestionnareActive,
 			&getQuestionnarieQuestionsByIdOrName,
-			agenttool.New(ragAgent, &agenttool.Config{SkipSummarization: false}),
+			&getRilAliances,
+			&getRilAliancesByAccountName,
+			&getRilAliancesByYear,
+			agenttool.New(ragAgent, &agenttool.Config{}),
 		},
 	})
 }
