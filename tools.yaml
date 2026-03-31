@@ -85,19 +85,21 @@ tools:
     source: bigquery-source
     description: "Tool to retrieve the list of active RIL alliances."
     statement: |
-      SELECT
-        a.Name as Nombre,
-        MIN(op.CloseDate) as `Fecha_de_cierre`
-      FROM `ril-admin.salesforce_raw.Opportunity` op
-      INNER JOIN `ril-admin.salesforce_raw.RecordType` rt ON op.RecordTypeId = rt.Id
-      INNER JOIN `salesforce_raw.Account` a ON a.Id = op.AccountId
-      WHERE rt.DeveloperName != 'Alianza_con_Gobierno_Local'
-        AND op.IsDeleted = false
-        AND a.IsDeleted = false
-        AND op.CloseDate > CURRENT_DATE()
-      GROUP BY a.Name
-      ORDER BY SUM(op.Amount) DESC
-      LIMIT 200
+      SELECT ARRAY_AGG(STRUCT(Nombre, Fecha_de_cierre)) as alianzas
+      FROM (
+        SELECT
+          a.Name as Nombre,
+          MIN(op.CloseDate) as `Fecha_de_cierre`
+        FROM `ril-admin.salesforce_raw.Opportunity` op
+        INNER JOIN `ril-admin.salesforce_raw.RecordType` rt ON op.RecordTypeId = rt.Id
+        INNER JOIN `salesforce_raw.Account` a ON a.Id = op.AccountId
+        WHERE rt.DeveloperName != 'Alianza_con_Gobierno_Local'
+          AND op.IsDeleted = false
+          AND a.IsDeleted = false
+          AND op.CloseDate > CURRENT_DATE()
+        GROUP BY a.Name
+        ORDER BY SUM(op.Amount) DESC
+      )
   get_ril_aliances_by_account_name:
     kind: bigquery-sql
     source: bigquery-source
@@ -128,16 +130,18 @@ tools:
         type: string
         description: "The 4-digit year (e.g., 2025)."
     statement: |
-      SELECT
-        a.Name as Nombre,
-        MIN(op.CloseDate) as `Fecha_de_cierre`
-      FROM `ril-admin.salesforce_raw.Opportunity` op
-      INNER JOIN `ril-admin.salesforce_raw.RecordType` rt ON op.RecordTypeId = rt.Id
-      INNER JOIN `salesforce_raw.Account` a ON a.Id = op.AccountId
-      WHERE rt.DeveloperName != 'Alianza_con_Gobierno_Local'
-        AND op.IsDeleted = false
-        AND a.IsDeleted = false
-        AND EXTRACT(YEAR FROM op.CloseDate) = @anio_cierre
-      GROUP BY a.Name
-      ORDER BY SUM(op.Amount) DESC
-      LIMIT 200
+      SELECT ARRAY_AGG(STRUCT(Nombre, Fecha_de_cierre)) as alianzas
+      FROM (
+        SELECT
+          a.Name as Nombre,
+          MIN(op.CloseDate) as `Fecha_de_cierre`
+        FROM `ril-admin.salesforce_raw.Opportunity` op
+        INNER JOIN `ril-admin.salesforce_raw.RecordType` rt ON op.RecordTypeId = rt.Id
+        INNER JOIN `salesforce_raw.Account` a ON a.Id = op.AccountId
+        WHERE rt.DeveloperName != 'Alianza_con_Gobierno_Local'
+          AND op.IsDeleted = false
+          AND a.IsDeleted = false
+          AND EXTRACT(YEAR FROM op.CloseDate) = CAST(@anio_cierre AS INT64)
+        GROUP BY a.Name
+        ORDER BY SUM(op.Amount) DESC
+      )
