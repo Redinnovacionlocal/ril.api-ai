@@ -82,16 +82,17 @@ func NewRagAgent(m model.LLM) (agent.Agent, error) {
 							Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/comunidad-web_1759777234319",
 						},
 					},
-				},
-			}),
-			geminitool.New("buscar_cursos_de_academia", &genai.Tool{
-				Retrieval: &genai.Retrieval{
-					VertexAISearch: &genai.VertexAISearch{
-						MaxResults: &maxRagResults,
-						Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/ril-academia-cursos_1774889502369_vista_academia_cursos",
+				}),
+			geminitool.New("buscar_cursos_de_academia",
+				"Buscar cursos de academia relacionados con RIL, incluyendo formación estructurada, rutas de aprendizaje y certificaciones. (OBLIGATORIO: Incluir siempre el Link de acceso).",
+				&genai.Tool{
+					Retrieval: &genai.Retrieval{
+						VertexAISearch: &genai.VertexAISearch{
+							MaxResults: &maxRagResults,
+							Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/ril-academia-cursos_1774889502369_vista_academia_cursos",
+						},
 					},
-				},
-			}),
+				}),
 		},
 	})
 }
