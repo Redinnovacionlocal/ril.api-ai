@@ -697,14 +697,16 @@ func NewSecurityRagAgent(m model.LLM) (agent.Agent, error) {
 		Instruction: "Agente especializado en acompañar a municipios en la mejora de su gestión de seguridad ciudadana, con acceso a bases de conocimiento específicas de RIL. Utiliza herramientas de búsqueda semántica para obtener información relevante de guías, normativas, casos de ciudades, modelos y templates relacionados con seguridad ciudadana. Su función es empujar a los municipios a avanzar: completar datos, mejorar lo que ya tienen, priorizar lo que importa, y ejecutar cambios concretos, apoyándose en el conocimiento específico disponible en las bases de RIL.",
 		Model:       m,
 		Tools: []tool.Tool{
-			geminitool.New("rag_security_knowledge", &genai.Tool{
-				Retrieval: &genai.Retrieval{
-					VertexAISearch: &genai.VertexAISearch{
-						MaxResults: &maxRagResults,
-						Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/ril-security-knowledge_1774543837256_gcs_store",
+			geminitool.New("rag_security_knowledge",
+				"Get security knowledge from RIL's knowledge bases. Use this tool to search for relevant information on guides, regulations, city cases, models, and templates related to citizen security. This tool is essential for providing informed recommendations and actionable insights to municipalities based on the specific knowledge available in RIL's databases.",
+				&genai.Tool{
+					Retrieval: &genai.Retrieval{
+						VertexAISearch: &genai.VertexAISearch{
+							MaxResults: &maxRagResults,
+							Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/ril-security-knowledge_1775562649372_gcs_store",
+						},
 					},
-				},
-			}),
+				}),
 		},
 	})
 }

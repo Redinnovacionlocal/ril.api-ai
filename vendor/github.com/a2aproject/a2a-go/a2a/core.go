@@ -23,10 +23,24 @@ import (
 	"github.com/google/uuid"
 )
 
+// ProtocolVersion is a string constant which represents a version of the protocol.
+type ProtocolVersion string
+
+// Version is the protocol version which SDK implements.
+const Version ProtocolVersion = "0.3.0"
+
 // TaskInfoProvider provides information about the Task.
 type TaskInfoProvider interface {
 	// TaskInfo returns information about the task.
 	TaskInfo() TaskInfo
+}
+
+// MetadataCarrier provides access to extensions metadata container.
+type MetadataCarrier interface {
+	// Meta returns the metadata container.
+	Meta() map[string]any
+	// SetMeta sets the metadata value for the provided key.
+	SetMeta(k string, v any)
 }
 
 // TaskInfo represents information about the Task and the group of interactions it belongs to.
@@ -37,6 +51,12 @@ type TaskInfo struct {
 	TaskID TaskID
 	// ContextID is an id of the interactions group the task belong to.
 	ContextID string
+}
+
+// TaskInfo implements TaskInfoProvider so that the struct can be passed to core type constructor functions.
+// For example: a2a.NewMessageForTask(role, a2a.TaskInfo{...}).
+func (ti TaskInfo) TaskInfo() TaskInfo {
+	return ti
 }
 
 // SendMessageResult represents a response for non-streaming message send.
@@ -52,11 +72,9 @@ func (*Message) isSendMessageResult() {}
 // Event interface is used to represent types that can be sent over a streaming connection.
 type Event interface {
 	TaskInfoProvider
+	MetadataCarrier
 
 	isEvent()
-
-	// Meta returns root Metadata of the struct which implements Event.
-	Meta() map[string]any
 }
 
 func (*Message) isEvent()                 {}
@@ -187,6 +205,10 @@ func (m *Message) Meta() map[string]any {
 	return m.Metadata
 }
 
+func (m *Message) SetMeta(k string, v any) {
+	setMeta(&m.Metadata, k, v)
+}
+
 func (m *Message) TaskInfo() TaskInfo {
 	return TaskInfo{TaskID: m.TaskID, ContextID: m.ContextID}
 }
@@ -204,7 +226,7 @@ func NewContextID() string {
 	return newUUIDString()
 }
 
-// TastState defines a set of possible task states.
+// TaskState defines a set of possible task states.
 type TaskState string
 
 const (
@@ -308,6 +330,10 @@ func (m *Task) Meta() map[string]any {
 	return m.Metadata
 }
 
+func (m *Task) SetMeta(k string, v any) {
+	setMeta(&m.Metadata, k, v)
+}
+
 func (m *Task) TaskInfo() TaskInfo {
 	return TaskInfo{TaskID: m.ID, ContextID: m.ContextID}
 }
@@ -339,6 +365,14 @@ type Artifact struct {
 
 	// Parts is an array of content parts that make up the artifact.
 	Parts ContentParts `json:"parts" yaml:"parts" mapstructure:"parts"`
+}
+
+func (a *Artifact) Meta() map[string]any {
+	return a.Metadata
+}
+
+func (a *Artifact) SetMeta(k string, v any) {
+	setMeta(&a.Metadata, k, v)
 }
 
 var _ Event = (*TaskArtifactUpdateEvent)(nil)
@@ -377,6 +411,10 @@ func (e TaskArtifactUpdateEvent) MarshalJSON() ([]byte, error) {
 
 func (a *TaskArtifactUpdateEvent) Meta() map[string]any {
 	return a.Metadata
+}
+
+func (a *TaskArtifactUpdateEvent) SetMeta(k string, v any) {
+	setMeta(&a.Metadata, k, v)
 }
 
 func (m *TaskArtifactUpdateEvent) TaskInfo() TaskInfo {
@@ -459,12 +497,23 @@ func (a *TaskStatusUpdateEvent) Meta() map[string]any {
 	return a.Metadata
 }
 
+func (a *TaskStatusUpdateEvent) SetMeta(k string, v any) {
+	setMeta(&a.Metadata, k, v)
+}
+
 func (m *TaskStatusUpdateEvent) TaskInfo() TaskInfo {
 	return TaskInfo{TaskID: m.TaskID, ContextID: m.ContextID}
 }
 
 // ContentParts is an array of content parts that form the message body or an artifact.
 type ContentParts []Part
+
+func (j ContentParts) MarshalJSON() ([]byte, error) {
+	if j == nil {
+		return []byte("[]"), nil
+	}
+	return json.Marshal([]Part(j))
+}
 
 func (j *ContentParts) UnmarshalJSON(b []byte) error {
 	type typedPart struct {
@@ -541,6 +590,10 @@ func (p TextPart) Meta() map[string]any {
 	return p.Metadata
 }
 
+func (p *TextPart) SetMeta(k string, v any) {
+	setMeta(&p.Metadata, k, v)
+}
+
 func (p TextPart) MarshalJSON() ([]byte, error) {
 	type wrapped TextPart
 	type withKind struct {
@@ -561,6 +614,10 @@ type DataPart struct {
 
 func (p DataPart) Meta() map[string]any {
 	return p.Metadata
+}
+
+func (p *DataPart) SetMeta(k string, v any) {
+	setMeta(&p.Metadata, k, v)
 }
 
 func (p DataPart) MarshalJSON() ([]byte, error) {
@@ -584,6 +641,10 @@ type FilePart struct {
 
 func (p FilePart) Meta() map[string]any {
 	return p.Metadata
+}
+
+func (p *FilePart) SetMeta(k string, v any) {
+	setMeta(&p.Metadata, k, v)
 }
 
 func (p FilePart) MarshalJSON() ([]byte, error) {
@@ -673,6 +734,14 @@ type TaskIDParams struct {
 	Metadata map[string]any `json:"metadata,omitempty" yaml:"metadata,omitempty" mapstructure:"metadata,omitempty"`
 }
 
+func (p *TaskIDParams) Meta() map[string]any {
+	return p.Metadata
+}
+
+func (p *TaskIDParams) SetMeta(k string, v any) {
+	setMeta(&p.Metadata, k, v)
+}
+
 // TaskQueryParams defines parameters for querying a task, with an option to limit history length.
 type TaskQueryParams struct {
 	// HistoryLength is the number of most recent messages from the task's history to retrieve.
@@ -683,6 +752,14 @@ type TaskQueryParams struct {
 
 	// Metadata is an optional metadata associated with the request.
 	Metadata map[string]any `json:"metadata,omitempty" yaml:"metadata,omitempty" mapstructure:"metadata,omitempty"`
+}
+
+func (p *TaskQueryParams) Meta() map[string]any {
+	return p.Metadata
+}
+
+func (p *TaskQueryParams) SetMeta(k string, v any) {
+	setMeta(&p.Metadata, k, v)
 }
 
 // MessageSendConfig defines configuration options for a `message/send` or `message/stream` request.
@@ -714,7 +791,63 @@ type MessageSendParams struct {
 	Metadata map[string]any `json:"metadata,omitempty" yaml:"metadata,omitempty" mapstructure:"metadata,omitempty"`
 }
 
+func (p *MessageSendParams) Meta() map[string]any {
+	return p.Metadata
+}
+
+func (p *MessageSendParams) SetMeta(k string, v any) {
+	setMeta(&p.Metadata, k, v)
+}
+
+func setMeta(m *map[string]any, k string, v any) {
+	if *m == nil {
+		*m = make(map[string]any)
+	}
+	(*m)[k] = v
+}
+
 // Time-based UUID generally improves index update performance if ID field is indexed in a persistent store.
 func newUUIDString() string {
 	return uuid.Must(uuid.NewV7()).String()
+}
+
+// ListTasksRequest defines the parameters for a request to list tasks.
+type ListTasksRequest struct {
+	// ContextID is the ID of the context to list tasks for.
+	ContextID string `json:"context_id,omitempty" yaml:"context_id,omitempty" mapstructure:"context_id,omitempty"`
+
+	// Status is the current state of the tasks to list.
+	Status TaskState `json:"status,omitempty" yaml:"status,omitempty" mapstructure:"status,omitempty"`
+
+	// PageSize is the maximum number of tasks to return in the response.
+	// Must be between 1 and 100. If not set, the default value is 50.
+	PageSize int `json:"page_size,omitempty" yaml:"page_size,omitempty" mapstructure:"page_size,omitempty"`
+
+	// PageToken is the token for retrieving the next page of results.
+	PageToken string `json:"page_token,omitempty" yaml:"page_token,omitempty" mapstructure:"page_token,omitempty"`
+
+	// HistoryLength is the number of most recent messages from the task's history to retrieve in the response.
+	HistoryLength int `json:"history_length,omitempty" yaml:"history_length,omitempty" mapstructure:"history_length,omitempty"`
+
+	// LastUpdatedAfter is the time to list tasks updated after.
+	LastUpdatedAfter *time.Time `json:"last_updated_after,omitempty" yaml:"last_updated_after,omitempty" mapstructure:"last_updated_after,omitempty"`
+
+	// IncludeArtifacts is whether to include artifacts in the response.
+	IncludeArtifacts bool `json:"include_artifacts,omitempty" yaml:"include_artifacts,omitempty" mapstructure:"include_artifacts,omitempty"`
+}
+
+// ListTasksResponse defines the response for a request to tasks/list.
+type ListTasksResponse struct {
+	// Tasks is the list of tasks matching the specified criteria.
+	Tasks []*Task `json:"tasks,omitempty" yaml:"tasks,omitempty" mapstructure:"tasks,omitempty"`
+
+	// TotalSize is the total number of tasks available (before pagination).
+	TotalSize int `json:"total_size,omitempty" yaml:"total_size,omitempty" mapstructure:"total_size,omitempty"`
+
+	// PageSize is the maximum number of tasks returned in the response.
+	PageSize int `json:"page_size,omitempty" yaml:"page_size,omitempty" mapstructure:"page_size,omitempty"`
+
+	// NextPageToken is the token for retrieving the next page of results.
+	// Empty string if no more results.
+	NextPageToken string `json:"next_page_token,omitempty" yaml:"next_page_token,omitempty" mapstructure:"next_page_token,omitempty"`
 }

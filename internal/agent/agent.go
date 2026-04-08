@@ -15,7 +15,6 @@ import (
 	"google.golang.org/adk/tool/functiontool"
 	"google.golang.org/genai"
 	"ril.api-ia/internal/agent/subagents"
-	"ril.api-ia/internal/agent/subagents/securityagent"
 	"ril.api-ia/internal/agent/tools"
 )
 
@@ -63,11 +62,6 @@ func NewRilAgent(ctx context.Context) (agent.Agent, error) {
 	if err != nil {
 		log.Fatalf("Failed to create RAG agent: %v", err)
 	}
-	securityAgent, err := securityagent.NewSecurityAgent(m)
-	if err != nil {
-		log.Fatalf("Failed to create Security agent: %v", err)
-	}
-
 	return llmagent.New(llmagent.Config{
 		Name:                  "rilia_agent",
 		Description:           "Eres un asistente especialista en todo lo relacionado al ambito público. Ayudas a los usuarios a encontrar información relevante y precisa sobre estos temas, utilizando un lenguaje claro y accesible.",
@@ -83,9 +77,6 @@ func NewRilAgent(ctx context.Context) (agent.Agent, error) {
 			&getAllQuestionnareActive,
 			&getQuestionnarieQuestionsByIdOrName,
 			agenttool.New(ragAgent, &agenttool.Config{}),
-		},
-		SubAgents: []agent.Agent{
-			securityAgent,
 		},
 	})
 }
