@@ -226,12 +226,12 @@ func NewRilAgent(ctx context.Context) (agent.Agent, error) {
 	if err != nil {
 		log.Fatalf("Failed to create RAG agent: %v", err)
 	}
-
 	return llmagent.New(llmagent.Config{
 		Name:                  "rilia_agent",
 		Description:           "Eres un asistente especialista en todo lo relacionado al ambito público. Ayudas a los usuarios a encontrar información relevante y precisa sobre estos temas, utilizando un lenguaje claro y accesible.",
 		Instruction:           SystemInstruction,
 		GenerateContentConfig: contentConfiguration,
+		GlobalInstruction:     GlobalInstruction,
 		Model:                 m,
 		Tools: []tool.Tool{
 			toolGenerateDocument,

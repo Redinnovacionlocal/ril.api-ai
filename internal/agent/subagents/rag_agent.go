@@ -33,43 +33,54 @@ func NewRagAgent(m model.LLM) (agent.Agent, error) {
 		Instruction: SystemInstruction,
 		Model:       m,
 		Tools: []tool.Tool{
-			geminitool.New("overall_knowledge_rag", &genai.Tool{
-				Retrieval: &genai.Retrieval{
-					VertexAISearch: &genai.VertexAISearch{
-						MaxResults: &maxRagResults,
-						Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/agente-politicas-publicas-rag_1754580407685_gcs_store",
+			geminitool.New("overall_knowledge_rag",
+				"Get overall knowledge information",
+				&genai.Tool{
+					Retrieval: &genai.Retrieval{
+						VertexAISearch: &genai.VertexAISearch{
+							MaxResults: &maxRagResults,
+							Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/agente-politicas-publicas-rag_1754580407685_gcs_store",
+						},
 					},
-				},
-			}),
-			geminitool.New("buscar_en_inspirarme_casos", &genai.Tool{
-				Retrieval: &genai.Retrieval{
-					VertexAISearch: &genai.VertexAISearch{
-						MaxResults: &maxRagResults,
-						Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/ril-inspirarme-casos_1773239632591_vista_inspirarme_casos",
+				}),
+			geminitool.New("buscar_en_inspirarme_casos",
+				"Find specific cases of municipal initiatives",
+				&genai.Tool{
+					Retrieval: &genai.Retrieval{
+						VertexAISearch: &genai.VertexAISearch{
+							MaxResults: &maxRagResults,
+							Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/ril-inspirarme-casos_1773239632591_vista_inspirarme_casos",
+						},
 					},
-				},
-			}),
-			geminitool.New("buscar_webinarios_y_capacitaciones", &genai.Tool{
-				Retrieval: &genai.Retrieval{
-					VertexAISearch: &genai.VertexAISearch{
-						MaxResults: &maxRagResults,
-						Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/ril-webinarios_1773674713427_vista_webinarios",
+				}),
+			geminitool.New("buscar_webinarios_y_capacitaciones",
+				"Find webinars and training sessions related to RIL",
+				&genai.Tool{
+					Retrieval: &genai.Retrieval{
+						VertexAISearch: &genai.VertexAISearch{
+							MaxResults: &maxRagResults,
+							Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/ril-webinarios_1773674713427_vista_webinarios",
+						},
 					},
-				},
-			}),
-			geminitool.New("web_reinnovacionlocal_index_rag", &genai.Tool{
-				Retrieval: &genai.Retrieval{
-					VertexAISearch: &genai.VertexAISearch{
-						MaxResults: &maxRagResults,
-						Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/portaril-web_1754602780931",
+				}),
+			geminitool.New("web_reinnovacionlocal_index_rag",
+				"Find institutional information about RIL, such as programs, events, news and organizational structure",
+				&genai.Tool{
+					Retrieval: &genai.Retrieval{
+						VertexAISearch: &genai.VertexAISearch{
+							MaxResults: &maxRagResults,
+							Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/portaril-web_1754602780931",
+						},
 					},
-				},
-			}),
-			geminitool.New("web_+comunidad_index_rag", &genai.Tool{
-				Retrieval: &genai.Retrieval{
-					VertexAISearch: &genai.VertexAISearch{
-						MaxResults: &maxRagResults,
-						Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/comunidad-web_1759777234319",
+				}),
+			geminitool.New("web_+comunidad_index_rag",
+				"Find information from RIL community forums and debates, such as peers' perspectives and open discussions",
+				&genai.Tool{
+					Retrieval: &genai.Retrieval{
+						VertexAISearch: &genai.VertexAISearch{
+							MaxResults: &maxRagResults,
+							Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/comunidad-web_1759777234319",
+						},
 					},
 				},
 			}),
