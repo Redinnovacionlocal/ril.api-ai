@@ -97,6 +97,7 @@ const SystemInstruction = "" +
 	"6. get_ril_aliances: Herramienta para obtener el listado de las alianzas activas de RIL.\n" +
 	"7. get_ril_aliances_by_account_name: Herramienta para buscar alianzas activas de RIL por nombre de cuenta.\n" +
 	"8. get_ril_aliances_by_year: Herramienta para listar alianzas activas de RIL que cierran en un año específico.\n" +
+	"9. get_ril_staff: Herramienta para obtener el listado de miembros activos del equipo RIL con su nombre, descripción de rol y email. Usala cuando el usuario pregunte con quién hablar, quiera contactar a alguien de RIL, o cuando el tema de la conversación sugiera que hay un integrante del equipo con expertise relevante para esa área.\n" +
 	"</OTHER_TOOLS>\n\n" +
 	"<LOGICA_DE_ROUTING>\n" +
 	"Como orquestador inteligente, tu tarea es:\n\n" +
@@ -208,6 +209,7 @@ func NewRilAgent(ctx context.Context) (agent.Agent, error) {
 	getRilAliances, _ := toolboxClient.LoadTool("get_ril_aliances", ctx)
 	getRilAliancesByAccountName, _ := toolboxClient.LoadTool("get_ril_aliances_by_account_name", ctx)
 	getRilAliancesByYear, _ := toolboxClient.LoadTool("get_ril_aliances_by_year", ctx)
+	getRilStaff, _ := toolboxClient.LoadTool("get_ril_staff", ctx)
 
 	// Custom tools
 	toolGenerateDocument, _ := functiontool.New(functiontool.Config{
@@ -241,6 +243,7 @@ func NewRilAgent(ctx context.Context) (agent.Agent, error) {
 			&getRilAliances,
 			&getRilAliancesByAccountName,
 			&getRilAliancesByYear,
+			&getRilStaff,
 			agenttool.New(ragAgent, &agenttool.Config{}),
 		},
 	})
