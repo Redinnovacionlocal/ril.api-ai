@@ -1,14 +1,21 @@
 package securityagent
 
 import (
+	"bytes"
+	"fmt"
+	"io"
+	"net/http"
+
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"google.golang.org/adk/agent"
 	"google.golang.org/adk/agent/llmagent"
 	"google.golang.org/adk/model"
 	"google.golang.org/adk/tool"
-	"google.golang.org/adk/tool/agenttool"
 	"google.golang.org/adk/tool/functiontool"
 	"google.golang.org/adk/tool/geminitool"
+	"google.golang.org/adk/tool/mcptoolset"
 	"google.golang.org/genai"
+	agent2 "ril.api-ia/internal/agent"
 	tools2 "ril.api-ia/internal/agent/subagents/securityagent/tools"
 	"ril.api-ia/internal/agent/tools"
 )
@@ -25,7 +32,7 @@ const SystemInstruction = `<SECURITY_AGENT_INSTRUCTION version="2.0">
     ✅ save_user_memory  — activa
     ✅ rilia_security_rag_agent         — activa
     ✅ get_user_memory   — activa
-
+    ✅ google_map_mcp  — activa
     Este agente es independiente del agente principal del Portal RIL.
     Recibe transferencias del agente principal cuando el usuario quiere
     trabajar en seguridad, y puede devolver el control cuando la
@@ -273,7 +280,12 @@ const SystemInstruction = `<SECURITY_AGENT_INSTRUCTION version="2.0">
       estén activos). Cuando hablás con el usuario, siempre usás lenguaje natural:
       "tu guardia urbana", "el plan de seguridad". Nunca "la pregunta P40".
     </HERRAMIENTA>
-
+	<HERRAMIENTA id="google_map_mcp" status="activa">
+		Usa esta herramienta para obtener información geográfica relevante para la seguridad ciudadana, 
+		como mapas de calor del delito, ubicación de comisarías, o análisis de zonas de riesgo. 
+		Puedes usarla para enriquecer tus respuestas y recomendaciones con datos espaciales que ayuden al municipio a entender mejor su 
+		contexto y tomar decisiones informadas.
+	</HERRAMIENTA>
   </HERRAMIENTAS>
 
 
@@ -670,17 +682,36 @@ func NewSecurityAgent(m model.LLM) (agent.Agent, error) {
 		Name:        "get_user_memory",
 		Description: "Recupera la memoria acumulada del usuario sobre su municipio. Devuelve datos concretos aportados por el usuario, oportunidades de mejora identificadas y contexto relevante que se ha registrado en conversaciones anteriores. Esta herramienta es esencial para mantener la continuidad y personalización del acompañamiento, permitiendo al agente recordar lo que ya se sabe sobre el municipio y evitar pedir información redundante.",
 	}, tools2.GetUserMemoryToolFunc)
-	securityRagAgent, err := NewSecurityRagAgent(m)
+
+	UseRagDocument, err := functiontool.New(functiontool.Config{
+		Name:        "rilia_security_rag_agent",
+		Description: "Permite al agente utilizar un documento recuperado del RAG como parte de su respuesta al usuario. El agente puede extraer información relevante del documento para enriquecer sus recomendaciones y respuestas, asegurando que el conocimiento específico de las bases de RIL se integre de manera efectiva en la conversación con el municipio.",
+	}, tools2.UseRagVertexAISearchToolFunc)
+	GoogleMapsTool, err := mcptoolset.New(mcptoolset.Config{
+		Transport: &mcp.StreamableClientTransport{
+			Endpoint: "https://mapstools.googleapis.com/mcp",
+			HTTPClient: &http.Client{
+				Transport: &apiKeyTransport{
+					wrapped: http.DefaultTransport,
+					apiKey:  "AIzaSyDzfzK2avg92TkDWN-pULX3zmfqZsXns_w",
+				},
+			},
+		},
+	})
 	if err != nil {
 		return nil, err
 	}
 	return llmagent.New(llmagent.Config{
-		Name:        "security_agent",
-		Instruction: SystemInstruction,
-		Description: "Agente especializado en acompañar a municipios en la mejora de su gestión de seguridad ciudadana. Su función es empujar a los municipios a avanzar: completar datos, mejorar lo que ya tienen, priorizar lo que importa, y ejecutar cambios concretos. Para eso, utiliza el conocimiento experto del árbol de criterios de calidad construido por los facilitadores de RIL, y lo aplica al contexto específico de cada municipio para ofrecer recomendaciones personalizadas y accionables.",
-		Model:       m,
+		Name:              "security_agent",
+		Instruction:       SystemInstruction,
+		GlobalInstruction: agent2.GlobalInstruction,
+		Description:       "Agente especializado en acompañar a municipios en la mejora de su gestión de seguridad ciudadana. Su función es empujar a los municipios a avanzar: completar datos, mejorar lo que ya tienen, priorizar lo que importa, y ejecutar cambios concretos. Para eso, utiliza el conocimiento experto del árbol de criterios de calidad construido por los facilitadores de RIL, y lo aplica al contexto específico de cada municipio para ofrecer recomendaciones personalizadas y accionables.",
+		Model:             m,
+		Toolsets: []tool.Toolset{
+			GoogleMapsTool,
+		},
 		Tools: []tool.Tool{
-			agenttool.New(securityRagAgent, &agenttool.Config{}),
+			UseRagDocument,
 			toolGenerateDocument,
 			toolLookupThree,
 			saveUserMemory,
@@ -709,4 +740,31 @@ func NewSecurityRagAgent(m model.LLM) (agent.Agent, error) {
 				}),
 		},
 	})
+}
+
+type apiKeyTransport struct {
+	wrapped http.RoundTripper
+	apiKey  string
+}
+
+func (t *apiKeyTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	req = req.Clone(req.Context())
+	req.Header.Set("X-Goog-Api-Key", t.apiKey)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+
+	fmt.Printf(">>> %s %s\n", req.Method, req.URL)
+
+	resp, err := t.wrapped.RoundTrip(req)
+	if resp != nil {
+		fmt.Printf("<<< %s %s → %s\n", req.Method, req.URL, resp.Status)
+
+		if resp.StatusCode >= 400 {
+			body, _ := io.ReadAll(resp.Body)
+			resp.Body = io.NopCloser(bytes.NewReader(body)) // restaurar
+			fmt.Printf("<<< ERROR BODY: %s\n", string(body))
+		}
+	}
+	return resp, err
+
 }
