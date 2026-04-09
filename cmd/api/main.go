@@ -142,7 +142,7 @@ func buildRunner(ctx context.Context, ag internalagent.Agent, sessionService ses
 func setupRouter(ctx context.Context, sessionUseCase *usecase.SessionUseCase, userUseCase *usecase.UserUseCase, feedbackUseCase *usecase.EventFeedbackUseCase, transcribeUseCase *usecase.TranscribeUseCase, runners map[string]*runner.Runner) *gin.Engine {
 	r := gin.Default()
 	configCors := cors.DefaultConfig()
-	configCors.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Accept", "Authorization"}
+	configCors.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Accept", "Authorization", "x-agent"}
 	configCors.AllowAllOrigins = true
 	r.Use(cors.New(configCors))
 	r.Use(middleware.AuthMiddleware(*userUseCase))
