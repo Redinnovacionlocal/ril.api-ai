@@ -2,13 +2,14 @@ package tools
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-	"os/exec"
 	"strings"
 
+	"golang.org/x/oauth2/google"
 	"google.golang.org/adk/tool"
 )
 
@@ -17,17 +18,23 @@ type UseRagVertexAISearchToolArgs struct {
 	Filter map[string]string `json:"filter,omitempty" jsonSchema:"Optional filters to apply to the search results."`
 }
 
-// getGCloudToken obtiene el access token del CLI de gcloud en runtime.
-func getGCloudToken() (string, error) {
-	out, err := exec.Command("gcloud", "auth", "print-access-token").Output()
+func getADCToken(ctx context.Context) (string, error) {
+	tokenSource, err := google.DefaultTokenSource(ctx,
+		"https://www.googleapis.com/auth/cloud-platform",
+	)
 	if err != nil {
-		return "", fmt.Errorf("failed to get gcloud token: %w", err)
+		return "", fmt.Errorf("failed to get token source: %w", err)
 	}
-	return strings.TrimSpace(string(out)), nil
+
+	token, err := tokenSource.Token()
+	if err != nil {
+		return "", fmt.Errorf("failed to get token: %w", err)
+	}
+
+	return token.AccessToken, nil
 }
 
 // buildFilter convierte el mapa de filtros al formato de la Discovery Engine API.
-// Ejemplo: {"category": "security"} → "category: security"
 func buildFilter(filter map[string]string) string {
 	if len(filter) == 0 {
 		return ""
@@ -45,13 +52,14 @@ func UseRagVertexAISearchToolFunc(ctx tool.Context, args UseRagVertexAISearchToo
 		datastore   = "projects/ril-admin/locations/global/collections/default_collection/dataStores/ril-security-knowledge_1775562649372_gcs_store/servingConfigs/default_search:search"
 	)
 
-	// 1. Obtener token de gcloud
-	token, err := getGCloudToken()
+	// 1. Obtener token via ADC (funciona local y Cloud Run)
+	stdCtx := context.Background()
+	token, err := getADCToken(stdCtx)
 	if err != nil {
 		return nil, err
 	}
 
-	// 2. Construir payload según la Discovery Engine API
+	// 2. Construir payload
 	payload := map[string]any{
 		"query":    args.Query,
 		"pageSize": 10,
@@ -65,7 +73,7 @@ func UseRagVertexAISearchToolFunc(ctx tool.Context, args UseRagVertexAISearchToo
 		return nil, fmt.Errorf("failed to serialize payload: %w", err)
 	}
 
-	// 3. Construir request con Authorization header
+	// 3. Construir request
 	req, err := http.NewRequest(http.MethodPost, apiEndpoint+datastore, bytes.NewBuffer(jsonPayload))
 	if err != nil {
 		return nil, fmt.Errorf("failed to build request: %w", err)
@@ -91,7 +99,7 @@ func UseRagVertexAISearchToolFunc(ctx tool.Context, args UseRagVertexAISearchToo
 		return nil, fmt.Errorf("search request failed with status %s: %s", resp.Status, string(body))
 	}
 
-	// 6. Parsear respuesta JSON
+	// 6. Parsear respuesta
 	var result map[string]any
 	if err := json.Unmarshal(body, &result); err != nil {
 		return nil, fmt.Errorf("failed to parse response: %w", err)
