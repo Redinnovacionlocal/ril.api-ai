@@ -14,9 +14,11 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
+	internalagent "google.golang.org/adk/agent"
 	"google.golang.org/adk/artifact"
 	"google.golang.org/adk/artifact/gcsartifact"
 	"google.golang.org/adk/memory"
+	"google.golang.org/adk/model/gemini"
 	"google.golang.org/adk/plugin"
 	"google.golang.org/adk/runner"
 	"google.golang.org/adk/session"
@@ -24,6 +26,7 @@ import (
 	"gorm.io/driver/postgres"
 	"ril.api-ia/internal/agent"
 	"ril.api-ia/internal/agent/plugin/titleplugin"
+	"ril.api-ia/internal/agent/subagents/securityagent"
 	session2 "ril.api-ia/internal/application/service/session"
 	"ril.api-ia/internal/application/usecase"
 	"ril.api-ia/internal/domain/entity"
@@ -49,7 +52,7 @@ func main() {
 	artifactService, _ := gcsartifact.NewService(ctx, os.Getenv("ARTIFACT_BUCKET_NAME"))
 	userRepository, eventFeedbackRepository := InitializeRepositories(ctx)
 
-	runn := initializeRunner(ctx, sessionService, artifactService)
+	runners := initializeRunner(ctx, sessionService, artifactService)
 
 	// Use cases
 	sessionUseCase := usecase.NewSessionUseCase(ctx, sessionService, userRepository)
@@ -58,7 +61,7 @@ func main() {
 	transcribeUseCase := usecase.NewTranscribeUseCase(ctx)
 
 	// HTTP Server and routes
-	router := setupRouter(ctx, sessionUseCase, userUseCase, eventFeedbackUseCase, transcribeUseCase, runn)
+	router := setupRouter(ctx, sessionUseCase, userUseCase, eventFeedbackUseCase, transcribeUseCase, runners)
 	startServer(router)
 }
 
@@ -92,16 +95,35 @@ func InitializeRepositories(ctx context.Context) (repository.UserRepository, rep
 	return userRepository, eventFeedbackRepository
 }
 
-func initializeRunner(ctx context.Context, sessionService session.Service, artifactService artifact.Service) *runner.Runner {
+func initializeRunner(ctx context.Context, sessionService session.Service, artifactService artifact.Service) map[string]*runner.Runner {
 	rilAgent, err := agent.NewRilAgent(ctx)
 	if err != nil {
 		log.Fatal("Error initializing RilAgent:", err)
 	}
+
+	model, err := gemini.NewModel(ctx, os.Getenv("AGENT_MODEL"), nil)
+	if err != nil {
+		log.Fatal("Error initializing Gemini model:", err)
+	}
+
+	securityAgent, err := securityagent.NewSecurityAgent(model)
+	if err != nil {
+		log.Fatal("Error initializing SecurityAgent:", err)
+	}
+
+	return map[string]*runner.Runner{
+		"orchestrator":   buildRunner(ctx, rilAgent, sessionService, artifactService),
+		"agent-security": buildRunner(ctx, securityAgent, sessionService, artifactService),
+	}
+}
+
+func buildRunner(ctx context.Context, ag internalagent.Agent, sessionService session.Service, artifactService artifact.Service) *runner.Runner {
 	memoryService := memory.InMemoryService()
 	titlePlugin, _ := titleplugin.New(ctx, "title_plugin")
-	runnerClient, err := runner.New(runner.Config{
+
+	r, err := runner.New(runner.Config{
 		AppName:         os.Getenv("APP_NAME"),
-		Agent:           rilAgent,
+		Agent:           ag,
 		SessionService:  sessionService,
 		ArtifactService: artifactService,
 		MemoryService:   memoryService,
@@ -114,10 +136,10 @@ func initializeRunner(ctx context.Context, sessionService session.Service, artif
 	if err != nil {
 		log.Fatal("Error initializing runner:", err)
 	}
-	return runnerClient
+	return r
 }
 
-func setupRouter(ctx context.Context, sessionUseCase *usecase.SessionUseCase, userUseCase *usecase.UserUseCase, feedbackUseCase *usecase.EventFeedbackUseCase, transcribeUseCase *usecase.TranscribeUseCase, runn *runner.Runner) *gin.Engine {
+func setupRouter(ctx context.Context, sessionUseCase *usecase.SessionUseCase, userUseCase *usecase.UserUseCase, feedbackUseCase *usecase.EventFeedbackUseCase, transcribeUseCase *usecase.TranscribeUseCase, runners map[string]*runner.Runner) *gin.Engine {
 	r := gin.Default()
 	configCors := cors.DefaultConfig()
 	configCors.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Accept", "Authorization"}
@@ -127,7 +149,7 @@ func setupRouter(ctx context.Context, sessionUseCase *usecase.SessionUseCase, us
 
 	sessionHandler := handler.NewSessionHandler(sessionUseCase)
 	feedbackHandler := handler.NewFeedbackHandler(ctx, *feedbackUseCase)
-	runHandler := handler.NewRunHandler(ctx, *runn, *sessionUseCase)
+	runHandler := handler.NewRunHandler(ctx, runners, *sessionUseCase)
 	speechToTextHandler := handler.NewSpeechToTextHandler(ctx, transcribeUseCase)
 
 	registerRoutes(r, sessionHandler, runHandler, feedbackHandler, speechToTextHandler)
