@@ -1,4 +1,4 @@
-package titleplugin
+package title_plugin
 
 import (
 	"context"
