@@ -15,7 +15,11 @@ import (
 	"google.golang.org/adk/cmd/launcher/web/api"
 	"google.golang.org/adk/cmd/launcher/web/webui"
 	"google.golang.org/adk/model/gemini"
+	"google.golang.org/adk/plugin"
+	"google.golang.org/adk/runner"
 	"ril.api-ia/internal/agent"
+	"ril.api-ia/internal/agent/plugin/agent_active_plugin"
+	"ril.api-ia/internal/agent/plugin/title_plugin"
 	"ril.api-ia/internal/agent/subagents"
 	"ril.api-ia/internal/agent/subagents/securityagent"
 )
@@ -33,9 +37,17 @@ func main() {
 	}
 	loader, _ := a2.NewMultiLoader(coordinatorAgent, agentKnowledge, securityAgent)
 	artifactService, _ := gcsartifact.NewService(ctx, os.Getenv("ARTIFACT_BUCKET_NAME"))
+	titlePlugin, _ := title_plugin.New(ctx, "title_plugin")
+	agentActivePlugin, _ := agent_active_plugin.New(ctx, "agent_active_plugin")
 	config := &launcher.Config{
 		ArtifactService: artifactService,
 		AgentLoader:     loader,
+		PluginConfig: runner.PluginConfig{
+			Plugins: []*plugin.Plugin{
+				titlePlugin,
+				agentActivePlugin,
+			},
+		},
 	}
 	l := universal.NewLauncher(
 		console.NewLauncher(),

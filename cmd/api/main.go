@@ -25,7 +25,8 @@ import (
 	"google.golang.org/adk/session/database"
 	"gorm.io/driver/postgres"
 	"ril.api-ia/internal/agent"
-	"ril.api-ia/internal/agent/plugin/titleplugin"
+	"ril.api-ia/internal/agent/plugin/agent_active_plugin"
+	"ril.api-ia/internal/agent/plugin/title_plugin"
 	"ril.api-ia/internal/agent/subagents/securityagent"
 	session2 "ril.api-ia/internal/application/service/session"
 	"ril.api-ia/internal/application/usecase"
@@ -119,7 +120,8 @@ func initializeRunner(ctx context.Context, sessionService session.Service, artif
 
 func buildRunner(ctx context.Context, ag internalagent.Agent, sessionService session.Service, artifactService artifact.Service) *runner.Runner {
 	memoryService := memory.InMemoryService()
-	titlePlugin, _ := titleplugin.New(ctx, "title_plugin")
+	titlePlugin, _ := title_plugin.New(ctx, "title_plugin")
+	agentActivePlugin, _ := agent_active_plugin.New(ctx, "agent_active_plugin")
 
 	r, err := runner.New(runner.Config{
 		AppName:         os.Getenv("APP_NAME"),
@@ -130,6 +132,7 @@ func buildRunner(ctx context.Context, ag internalagent.Agent, sessionService ses
 		PluginConfig: runner.PluginConfig{
 			Plugins: []*plugin.Plugin{
 				titlePlugin,
+				agentActivePlugin,
 			},
 		},
 	})
