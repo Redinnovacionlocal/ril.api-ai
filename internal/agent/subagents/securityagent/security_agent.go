@@ -1,21 +1,18 @@
 package securityagent
 
 import (
-	"bytes"
-	"fmt"
-	"io"
-	"net/http"
+	"context"
 
-	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"google.golang.org/adk/agent"
 	"google.golang.org/adk/agent/llmagent"
 	"google.golang.org/adk/model"
 	"google.golang.org/adk/tool"
+	"google.golang.org/adk/tool/agenttool"
 	"google.golang.org/adk/tool/functiontool"
 	"google.golang.org/adk/tool/geminitool"
-	"google.golang.org/adk/tool/mcptoolset"
 	"google.golang.org/genai"
 	agent2 "ril.api-ia/internal/agent"
+	"ril.api-ia/internal/agent/subagents/askcontextagent"
 	tools2 "ril.api-ia/internal/agent/subagents/securityagent/tools"
 	"ril.api-ia/internal/agent/tools"
 )
@@ -33,6 +30,7 @@ const SystemInstruction = `<SECURITY_AGENT_INSTRUCTION version="2.0">
     ✅ rilia_security_rag_agent         — activa
     ✅ get_user_memory   — activa
     ✅ google_map_mcp  — activa
+	✅ ask_context - activa
     Este agente es independiente del agente principal del Portal RIL.
     Recibe transferencias del agente principal cuando el usuario quiere
     trabajar en seguridad, y puede devolver el control cuando la
@@ -285,6 +283,14 @@ const SystemInstruction = `<SECURITY_AGENT_INSTRUCTION version="2.0">
 		como mapas de calor del delito, ubicación de comisarías, o análisis de zonas de riesgo. 
 		Puedes usarla para enriquecer tus respuestas y recomendaciones con datos espaciales que ayuden al municipio a entender mejor su 
 		contexto y tomar decisiones informadas.
+	</HERRAMIENTA>
+	<HERRAMIENTA id="ask_context" status="activa">
+			Usa esta herramienta para estructurar preguntas complejas al usuario en bloques ordenados. Es especialmente útil para profundizar en
+			temas específicos del autodiagnóstico, donde necesitas hacer varias sub-preguntas para evaluar un criterio de calidad o una señal de alerta.
+			# Importante: no uses esta herramienta para preguntas generales o exploratorias. Solo para profundizar en temas específicos del AD que requieren varios datos concretos.
+			# Cuando uses esta herramienta indicale al usuario que necesitas mas contexto para entender mejor su situación y ofrecer recomendaciones precisas. Por ejemplo: "Para entender mejor cómo funciona tu guardia urbana, necesito hacerte algunas preguntas más específicas sobre su organización, recursos y protocolos. Esto me ayudará a identificar oportunidades de mejora concretas."
+			# No muestres NUNCA las preguntas como un bloque de texto, la herramienta sera perseada y mostrada al usuario de forma interactiva, con cada pregunta y sus opciones de respuesta claramente diferenciadas. Solamente indca que necesitas mas contexto y que vas a hacer algunas preguntas para entender mejor la situación del municipio/entidad.
+			# Ejecutar siempre a lo ultimo, despues de haber explicado al usuario por qué necesitas profundizar y qué tipo de información estás buscando. No uses esta herramienta como primer recurso, siempre intenta obtener información con preguntas abiertas primero, y recurre a esta herramienta solo cuando necesites datos concretos para evaluar un criterio o una señal de alerta.
 	</HERRAMIENTA>
   </HERRAMIENTAS>
 
@@ -687,17 +693,9 @@ func NewSecurityAgent(m model.LLM) (agent.Agent, error) {
 		Name:        "rilia_security_rag_agent",
 		Description: "Permite al agente utilizar un documento recuperado del RAG como parte de su respuesta al usuario. El agente puede extraer información relevante del documento para enriquecer sus recomendaciones y respuestas, asegurando que el conocimiento específico de las bases de RIL se integre de manera efectiva en la conversación con el municipio.",
 	}, tools2.UseRagVertexAISearchToolFunc)
-	GoogleMapsTool, err := mcptoolset.New(mcptoolset.Config{
-		Transport: &mcp.StreamableClientTransport{
-			Endpoint: "https://mapstools.googleapis.com/mcp",
-			HTTPClient: &http.Client{
-				Transport: &apiKeyTransport{
-					wrapped: http.DefaultTransport,
-					apiKey:  "AIzaSyDzfzK2avg92TkDWN-pULX3zmfqZsXns_w",
-				},
-			},
-		},
-	})
+
+	ctx := context.Background()
+	AskContext, err := askcontextagent.NewAskContextAgent(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -707,15 +705,15 @@ func NewSecurityAgent(m model.LLM) (agent.Agent, error) {
 		GlobalInstruction: agent2.GlobalInstruction,
 		Description:       "Agente especializado en acompañar a municipios en la mejora de su gestión de seguridad ciudadana. Su función es empujar a los municipios a avanzar: completar datos, mejorar lo que ya tienen, priorizar lo que importa, y ejecutar cambios concretos. Para eso, utiliza el conocimiento experto del árbol de criterios de calidad construido por los facilitadores de RIL, y lo aplica al contexto específico de cada municipio para ofrecer recomendaciones personalizadas y accionables.",
 		Model:             m,
-		Toolsets: []tool.Toolset{
-			GoogleMapsTool,
-		},
 		Tools: []tool.Tool{
 			UseRagDocument,
 			toolGenerateDocument,
 			toolLookupThree,
 			saveUserMemory,
 			getUserMemory,
+			agenttool.New(AskContext, &agenttool.Config{
+				SkipSummarization: true,
+			}),
 		},
 	})
 }
@@ -740,31 +738,4 @@ func NewSecurityRagAgent(m model.LLM) (agent.Agent, error) {
 				}),
 		},
 	})
-}
-
-type apiKeyTransport struct {
-	wrapped http.RoundTripper
-	apiKey  string
-}
-
-func (t *apiKeyTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	req = req.Clone(req.Context())
-	req.Header.Set("X-Goog-Api-Key", t.apiKey)
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "application/json")
-
-	fmt.Printf(">>> %s %s\n", req.Method, req.URL)
-
-	resp, err := t.wrapped.RoundTrip(req)
-	if resp != nil {
-		fmt.Printf("<<< %s %s → %s\n", req.Method, req.URL, resp.Status)
-
-		if resp.StatusCode >= 400 {
-			body, _ := io.ReadAll(resp.Body)
-			resp.Body = io.NopCloser(bytes.NewReader(body)) // restaurar
-			fmt.Printf("<<< ERROR BODY: %s\n", string(body))
-		}
-	}
-	return resp, err
-
 }
