@@ -54,3 +54,5 @@ jobs:
           service: ril-aiapiservice-sa1-dev
           region: southamerica-east1
           image: us-docker.pkg.dev/ril-admin/ril-ai-service-repository/go-ai-app-dev:${{ github.sha }}
+          env_vars: |
+            AGENT_SECURITY_NAME=${{ vars.AGENT_SECURITY_NAME }}

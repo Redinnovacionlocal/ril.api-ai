@@ -2,6 +2,7 @@ package securityagent
 
 import (
 	"context"
+	"os"
 
 	"google.golang.org/adk/agent"
 	"google.golang.org/adk/agent/llmagent"
@@ -665,6 +666,7 @@ const SystemInstruction = `<SECURITY_AGENT_INSTRUCTION version="2.0">
 </SECURITY_AGENT_INSTRUCTION>`
 
 func NewSecurityAgent(m model.LLM) (agent.Agent, error) {
+	securityAgentName := os.Getenv("AGENT_SECURITY_NAME")
 	toolGenerateDocument, _ := functiontool.New(functiontool.Config{
 		Name:        "generate_document",
 		Description: "Genera un documento a partir de un prompt específico. El prompt debe incluir instrucciones claras sobre el formato, la estructura y el contenido esperado del documento. Esta herramienta es ideal para crear informes, resúmenes ejecutivos, propuestas o cualquier otro tipo de documento que requiera una presentación profesional y coherente.",
@@ -700,7 +702,7 @@ func NewSecurityAgent(m model.LLM) (agent.Agent, error) {
 		return nil, err
 	}
 	return llmagent.New(llmagent.Config{
-		Name:              "security_agent",
+		Name:              securityAgentName,
 		Instruction:       SystemInstruction,
 		GlobalInstruction: agent2.GlobalInstruction,
 		Description:       "Agente especializado en acompañar a municipios en la mejora de su gestión de seguridad ciudadana. Su función es empujar a los municipios a avanzar: completar datos, mejorar lo que ya tienen, priorizar lo que importa, y ejecutar cambios concretos. Para eso, utiliza el conocimiento experto del árbol de criterios de calidad construido por los facilitadores de RIL, y lo aplica al contexto específico de cada municipio para ofrecer recomendaciones personalizadas y accionables.",
