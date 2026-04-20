@@ -97,6 +97,7 @@ func InitializeRepositories(ctx context.Context) (repository.UserRepository, rep
 }
 
 func initializeRunner(ctx context.Context, sessionService session.Service, artifactService artifact.Service) map[string]*runner.Runner {
+	securityAgentName := os.Getenv("AGENT_SECURITY_NAME")
 	rilAgent, err := agent.NewRilAgent(ctx)
 	if err != nil {
 		log.Fatal("Error initializing RilAgent:", err)
@@ -113,8 +114,8 @@ func initializeRunner(ctx context.Context, sessionService session.Service, artif
 	}
 
 	return map[string]*runner.Runner{
-		"orchestrator":   buildRunner(ctx, rilAgent, sessionService, artifactService),
-		"security_agent": buildRunner(ctx, securityAgent, sessionService, artifactService),
+		"orchestrator":    buildRunner(ctx, rilAgent, sessionService, artifactService),
+		securityAgentName: buildRunner(ctx, securityAgent, sessionService, artifactService),
 	}
 }
 
