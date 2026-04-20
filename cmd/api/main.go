@@ -114,7 +114,7 @@ func initializeRunner(ctx context.Context, sessionService session.Service, artif
 
 	return map[string]*runner.Runner{
 		"orchestrator":   buildRunner(ctx, rilAgent, sessionService, artifactService),
-		"agent-security": buildRunner(ctx, securityAgent, sessionService, artifactService),
+		"security_agent": buildRunner(ctx, securityAgent, sessionService, artifactService),
 	}
 }
 
