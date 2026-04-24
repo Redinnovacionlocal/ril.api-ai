@@ -34,7 +34,6 @@ func getADCToken(ctx context.Context) (string, error) {
 	return token.AccessToken, nil
 }
 
-// buildFilter convierte el mapa de filtros al formato de la Discovery Engine API.
 func buildFilter(filter map[string]string) string {
 	if len(filter) == 0 {
 		return ""
@@ -47,62 +46,57 @@ func buildFilter(filter map[string]string) string {
 }
 
 func UseRagVertexAISearchToolFunc(ctx tool.Context, args UseRagVertexAISearchToolArgs) (map[string]any, error) {
-	const (
-		apiEndpoint = "https://discoveryengine.googleapis.com/v1/"
-		datastore   = "projects/ril-admin/locations/global/collections/default_collection/dataStores/ril-security-knowledge_1775562649372_gcs_store/servingConfigs/default_search:search"
-	)
+	const apiEndpoint = "https://discoveryengine.googleapis.com/v1/projects/ril-admin/locations/global/collections/default_collection/dataStores/ril-security-knowledge_1775562649372_gcs_store/servingConfigs/default_search:search"
 
-	// 1. Obtener token via ADC (funciona local y Cloud Run)
-	stdCtx := context.Background()
-	token, err := getADCToken(stdCtx)
+	// 1. Obtener cliente autenticado (Maneja el cacheo de tokens por ti)
+	// Es mucho más eficiente que obtener el token manualmente cada vez
+	client, err := google.DefaultClient(ctx, "https://www.googleapis.com/auth/cloud-platform")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create authenticated client: %w", err)
 	}
 
-	// 2. Construir payload
 	payload := map[string]any{
 		"query":    args.Query,
-		"pageSize": 10,
+		"pageSize": 25,
+		"contentSearchSpec": map[string]any{
+			"snippetSpec": map[string]any{
+				"returnSnippet": true,
+			},
+			"summarySpec": map[string]any{
+				"summaryResultCount": 3,
+			},
+		},
 	}
+
 	if filterStr := buildFilter(args.Filter); filterStr != "" {
 		payload["filter"] = filterStr
 	}
 
 	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
-		return nil, fmt.Errorf("failed to serialize payload: %w", err)
+		return nil, err
 	}
 
-	// 3. Construir request
-	req, err := http.NewRequest(http.MethodPost, apiEndpoint+datastore, bytes.NewBuffer(jsonPayload))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, apiEndpoint, bytes.NewBuffer(jsonPayload))
 	if err != nil {
-		return nil, fmt.Errorf("failed to build request: %w", err)
+		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+token)
 
-	// 4. Ejecutar request
-	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("failed to perform search: %w", err)
+		return nil, fmt.Errorf("request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
-	// 5. Leer body
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response body: %w", err)
-	}
-
+	body, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("search request failed with status %s: %s", resp.Status, string(body))
+		return nil, fmt.Errorf("error %d: %s", resp.StatusCode, string(body))
 	}
 
-	// 6. Parsear respuesta
 	var result map[string]any
 	if err := json.Unmarshal(body, &result); err != nil {
-		return nil, fmt.Errorf("failed to parse response: %w", err)
+		return nil, err
 	}
 
 	return result, nil
