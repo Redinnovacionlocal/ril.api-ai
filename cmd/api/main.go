@@ -126,7 +126,7 @@ func initializeRunner(ctx context.Context, sessionService session.Service, artif
 		log.Fatal("Error initializing Gemini model:", err)
 	}
 
-	treeRepo := tree_agent.NewTreeQuestionRepository(dbAgent)
+	treeRepo := tree_agent.NewSecurityTreeSubAgentRepository(dbAgent)
 	securityAgent, err := securityagent.NewSecurityAgent(model, toolboxClient, treeRepo)
 	if err != nil {
 		log.Fatal("Error initializing SecurityAgent:", err)

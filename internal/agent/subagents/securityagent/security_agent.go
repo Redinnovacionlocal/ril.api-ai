@@ -51,7 +51,7 @@ func buildSystemInstruction(data PromptData) (string, error) {
 	return buf.String(), nil
 }
 
-func NewSecurityAgent(m model.LLM, toolboxClient tbadk.ToolboxClient, treeRepo *tree_agent.TreeQuestionRepository) (agent.Agent, error) {
+func NewSecurityAgent(m model.LLM, toolboxClient tbadk.ToolboxClient, treeRepo *tree_agent.SecurityTreeSubAgentRepository) (agent.Agent, error) {
 	securityAgentName := os.Getenv("AGENT_SECURITY_NAME")
 	ctx := context.Background()
 
