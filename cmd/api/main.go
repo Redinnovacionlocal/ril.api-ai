@@ -53,12 +53,27 @@ func main() {
 		DB:       0,
 	})
 
+	dbAgent, err := sqlx.Open("pgx", os.Getenv("DATABASE_AGENT_DSN"))
+	if err != nil {
+		log.Fatal("Error connecting to agent DB:", err)
+	}
+	defer dbAgent.Close()
+
+	var dbCore *sqlx.DB
+	if os.Getenv("APP_ENV") != "local" {
+		dbCore, err = sqlx.ConnectContext(ctx, "mysql", os.Getenv("DATABASE_CORE_DSN"))
+		if err != nil {
+			log.Fatal("Error connecting to core DB:", err)
+		}
+		defer dbCore.Close()
+	}
+
 	// Agents service and runners
 	sessionService := initializeSessionService()
 	artifactService, _ := gcsartifact.NewService(ctx, os.Getenv("ARTIFACT_BUCKET_NAME"))
-	userRepository, eventFeedbackRepository := InitializeRepositories(ctx)
+	userRepository, eventFeedbackRepository := InitializeRepositories(ctx, dbCore, dbAgent)
 
-	runners := initializeRunner(ctx, sessionService, artifactService)
+	runners := initializeRunner(ctx, sessionService, artifactService, dbAgent)
 
 	// Use cases
 	sessionUseCase := usecase.NewSessionUseCase(ctx, sessionService, userRepository)
@@ -80,19 +95,12 @@ func initializeSessionService() session2.Service {
 	return mySessionService
 }
 
-func InitializeRepositories(ctx context.Context) (repository.UserRepository, repository.EventFeedbackRepository) {
+func InitializeRepositories(ctx context.Context, dbCore *sqlx.DB, dbAgent *sqlx.DB) (repository.UserRepository, repository.EventFeedbackRepository) {
 	if os.Getenv("APP_ENV") != "local" {
 		log.Println("Running id dis production modes with SQL user repository")
-		db, err := sqlx.ConnectContext(ctx, "mysql", os.Getenv("DATABASE_CORE_DSN"))
-		if err != nil {
-			log.Fatal("Error connecting to the database:", err)
-		}
-		dbAgen, err := sqlx.Open("pgx", os.Getenv("DATABASE_AGENT_DSN"))
-		if err != nil {
-			log.Fatal("Error connecting to the agent database:", err)
-		}
-		eventFeedbackRepository := sql.NewEventFeedbackRepository(dbAgen)
-		userRepository := sql.NewUserRepository(db)
+
+		eventFeedbackRepository := sql.NewEventFeedbackRepository(dbAgent)
+		userRepository := sql.NewUserRepository(dbCore)
 		return userRepository, eventFeedbackRepository
 	}
 	userRepository := m.NewUserRepository()
@@ -101,7 +109,7 @@ func InitializeRepositories(ctx context.Context) (repository.UserRepository, rep
 	return userRepository, eventFeedbackRepository
 }
 
-func initializeRunner(ctx context.Context, sessionService session.Service, artifactService artifact.Service) map[string]*runner.Runner {
+func initializeRunner(ctx context.Context, sessionService session.Service, artifactService artifact.Service, dbAgent *sqlx.DB) map[string]*runner.Runner {
 	securityAgentName := os.Getenv("AGENT_SECURITY_NAME")
 	toolboxClient, err := tbadk.NewToolboxClient(os.Getenv("TOOLBOX_CLIENT_URL"))
 	if err != nil {
@@ -116,11 +124,6 @@ func initializeRunner(ctx context.Context, sessionService session.Service, artif
 	model, err := gemini.NewModel(ctx, os.Getenv("AGENT_MODEL"), nil)
 	if err != nil {
 		log.Fatal("Error initializing Gemini model:", err)
-	}
-
-	dbAgent, err := sqlx.Open("pgx", os.Getenv("DATABASE_AGENT_DSN"))
-	if err != nil {
-		log.Fatal("Error connecting to agent DB:", err)
 	}
 
 	treeRepo := tree_agent.NewTreeQuestionRepository(dbAgent)
