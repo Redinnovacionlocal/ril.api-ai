@@ -36,6 +36,12 @@ jobs:
             --image us-central1-docker.pkg.dev/database-toolbox/toolbox/toolbox:latest \
             --region us-central1 \
             --update-secrets /app/tools.yaml=tools-dev:latest \
+            --set-env-vars "DB_HOST=${{ secrets.DEV_DB_HOST }}" \
+            --set-env-vars "DB_PORT=${{ secrets.DEV_DB_PORT }}" \
+            --set-env-vars "DB_NAME=${{ secrets.DEV_DB_NAME }}" \
+            --set-env-vars "DB_USER=${{ secrets.DEV_DB_USER }}" \
+            --set-env-vars "DB_PASSWORD=${{ secrets.DEV_DB_PASSWORD }}" \
+            --set-env-vars "SECURITY_TREE_SUB_AGENT_ID=${{ secrets.DEV_SECURITY_TREE_SUB_AGENT_ID }}" \
             --args="--tools-file=/app/tools.yaml,--address=0.0.0.0,--port=8080"
 
       - name: Configure Docker for Artifact Registry
@@ -56,9 +62,4 @@ jobs:
           image: us-docker.pkg.dev/ril-admin/ril-ai-service-repository/go-ai-app-dev:${{ github.sha }}
           env_vars: |
             AGENT_SECURITY_NAME=${{ vars.AGENT_SECURITY_NAME }}
-            DB_HOST=${{ secrets.DEV_DB_HOST }}
-            DB_PORT=${{ secrets.DEV_DB_PORT }}
-            DB_NAME=${{ secrets.DEV_DB_NAME }}
-            DB_USER=${{ secrets.DEV_DB_USER }}
-            DB_PASSWORD=${{ secrets.DEV_DB_PASSWORD }}
             SECURITY_TREE_SUB_AGENT_ID=${{ secrets.DEV_SECURITY_TREE_SUB_AGENT_ID }}
