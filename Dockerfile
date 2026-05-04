@@ -11,6 +11,7 @@ FROM gcr.io/distroless/base-debian12
 
 WORKDIR /app
 COPY --from=builder /app/app /app/app
+COPY --from=builder /app/migrations ./migrations
 
 ENV PORT=8080
 EXPOSE 8080
