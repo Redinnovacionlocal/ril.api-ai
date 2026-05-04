@@ -18,7 +18,7 @@ import (
 	"ril.api-ia/internal/agent/tools"
 )
 
-func NewRilAgent(ctx context.Context) (agent.Agent, error) {
+func NewRilAgent(ctx context.Context, toolboxClient tbadk.ToolboxClient) (agent.Agent, error) {
 	// Overall configuration
 	m, err := gemini.NewModel(ctx, os.Getenv("AGENT_MODEL"), nil)
 	if err != nil {
@@ -37,10 +37,7 @@ func NewRilAgent(ctx context.Context) (agent.Agent, error) {
 			},
 		},
 	}
-	toolboxClient, err := tbadk.NewToolboxClient(os.Getenv("TOOLBOX_CLIENT_URL"))
-	if err != nil {
-		log.Fatalf("Failed to create MCP Toolbox client: %v", err)
-	}
+
 	toolboxTool, err := toolboxClient.LoadTool("get_user_data_by_id", ctx)
 	getCertificateToolboxTool, _ := toolboxClient.LoadTool("get_certificate_by_id_team", ctx)
 	getAllCertificateToolboxTool, _ := toolboxClient.LoadTool("get_all_certificates_active", ctx)

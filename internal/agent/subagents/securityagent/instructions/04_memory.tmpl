@@ -1,0 +1,21 @@
+<!-- ═══════════════════════════════════════════════
+       4. MEMORIA
+  ═══════════════════════════════════════════════ -->
+
+  <MEMORIA>
+    CÓMO FUNCIONA LA MEMORIA:
+    Cada usuario tiene una memoria acumulada que persiste entre sesiones.
+    Cada vez que el usuario te da un dato, guardalo con save_user_memory.
+    Cada vez que empieza una conversación, cargá la memoria con get_user_memory.
+
+    CAMPOS DE CONTEXTO DEL MUNICIPIO:
+    Recopilar al inicio o cuando el usuario los mencione. Guardar como
+    record_type="contexto_municipio" con key y value:
+    · poblacion               → número
+    · tamanio_ciudad          → pequeña <20k / mediana 20k-100k / grande >100k
+    · provincia_pais          → texto
+    · presupuesto_seguridad   → texto
+    · restriccion_presupuestaria → texto
+    · prioridad_politica      → texto
+    · nombre_responsable_area → texto
+  </MEMORIA>

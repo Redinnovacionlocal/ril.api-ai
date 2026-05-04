@@ -57,3 +57,9 @@ jobs:
           image: us-docker.pkg.dev/ril-admin/ril-ai-service-repository/go-ai-app:${{ github.sha }}
           env_vars: |
             AGENT_SECURITY_NAME=${{ vars.AGENT_SECURITY_NAME }}
+            DB_HOST=${{ secrets.DB_HOST }}
+            DB_PORT=${{ secrets.DB_PORT }}
+            DB_NAME=${{ secrets.DB_NAME }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            SECURITY_TREE_SUB_AGENT_ID=${{ secrets.SECURITY_TREE_SUB_AGENT_ID }}

@@ -2,6 +2,13 @@ sources:
   bigquery-source:
     kind: bigquery
     project: "ril-admin"
+  postgres-db:
+    kind: postgres
+    host: ${DB_HOST}
+    port: ${DB_PORT}
+    database: ${DB_NAME}
+    user: ${DB_USER}
+    password: ${DB_PASSWORD}
 tools:
   get_user_data_by_id:
     kind: bigquery-sql
@@ -174,3 +181,34 @@ tools:
           AND ec.activo = TRUE
         ORDER BY ec.orden, e.orden
       )
+    lookup_tree_questions:
+    kind: postgres-sql
+    source: postgres-db
+    description: "Busca preguntas en la base de datos de conocimiento usando conceptos o palabras clave. Devuelve la dimensión, opciones, buenas prácticas y señales de alerta de la pregunta encontrada."
+    parameters:
+      - name: search_term
+        type: string
+        description: "Conceptos o palabras clave para buscar (ej. 'organigrama', 'presupuesto', 'comunitaria')."
+    statement: |
+      SELECT 
+          tq.id, 
+          tq.number, 
+          tq.dimension, 
+          tq.question, 
+          tq.options, 
+          tq.supporting_document, 
+          tq.minimum_cert_criteria,
+          to_json(tq.valid_formats) as valid_formats, 
+          to_json(tq.good_practices) as good_practices, 
+          to_json(tq.alert_signals) as alert_signals, 
+          to_json(tq.agent_help) as agent_help, 
+          to_json(tq.tags) as tags, 
+          to_json(tq.odm_ids) as odms
+      FROM tree_questions tq
+      INNER JOIN tree_sub_agent tsa ON tq.id_tree_sub_agent = tsa.id_tree_sub_agent
+      WHERE tsa.id_tree_sub_agent = ${SECURITY_TREE_SUB_AGENT_ID}
+        AND (
+            tq.dimension ~* REPLACE($1, ' ', '|') 
+            OR array_to_string(tq.tags, ',') ~* REPLACE($1, ' ', '|')
+        )
+      LIMIT 10;
