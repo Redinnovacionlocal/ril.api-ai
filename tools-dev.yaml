@@ -206,7 +206,7 @@ tools:
           to_json(tq.odm_ids) as odms
       FROM tree_questions tq
       INNER JOIN tree_sub_agent tsa ON tq.id_tree_sub_agent = tsa.id_tree_sub_agent
-      WHERE tsa.id_tree_sub_agent = '019dbfc6-f5a3-736c-9f99-8b8ccda19fee'
+      WHERE tsa.id_tree_sub_agent = ${SECURITY_TREE_SUB_AGENT_ID}
         AND (
             tq.dimension ~* REPLACE($1, ' ', '|') 
             OR array_to_string(tq.tags, ',') ~* REPLACE($1, ' ', '|')

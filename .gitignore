@@ -1,4 +1,5 @@
 .env
+.env.toolbox
 tmp
 tmp/*
 .DS_Store
