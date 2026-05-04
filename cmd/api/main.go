@@ -10,6 +10,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/googleapis/mcp-toolbox-sdk-go/tbadk"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
@@ -36,11 +37,15 @@ import (
 	"ril.api-ia/internal/infrastructure/http/middleware"
 	m "ril.api-ia/internal/infrastructure/repository/memory"
 	"ril.api-ia/internal/infrastructure/repository/sql"
+	"ril.api-ia/internal/infrastructure/repository/tree_agent"
 )
 
 func main() {
 	ctx := context.Background()
 	_ = godotenv.Overload()
+
+	runMigrations(os.Getenv("DATABASE_AGENT_DSN"))
+
 	//Init redis
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     os.Getenv("REDIS_ADDR"),
@@ -98,7 +103,12 @@ func InitializeRepositories(ctx context.Context) (repository.UserRepository, rep
 
 func initializeRunner(ctx context.Context, sessionService session.Service, artifactService artifact.Service) map[string]*runner.Runner {
 	securityAgentName := os.Getenv("AGENT_SECURITY_NAME")
-	rilAgent, err := agent.NewRilAgent(ctx)
+	toolboxClient, err := tbadk.NewToolboxClient(os.Getenv("TOOLBOX_CLIENT_URL"))
+	if err != nil {
+		log.Fatal("Error initializing Toolbox client:", err)
+	}
+
+	rilAgent, err := agent.NewRilAgent(ctx, toolboxClient)
 	if err != nil {
 		log.Fatal("Error initializing RilAgent:", err)
 	}
@@ -108,7 +118,13 @@ func initializeRunner(ctx context.Context, sessionService session.Service, artif
 		log.Fatal("Error initializing Gemini model:", err)
 	}
 
-	securityAgent, err := securityagent.NewSecurityAgent(model)
+	dbAgent, err := sqlx.Open("pgx", os.Getenv("DATABASE_AGENT_DSN"))
+	if err != nil {
+		log.Fatal("Error connecting to agent DB:", err)
+	}
+
+	treeRepo := tree_agent.NewTreeQuestionRepository(dbAgent)
+	securityAgent, err := securityagent.NewSecurityAgent(model, toolboxClient, treeRepo)
 	if err != nil {
 		log.Fatal("Error initializing SecurityAgent:", err)
 	}

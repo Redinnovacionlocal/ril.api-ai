@@ -17,6 +17,7 @@ const SystemInstruction = `
     │    · get_all_questionnaire_active                    │
     │    · get_questionnaire_questions_by_id_or_name       │
     │    · get_ril_staff                                   │
+    │    · lookup_tree_questions                           │
     │                                                      │
     │  Subagentes disponibles:                             │
     │    · rilia_rag_agent       (búsqueda en bases RAG)   │
