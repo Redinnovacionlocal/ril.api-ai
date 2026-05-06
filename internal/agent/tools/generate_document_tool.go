@@ -11,6 +11,7 @@ import (
 	"github.com/gomutex/godocx/wml/stypes"
 	"github.com/jung-kurt/gofpdf"
 	"github.com/tealeg/xlsx"
+	"google.golang.org/adk/artifact"
 	"google.golang.org/adk/tool"
 	"google.golang.org/genai"
 )
@@ -113,36 +114,86 @@ func (r *PdfRenderer) Table(headers []string, rows [][]string) {
 		return
 	}
 
-	pageWidth, _ := r.pdf.GetPageSize()
-	margins, _, _, _ := r.pdf.GetMargins()
+	pageWidth, pageHeight := r.pdf.GetPageSize()
+	margins, _, bottom, _ := r.pdf.GetMargins()
 	tableWidth := pageWidth - 2*margins
 	colWidth := tableWidth / float64(len(headers))
+	lineHeight := 6.0
+	headerHeight := 8.0
+	usableHeight := pageHeight - bottom - margins
 
-	// Headers
-	r.pdf.SetFont("Arial", "B", 10)
-	r.pdf.SetFillColor(79, 70, 229) // indigo
-	r.pdf.SetTextColor(255, 255, 255)
-	for _, h := range headers {
-		r.pdf.CellFormat(colWidth, 8, h, "1", 0, "C", true, 0, "")
+	// Función helper para calcular líneas necesarias
+	calcLines := func(text string, width float64) int {
+		r.pdf.SetFont("Arial", "", 9)
+		lines := r.pdf.SplitLines([]byte(r.tr(text)), width-2)
+		if len(lines) == 0 {
+			return 1
+		}
+		return len(lines)
 	}
-	r.pdf.Ln(-1)
 
-	// Rows
+	drawHeaders := func() {
+		r.pdf.SetFont("Arial", "B", 10)
+		r.pdf.SetFillColor(79, 70, 229)
+		r.pdf.SetTextColor(255, 255, 255)
+		for _, h := range headers {
+			r.pdf.CellFormat(colWidth, headerHeight, r.tr(h), "1", 0, "C", true, 0, "")
+		}
+		r.pdf.Ln(-1)
+	}
+
+	firstRowHeight := lineHeight
+	spaceLeft := usableHeight - r.pdf.GetY()
+	if spaceLeft < headerHeight+firstRowHeight*2 {
+		r.pdf.AddPage()
+	}
+
+	// ── Dibujar headers iniciales ──
+	drawHeaders()
+
+	// ── Filas ──
 	r.pdf.SetFont("Arial", "", 9)
-
 	r.pdf.SetTextColor(0, 0, 0)
+
 	for i, row := range rows {
+		maxLines := 1
+		for j, cell := range row {
+			if j < len(headers) {
+				n := calcLines(cell, colWidth)
+				if n > maxLines {
+					maxLines = n
+				}
+			}
+		}
+		rowHeight := float64(maxLines) * lineHeight
+
+		if r.pdf.GetY()+rowHeight > usableHeight {
+			r.pdf.AddPage()
+			drawHeaders()
+			r.pdf.SetFont("Arial", "", 9)
+			r.pdf.SetTextColor(0, 0, 0)
+		}
+
 		if i%2 == 0 {
 			r.pdf.SetFillColor(245, 245, 255)
 		} else {
 			r.pdf.SetFillColor(255, 255, 255)
 		}
+
+		startX, startY := r.pdf.GetX(), r.pdf.GetY()
 		for j, cell := range row {
-			if j < len(headers) {
-				r.pdf.CellFormat(colWidth, 7, r.tr(cell), "1", 0, "L", true, 0, "")
+			if j >= len(headers) {
+				continue
 			}
+			x := startX + float64(j)*colWidth
+			r.pdf.SetXY(x, startY)
+			r.pdf.Rect(x, startY, colWidth, rowHeight, "F")
+			r.pdf.Rect(x, startY, colWidth, rowHeight, "D")
+			r.pdf.SetXY(x+1, startY+1)
+			r.pdf.MultiCell(colWidth-2, lineHeight, r.tr(cell), "", "L", false)
 		}
-		r.pdf.Ln(-1)
+
+		r.pdf.SetXY(startX, startY+rowHeight)
 	}
 
 	r.pdf.Ln(4)
@@ -363,19 +414,31 @@ func GenerateDocumentsToolFunc(tctx tool.Context, args GenerateDocumentsArgs) (G
 			Message:    fmt.Sprintf("Error rendering document: %v", err),
 		}, nil
 	}
-	response, err := tctx.Artifacts().Save(
-		tctx, args.FileName, &genai.Part{
-			InlineData: &genai.Blob{
-				MIMEType: args.MimeType,
-				Data:     data,
+	log.Printf("[generate_document] Iniciando upload - archivo: %s, tamaño: %d bytes", args.FileName, len(data))
+	var response *artifact.SaveResponse
+	var uploadErr error
+
+	for attempt := 0; attempt < 3; attempt++ {
+		response, uploadErr = tctx.Artifacts().Save(
+			tctx, args.FileName, &genai.Part{
+				InlineData: &genai.Blob{
+					MIMEType: args.MimeType,
+					Data:     data,
+				},
 			},
-		},
-	)
-	if err != nil {
-		log.Printf("Error generating document: %v", err)
+		)
+		if uploadErr == nil {
+			break
+		}
+		log.Printf("[generate_document] Upload intento %d fallido - archivo: %s, error: %v",
+			attempt+1, args.FileName, uploadErr)
+	}
+
+	log.Printf("[generate_document] Save() terminó - err: %v", err)
+	if uploadErr != nil {
 		return GenerateDocumentResponse{
 			StatusCode: 500,
-			Message:    fmt.Sprintf("Error generating document: %v", err),
+			Message:    "Error subiendo el documento, intentá de nuevo",
 		}, nil
 	}
 	version := response.Version
