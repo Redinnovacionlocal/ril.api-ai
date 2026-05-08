@@ -414,7 +414,7 @@ func GenerateDocumentsToolFunc(tctx tool.Context, args GenerateDocumentsArgs) (G
 			Message:    fmt.Sprintf("Error rendering document: %v", err),
 		}, nil
 	}
-	log.Printf("[generate_document] Iniciando upload - archivo: %s, tamaño: %d bytes", args.FileName, len(data))
+	log.Printf("[generate_document] Starting upload - file: %s, size: %d bytes", args.FileName, len(data))
 	var response *artifact.SaveResponse
 	var uploadErr error
 
@@ -430,15 +430,15 @@ func GenerateDocumentsToolFunc(tctx tool.Context, args GenerateDocumentsArgs) (G
 		if uploadErr == nil {
 			break
 		}
-		log.Printf("[generate_document] Upload intento %d fallido - archivo: %s, error: %v",
+		log.Printf("[generate_document] Upload attempt %d failed - file: %s, error: %v",
 			attempt+1, args.FileName, uploadErr)
 	}
 
-	log.Printf("[generate_document] Save() terminó - err: %v", err)
+	log.Printf("[generate_document] Save() completed - err: %v", err)
 	if uploadErr != nil {
 		return GenerateDocumentResponse{
 			StatusCode: 500,
-			Message:    "Error subiendo el documento, intentá de nuevo",
+			Message:    "Failed to upload document, please try again",
 		}, nil
 	}
 	version := response.Version
