@@ -119,12 +119,15 @@ func (r *PdfRenderer) Table(headers []string, rows [][]string) {
 	tableWidth := pageWidth - 2*margins
 	colWidth := tableWidth / float64(len(headers))
 	lineHeight := 6.0
-	headerHeight := 8.0
+	headerLineHeight := 6.0
 	usableHeight := pageHeight - bottom - margins
 
-	// Función helper para calcular líneas necesarias
-	calcLines := func(text string, width float64) int {
-		r.pdf.SetFont("Arial", "", 9)
+	calcLines := func(text string, width float64, bold bool) int {
+		style := ""
+		if bold {
+			style = "B"
+		}
+		r.pdf.SetFont("Arial", style, 10)
 		lines := r.pdf.SplitLines([]byte(r.tr(text)), width-2)
 		if len(lines) == 0 {
 			return 1
@@ -132,23 +135,37 @@ func (r *PdfRenderer) Table(headers []string, rows [][]string) {
 		return len(lines)
 	}
 
+	maxHeaderLines := 1
+	for _, h := range headers {
+		n := calcLines(h, colWidth, true)
+		if n > maxHeaderLines {
+			maxHeaderLines = n
+		}
+	}
+	headerHeight := float64(maxHeaderLines)*headerLineHeight + 2
+
 	drawHeaders := func() {
 		r.pdf.SetFont("Arial", "B", 10)
 		r.pdf.SetFillColor(79, 70, 229)
 		r.pdf.SetTextColor(255, 255, 255)
-		for _, h := range headers {
-			r.pdf.CellFormat(colWidth, headerHeight, r.tr(h), "1", 0, "C", true, 0, "")
+
+		startX, startY := r.pdf.GetX(), r.pdf.GetY()
+		for j, h := range headers {
+			x := startX + float64(j)*colWidth
+			r.pdf.SetXY(x, startY)
+			r.pdf.Rect(x, startY, colWidth, headerHeight, "F")
+			r.pdf.Rect(x, startY, colWidth, headerHeight, "D")
+			r.pdf.SetXY(x+1, startY+1)
+			r.pdf.MultiCell(colWidth-2, headerLineHeight, r.tr(h), "", "C", false)
 		}
-		r.pdf.Ln(-1)
+		r.pdf.SetXY(startX, startY+headerHeight)
 	}
 
-	firstRowHeight := lineHeight
 	spaceLeft := usableHeight - r.pdf.GetY()
-	if spaceLeft < headerHeight+firstRowHeight*2 {
+	if spaceLeft < headerHeight+lineHeight*2 {
 		r.pdf.AddPage()
 	}
 
-	// ── Dibujar headers iniciales ──
 	drawHeaders()
 
 	// ── Filas ──
@@ -159,7 +176,7 @@ func (r *PdfRenderer) Table(headers []string, rows [][]string) {
 		maxLines := 1
 		for j, cell := range row {
 			if j < len(headers) {
-				n := calcLines(cell, colWidth)
+				n := calcLines(cell, colWidth, false)
 				if n > maxLines {
 					maxLines = n
 				}
