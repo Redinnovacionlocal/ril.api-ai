@@ -5,6 +5,7 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"io/fs"
 	"os"
 	"strings"
 	"text/template"
@@ -29,6 +30,9 @@ import (
 
 //go:embed instructions/*.tmpl
 var instructionFiles embed.FS
+
+//go:embed all:skills
+var skillsFiles embed.FS
 
 type PromptData struct {
 	Tags       []string
@@ -124,8 +128,13 @@ func NewSecurityAgent(m model.LLM, treeManager *tree_agent.TreeCacheManager) (ag
 		return nil, err
 	}
 
+	skillsSubFS, err := fs.Sub(skillsFiles, "skills")
+	if err != nil {
+		return nil, fmt.Errorf("error accediendo a skills embebidas: %w", err)
+	}
+
 	mySkillToolset, err := skilltoolset.New(ctx, skilltoolset.Config{
-		Source: skill.NewFileSystemSource(os.DirFS("./skills")),
+		Source: skill.NewFileSystemSource(skillsSubFS),
 	})
 	if err != nil {
 		return nil, err
@@ -147,6 +156,7 @@ func NewSecurityAgent(m model.LLM, treeManager *tree_agent.TreeCacheManager) (ag
 				SkipSummarization: true,
 			}),
 		},
+		Toolsets: []tool.Toolset{mySkillToolset},
 	})
 }
 

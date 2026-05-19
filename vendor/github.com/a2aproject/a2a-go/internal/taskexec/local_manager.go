@@ -18,6 +18,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"runtime/debug"
 	"sync"
 
 	"github.com/a2aproject/a2a-go/a2a"
@@ -256,6 +257,7 @@ func (m *localManager) handleExecution(ctx context.Context, execution *localExec
 	cleaner.Cleanup(ctx, result, err)
 
 	if err != nil {
+		log.Info(ctx, "execution failed with an error", "cause", err)
 		execution.result.setError(err)
 		return
 	}
@@ -283,7 +285,11 @@ func (m *localManager) handleCancel(ctx context.Context, cancel *cancelation) {
 	pipe := eventpipe.NewLocal()
 	defer pipe.Close()
 
-	handler := &executionHandler{agentEvents: pipe.Reader, handleEventFn: processor.Process}
+	handler := &executionHandler{
+		agentEvents:   pipe.Reader,
+		handleEventFn: processor.Process,
+		handleErrorFn: func(ctx context.Context, err error) (a2a.SendMessageResult, error) { return nil, err },
+	}
 	result, err := runProducerConsumer(
 		ctx,
 		func(ctx context.Context) error { return canceler.Cancel(ctx, pipe.Writer) },
@@ -295,6 +301,7 @@ func (m *localManager) handleCancel(ctx context.Context, cancel *cancelation) {
 	cleaner.Cleanup(ctx, result, err)
 
 	if err != nil {
+		log.Info(ctx, "cancelation failed with an error", "cause", err)
 		cancel.result.setError(err)
 		return
 	}
@@ -306,7 +313,13 @@ func (m *localManager) handleCancel(ctx context.Context, cancel *cancelation) {
 func (m *localManager) handleCancelWithConcurrentRun(ctx context.Context, cancel *cancelation, run *localExecution) {
 	defer func() {
 		if r := recover(); r != nil {
-			cancel.result.setError(fmt.Errorf("task cancelation panic: %v", r))
+			var err error
+			if m.panicHandler != nil {
+				err = m.panicHandler(r)
+			} else {
+				err = fmt.Errorf("task cancelation panic: %v\n%s", r, debug.Stack())
+			}
+			cancel.result.setError(err)
 		}
 	}()
 
@@ -318,7 +331,7 @@ func (m *localManager) handleCancelWithConcurrentRun(ctx context.Context, cancel
 	}()
 
 	// Cleaner and Processor not used, they will run in execution goroutine
-	canceler, _, _, err := m.factory.CreateCanceler(ctx, cancel.params)
+	canceler, _, cleaner, err := m.factory.CreateCanceler(ctx, cancel.params)
 	if err != nil {
 		cancel.result.setError(fmt.Errorf("setup failed: %w", err))
 		return
@@ -336,7 +349,11 @@ func (m *localManager) handleCancelWithConcurrentRun(ctx context.Context, cancel
 	}
 
 	result, err := run.result.wait(ctx)
+
+	cleaner.Cleanup(ctx, result, err)
+
 	if err != nil {
+		log.Info(ctx, "concurrent cancelation failed with an error", "cause", err)
 		cancel.result.setError(err)
 		return
 	}
