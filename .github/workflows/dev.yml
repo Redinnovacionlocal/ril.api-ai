@@ -63,3 +63,4 @@ jobs:
           env_vars: |
             AGENT_SECURITY_NAME=${{ vars.AGENT_SECURITY_NAME }}
             SECURITY_TREE_SUB_AGENT_ID=${{ secrets.DEV_SECURITY_TREE_SUB_AGENT_ID }}
+            AGENT_TREE_BUCKET=${{ secrets.AGENT_TREE_BUCKET }}

@@ -6,7 +6,9 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"time"
 
+	"cloud.google.com/go/storage"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
@@ -73,7 +75,7 @@ func main() {
 	artifactService, _ := gcsartifact.NewService(ctx, os.Getenv("ARTIFACT_BUCKET_NAME"))
 	userRepository, eventFeedbackRepository := InitializeRepositories(ctx, dbCore, dbAgent)
 
-	runners := initializeRunner(ctx, sessionService, artifactService, dbAgent)
+	runners := initializeRunner(ctx, sessionService, artifactService, dbAgent, rdb)
 
 	// Use cases
 	sessionUseCase := usecase.NewSessionUseCase(ctx, sessionService, userRepository)
@@ -109,7 +111,7 @@ func InitializeRepositories(ctx context.Context, dbCore *sqlx.DB, dbAgent *sqlx.
 	return userRepository, eventFeedbackRepository
 }
 
-func initializeRunner(ctx context.Context, sessionService session.Service, artifactService artifact.Service, dbAgent *sqlx.DB) map[string]*runner.Runner {
+func initializeRunner(ctx context.Context, sessionService session.Service, artifactService artifact.Service, dbAgent *sqlx.DB, rdb *redis.Client) map[string]*runner.Runner {
 	securityAgentName := os.Getenv("AGENT_SECURITY_NAME")
 	toolboxClient, err := tbadk.NewToolboxClient(os.Getenv("TOOLBOX_CLIENT_URL"))
 	if err != nil {
@@ -126,8 +128,19 @@ func initializeRunner(ctx context.Context, sessionService session.Service, artif
 		log.Fatal("Error initializing Gemini model:", err)
 	}
 
-	treeRepo := tree_agent.NewSecurityTreeSubAgentRepository(dbAgent)
-	securityAgent, err := securityagent.NewSecurityAgent(model, toolboxClient, treeRepo)
+	gcsClient, _ := storage.NewClient(ctx)
+
+	treeRepo := tree_agent.NewQuestionTreeRepository(dbAgent)
+
+	treeManager := tree_agent.NewTreeCacheManager(
+		gcsClient,
+		os.Getenv("AGENT_TREE_BUCKET"),
+		treeRepo,
+		rdb,
+		1*time.Hour,
+	)
+
+	securityAgent, err := securityagent.NewSecurityAgent(model, treeManager)
 	if err != nil {
 		log.Fatal("Error initializing SecurityAgent:", err)
 	}

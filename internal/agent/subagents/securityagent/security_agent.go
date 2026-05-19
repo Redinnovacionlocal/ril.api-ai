@@ -9,7 +9,6 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/googleapis/mcp-toolbox-sdk-go/tbadk"
 	"google.golang.org/adk/agent"
 	"google.golang.org/adk/agent/llmagent"
 	"google.golang.org/adk/model"
@@ -17,11 +16,14 @@ import (
 	"google.golang.org/adk/tool/agenttool"
 	"google.golang.org/adk/tool/functiontool"
 	"google.golang.org/adk/tool/geminitool"
+	"google.golang.org/adk/tool/skilltoolset"
+	"google.golang.org/adk/tool/skilltoolset/skill"
 	"google.golang.org/genai"
 	agent2 "ril.api-ia/internal/agent"
 	"ril.api-ia/internal/agent/subagents/askcontextagent"
 	tools2 "ril.api-ia/internal/agent/subagents/securityagent/tools"
 	"ril.api-ia/internal/agent/tools"
+	"ril.api-ia/internal/domain/entity"
 	"ril.api-ia/internal/infrastructure/repository/tree_agent"
 )
 
@@ -51,18 +53,18 @@ func buildSystemInstruction(data PromptData) (string, error) {
 	return buf.String(), nil
 }
 
-func NewSecurityAgent(m model.LLM, toolboxClient tbadk.ToolboxClient, treeRepo *tree_agent.SecurityTreeSubAgentRepository) (agent.Agent, error) {
+func NewSecurityAgent(m model.LLM, treeManager *tree_agent.TreeCacheManager) (agent.Agent, error) {
 	securityAgentName := os.Getenv("AGENT_SECURITY_NAME")
 	ctx := context.Background()
 
-	dimensions, err := treeRepo.GetDimensions()
+	dimensions, err := treeManager.GetDimensions(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error obteniendo dimensiones: %w", err)
 	}
 
-	tags, err := treeRepo.GetTags()
+	tags, err := treeManager.GetTags(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error obteniendo tags: %w", err)
 	}
 
 	SystemInstruction, err := buildSystemInstruction(PromptData{
@@ -73,10 +75,27 @@ func NewSecurityAgent(m model.LLM, toolboxClient tbadk.ToolboxClient, treeRepo *
 		return nil, err
 	}
 
-	lookupTreeQuestions, err := toolboxClient.LoadTool("lookup_tree_questions", ctx)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to load lookup_tree_questions: %w", err)
+	type LookupTreeArgs struct {
+		Query     string `json:"query,omitempty"`
+		ID        string `json:"id,omitempty"`
+		Dimension string `json:"dimension,omitempty"`
+		Tag       string `json:"tag,omitempty"`
 	}
+
+	type LookupTreeResult struct {
+		Questions []entity.QuestionTree `json:"questions"`
+	}
+
+	lookupTreeTool, err := functiontool.New(functiontool.Config{
+		Name:        "lookup_tree_questions",
+		Description: "...",
+	}, func(ctx tool.Context, args LookupTreeArgs) (LookupTreeResult, error) {
+		preguntas, err := treeManager.Lookup(ctx, args.ID, args.Dimension, args.Tag, args.Query)
+		if err != nil {
+			return LookupTreeResult{}, err
+		}
+		return LookupTreeResult{Questions: preguntas}, nil
+	})
 
 	toolGenerateDocument, _ := functiontool.New(functiontool.Config{
 		Name:        "generate_document",
@@ -104,6 +123,14 @@ func NewSecurityAgent(m model.LLM, toolboxClient tbadk.ToolboxClient, treeRepo *
 	if err != nil {
 		return nil, err
 	}
+
+	mySkillToolset, err := skilltoolset.New(ctx, skilltoolset.Config{
+		Source: skill.NewFileSystemSource(os.DirFS("./skills")),
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	return llmagent.New(llmagent.Config{
 		Name:              securityAgentName,
 		Instruction:       SystemInstruction,
@@ -115,10 +142,10 @@ func NewSecurityAgent(m model.LLM, toolboxClient tbadk.ToolboxClient, treeRepo *
 			toolGenerateDocument,
 			saveUserMemory,
 			getUserMemory,
+			lookupTreeTool,
 			agenttool.New(AskContext, &agenttool.Config{
 				SkipSummarization: true,
 			}),
-			&lookupTreeQuestions,
 		},
 	})
 }
