@@ -105,9 +105,10 @@ func NewSecurityAgent(m model.LLM, treeManager *tree_agent.TreeCacheManager) (ag
 		Name:        "generate_document",
 		Description: "Genera un documento a partir de un prompt específico. El prompt debe incluir instrucciones claras sobre el formato, la estructura y el contenido esperado del documento. Esta herramienta es ideal para crear informes, resúmenes ejecutivos, propuestas o cualquier otro tipo de documento que requiera una presentación profesional y coherente.",
 	}, tools.GenerateDocumentsToolFunc)
+
 	saveUserMemory, err := functiontool.New(functiontool.Config{
 		Name:        "save_user_memory",
-		Description: "Guarda en la memoria del usuario todo lo que el municipio aporta durante la conversación. Permite registrar datos concretos sobre el municipio, oportunidades de mejora identificadas y contexto relevante para personalizar recomendaciones futuras. Es fundamental para construir una memoria acumulada que permita un acompañamiento cada vez más adaptado y efectivo.",
+		Description: "LLAMAR OBLIGATORIAMENTE cada vez que el usuario aporte cualquier dato nuevo sobre su municipio. Guarda en la memoria del usuario todo lo que el municipio aporta durante la conversación. Permite registrar datos concretos sobre el municipio, oportunidades de mejora identificadas y contexto relevante para personalizar recomendaciones futuras. Es fundamental para construir una memoria acumulada que permita un acompañamiento cada vez más adaptado y efectivo.",
 	}, tools2.SaveUserMemoryToolFunc)
 	if err != nil {
 		return nil, err
