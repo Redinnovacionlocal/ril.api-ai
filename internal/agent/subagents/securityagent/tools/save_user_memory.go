@@ -3,7 +3,9 @@ package tools
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
+	"time"
 
 	"github.com/google/uuid"
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -11,52 +13,116 @@ import (
 	"google.golang.org/adk/tool"
 )
 
-type SaveUserMemoryToolInput struct {
-	RecordType   string         `json:"record_type"    jsonSchema:"Enabled record types: 'respuesta_AD', 'odm_detectada', 'contexto_municipio'"`
-	AdQuestionId *string        `json:"ad_question_id,omitempty" jsonSchema:"Required if record_type is 'respuesta_AD'. The ID of the AD question associated with the response."`
-	OdmId        *string        `json:"odm_id,omitempty"         jsonSchema:"Required if record_type is 'odm_detectada'. The ID of the detected ODM."`
-	Payload      map[string]any `json:"payload"                 jsonSchema:"Object structure depends on record_type. For 'respuesta_AD': {value, raw_text, alert_triggered (bool), alert_detail?}. For 'odm_detectada': {description, dimension, origin_question_id?, suggested_actions (string[])}. For 'contexto_municipio': {key (one of: poblacion|tamanio_ciudad|provincia_pais|presupuesto_seguridad|restriccion_presupuestaria|prioridad_politica|nombre_responsable_area), value}."`
+type MemoryRecord struct {
+	RecordType   string         `json:"record_type" jsonSchema:"enum:respuesta_AD,nivel_madurez,odm_en_curso,contexto_municipio"`
+	AdQuestionId *string        `json:"ad_question_id,omitempty"`
+	Tema         *string        `json:"tema,omitempty"`
+	Payload      map[string]any `json:"payload"`
 }
 
-// SaveUserMemoryToolFunc saves user-related information (AD responses, detected ODMs, or municipal context) into the database for future reference and analysis.
-// The specific structure of the payload depends on the type of record being saved.
+type SaveUserMemoryToolInput struct {
+	Records []MemoryRecord `json:"records" jsonSchema:"minItems:1"`
+}
 
 func SaveUserMemoryToolFunc(ctx tool.Context, input SaveUserMemoryToolInput) (map[string]any, error) {
+	log.Printf("Saving %d memory records for user %s", len(input.Records), ctx.UserID())
 	db, err := sqlx.Open("pgx", os.Getenv("DATABASE_AGENT_DSN"))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to open db: %w", err)
 	}
 	defer db.Close()
 
-	payloadJSON, err := json.Marshal(input.Payload)
-	if err != nil {
-		return nil, fmt.Errorf("failed to serialize payload: %w", err)
-	}
-
 	teamId, _ := ctx.State().Get("team_id")
 	if teamId == nil {
-		teamId = "default_team" // o maneja el error según tu lógica de negocio
+		teamId = "default_team"
 	}
 
-	_, err = db.ExecContext(ctx,
-		`INSERT INTO public.user_security_memory
-       (id, user_id, quality_status, team_id, session_id, record_type, ad_question_id, odm_id, payload, source_agent)
-    VALUES
-       ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-		uuid.New(),
-		ctx.UserID(),
-		"validated",
-		teamId,
-		ctx.SessionID(),
-		input.RecordType,
-		input.AdQuestionId,
-		input.OdmId,
-		payloadJSON,
-		ctx.AgentName(),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to save memory: %w", err)
+	now := time.Now().UTC()
+	saved := 0
+	upserted := 0
+
+	for _, record := range input.Records {
+		if record.RecordType == "context_municipio" {
+			record.RecordType = "contexto_municipio"
+		}
+		payloadJSON, err := json.Marshal(record.Payload)
+		if err != nil {
+			return nil, fmt.Errorf("failed to serialize payload for record_type %s: %w", record.RecordType, err)
+		}
+
+		if (record.RecordType == "odm_en_curso" || record.RecordType == "nivel_madurez") && record.Tema != nil {
+			result, err := db.ExecContext(ctx,
+				`UPDATE public.user_security_memory
+				    SET payload = $1,
+				        updated_at = $2
+				  WHERE user_id     = $3
+				    AND record_type = $4
+				    AND payload->>'tema' = $5`,
+				payloadJSON,
+				now,
+				ctx.UserID(),
+				record.RecordType,
+				*record.Tema,
+			)
+			if err != nil {
+				return nil, fmt.Errorf("failed to update record_type %s tema %s: %w", record.RecordType, *record.Tema, err)
+			}
+
+			rows, _ := result.RowsAffected()
+			if rows > 0 {
+				upserted++
+				continue
+			}
+		}
+
+		if record.RecordType == "contexto_municipio" {
+			result, err := db.ExecContext(ctx,
+				`UPDATE public.user_security_memory
+					SET payload = $1,
+						updated_at = $2
+				WHERE user_id     = $3
+					AND record_type = $4
+					AND payload->>'key' = $5`,
+				payloadJSON,
+				now,
+				ctx.UserID(),
+				record.RecordType,
+				record.Payload["key"],
+			)
+			if err == nil {
+				rows, _ := result.RowsAffected()
+				if rows > 0 {
+					upserted++
+					continue
+				}
+			}
+		}
+
+		_, err = db.ExecContext(ctx,
+			`INSERT INTO public.user_security_memory
+			   (id, user_id, quality_status, team_id, session_id, record_type, ad_question_id, payload, source_agent, created_at, updated_at)
+			 VALUES
+			   ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $10)`,
+			uuid.New(),
+			ctx.UserID(),
+			"validated",
+			teamId,
+			ctx.SessionID(),
+			record.RecordType,
+			record.AdQuestionId,
+			payloadJSON,
+			ctx.AgentName(),
+			now,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to insert record_type %s: %w", record.RecordType, err)
+		}
+		saved++
 	}
 
-	return map[string]any{"status": "success"}, nil
+	return map[string]any{
+		"status":   "success",
+		"inserted": saved,
+		"updated":  upserted,
+	}, nil
 }
