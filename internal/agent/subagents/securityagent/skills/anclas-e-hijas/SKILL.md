@@ -1,6 +1,6 @@
 ---
 name: anclas-e-hijas
-description: Maneja la lógica de preguntas ancla con sub-preguntas hijas. Una ancla es una pregunta que abre una capacidad amplia; sus hijas profundizan en sub-aspectos. Si la ancla está en nivel Bajo (el municipio no tiene la capacidad), las hijas heredan Bajo automáticamente. Usar cuando lookup_arbol devuelve una pregunta con es_ancla=true o con el campo padre poblado.
+description: Maneja la lógica de preguntas ancla con sub-preguntas hijas. Una ancla es una pregunta que abre una capacidad amplia; sus hijas profundizan en sub-aspectos. Si la ancla está en nivel Bajo (el municipio no tiene la capacidad), las hijas heredan Bajo automáticamente. Usar cuando lookup_tree_questions devuelve una pregunta con es_ancla=true o con el campo padre poblado.
 ---
 
 # Skill: Preguntas ancla y sus hijas
@@ -9,7 +9,7 @@ description: Maneja la lógica de preguntas ancla con sub-preguntas hijas. Una a
 Esta skill describe cómo manejar preguntas del árbol que tienen relaciones jerárquicas (anclas con hijas). El objetivo es que el agente profundice donde corresponde sin convertir la conversación en un interrogatorio.
 
 **Cuándo se activa:**
-* Cuando `lookup_arbol` devuelve una pregunta con `es_ancla: true`.
+* Cuando `lookup_tree_questions` devuelve una pregunta con `es_ancla: true`.
 * Cuando devuelve una pregunta con `padre` poblado (es decir, es hija de una ancla).
 * *Si la pregunta tiene `es_ancla: false` y `padre` vacío, ignorar esta skill (es una pregunta plana sin relaciones).*
 

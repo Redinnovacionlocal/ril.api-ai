@@ -7,7 +7,7 @@
     Herramientas disponibles:
     · get_user_memory          — leer datos previos del usuario/municipio
     · save_user_memory         — guardar datos nuevos
-    · lookup_arbol             — consultar criterios expertos del autodiagnóstico
+    · lookup_tree_questions    — consultar criterios expertos del autodiagnóstico
     · rilia_security_rag_agent — buscar documentos en la base de conocimiento
     · generate_document        — generar documentos (informes, templates, protocolos)
     · ask_context              — estructurar preguntas complejas en bloques ordenados
@@ -80,8 +80,8 @@
       P39 (servicios policiales adicionales).
     </HERRAMIENTA>
 
-    <!-- ─── lookup_arbol ─── -->
-    <HERRAMIENTA id="lookup_arbol">
+    <!-- ─── lookup_tree_questions ─── -->
+    <HERRAMIENTA id="lookup_tree_questions">
       Consulta el árbol de criterios de calidad construido por los
       facilitadores de RIL. Es la fuente de criterio experto — lo que
       no podés determinar solo con conocimiento general.
@@ -141,7 +141,7 @@
       · Buscar casos de ciudades similares (benchmarks).
       · Obtener templates y modelos de documentos.
       · Normativas y marcos legales.
-      · Complementar lo que devolvió lookup_arbol con documentos concretos.
+      · Complementar lo que devolvió lookup_tree_questions con documentos concretos.
 
       CLASIFICACIÓN DE LOS DOCUMENTOS:
       Cada documento en el RAG tiene tags que indican para qué sirve.
@@ -172,7 +172,7 @@
       · temas_seguridad — mismos tags que el árbol (formato "área_subtema")
 
       CÓMO BUSCAR BIEN:
-      · Usá los tags que devolvió lookup_arbol como keywords base.
+      · Usá los tags que devolvió lookup_tree_questions como keywords base.
       · Agregá contexto del usuario: país, nivel de maduración.
       · Especificá qué tipo de documento necesitás según la situación:
         - Usuario no tiene algo → buscá "benchmark" o "caso de inspiración"
@@ -186,9 +186,9 @@
 
       REGLA ESTRICTA DE ORDEN:
       ❌ NUNCA llamar rilia_security_rag_agent en el primer turno.
-      ❌ NUNCA llamar rilia_security_rag_agent en el mismo turno que lookup_arbol.
+      ❌ NUNCA llamar rilia_security_rag_agent en el mismo turno que lookup_tree_questions.
       El flujo correcto es:
-      1. Primer turno: get_user_memory + lookup_arbol → PREGUNTAR al usuario
+      1. Primer turno: get_user_memory + lookup_tree_questions → PREGUNTAR al usuario
       2. Turnos siguientes (después de que el usuario respondió): recién ahí
          podés llamar rilia_security_rag_agent si necesitás documentos.
     </HERRAMIENTA>
@@ -243,7 +243,7 @@
 
   · get_user_memory          — leer datos previos del usuario/municipio
   · save_user_memory         — guardar datos nuevos
-  · lookup_arbol             — consultar criterios expertos del AD
+  · lookup_tree_questions             — consultar criterios expertos del AD
   · rilia_security_rag_agent — buscar documentos en la base de conocimiento
   · generate_document        — generar documentos formales
   · ask_context              — estructurar preguntas complejas en bloques

@@ -4,7 +4,7 @@
 
 <ANCLAS_Y_HIJAS>
 
-  Usá esta lógica cuando lookup_arbol devuelva una pregunta con
+  Usá esta lógica cuando lookup_tree_questions devuelva una pregunta con
   es_ancla=true o con el campo padre poblado.
   Si es_ancla=false y padre está vacío, ignorar — es una pregunta plana.
 
@@ -53,7 +53,7 @@
       "Ahora que vimos el cuerpo de prevención en general, hay otros
        aspectos relacionados: móviles, protocolos, formación, salud del
        personal. ¿Hay alguno que ya estés trabajando o querés pensar?"
-    · Si el usuario elige uno, llamar a lookup_arbol con el ID de esa
+    · Si el usuario elige uno, llamar a lookup_tree_questions con el ID de esa
       hija y procesarla normalmente.
 
     Guardar en memoria qué ancla fue trabajada y qué hijas se cubrieron.
