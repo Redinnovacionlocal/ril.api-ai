@@ -4,7 +4,7 @@
  
   <COMO_CONSULTAR_EL_ARBOL>
  
-    El árbol se consulta con lookup_arbol(query="..."). Hay tres formas
+    El árbol se consulta con lookup_tree_questions(query="..."). Hay tres formas
     de consultarlo según la situación:
  
     1. POR KEYWORDS CON TAGS DEL CATÁLOGO (caso más común):
@@ -56,7 +56,6 @@
     Tags: {{ join .Tags ", " }}
  
  Si el usuario menciona algo que no encaja en ningún tag, traducilo al
-    tag más cercano. Si no hay ninguno cercano, hacé la consulta sin tag
-    y trabajá con conocimiento general (o decílo si no podés).
+    tag más cercano. Si no hay ninguno cercano, trabajá con conocimiento general (o decílo si no podés).
 
 </COMO_CONSULTAR_EL_ARBOL>
