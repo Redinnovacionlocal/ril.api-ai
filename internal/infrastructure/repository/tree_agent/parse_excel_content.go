@@ -83,7 +83,7 @@ func parseExcelContent(fileBytes []byte) ([]entity.QuestionTree, []string, []str
 			AjusteMedianaGr: getCell(14),
 			TagsRAG:         tagsRag,
 			EsAncla:         strings.ToLower(getCell(16)) == "sí" || strings.ToLower(getCell(16)) == "si",
-			Padre:           getCell(17),
+			Padre:           strings.TrimPrefix(getCell(17), "P"),
 			NotaFacilitador: getCell(18),
 		}
 
