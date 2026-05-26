@@ -16,9 +16,9 @@ import (
 )
 
 const (
-	redisKeyQuestions  = "tree:questions"
-	redisKeyDimensions = "tree:dimensions"
-	redisKeyTags       = "tree:tags"
+	redisKeyQuestions  = "security_agent_tree:questions"
+	redisKeyDimensions = "security_agent_tree:dimensions"
+	redisKeyTags       = "security_agent_tree:tags"
 )
 
 type TreeCacheManager struct {
