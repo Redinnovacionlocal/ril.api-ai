@@ -129,6 +129,9 @@ func initializeRunner(ctx context.Context, sessionService session.Service, artif
 	}
 
 	gcsClient, _ := storage.NewClient(ctx)
+	if err != nil {
+		log.Fatal("Error initializing GCS client:", err)
+	}
 
 	treeRepo := tree_agent.NewQuestionTreeRepository(dbAgent)
 

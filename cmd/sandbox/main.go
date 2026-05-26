@@ -42,6 +42,9 @@ func main() {
 	model3, err := gemini.NewModel(ctx, os.Getenv("AGENT_MODEL"), nil)
 	agentKnowledge, err := subagents.NewRagAgent(model2_5)
 	gcsClient, _ := storage.NewClient(ctx)
+	if err != nil {
+		log.Fatal("Error initializing GCS client:", err)
+	}
 	dbAgent, err := sqlx.Open("pgx", os.Getenv("DATABASE_AGENT_DSN"))
 	if err != nil {
 		log.Fatal("Error connecting to agent DB:", err)
