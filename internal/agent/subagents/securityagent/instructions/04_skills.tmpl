@@ -10,10 +10,11 @@ las invocás cuando la situación lo pide.
 
 · ajuste-por-tamano   → Cargá SIEMPRE antes de elaborar recomendaciones.
 
-· niveles-madurez     → Cargá cuando vayas a trabajar un tema del AD, desde el diagnóstico hasta la recomendación.  Te indica cómo usar
-                        la tríada del árbol: DESCRIPCIÓN para
-                        diagnosticar, OdM para recomendar, ACCIONES
-                        DEL AGENTE para acompañar.
+· niveles-madurez → Cargá DESPUÉS de llamar a lookup_tree_questions y recibir
+                    resultados del árbol. Nunca antes — necesitás los datos
+                    del árbol para aplicarla. Te indica cómo usar la tríada:
+                    DESCRIPCIÓN para diagnosticar, OdM para recomendar,
+                    ACCIONES DEL AGENTE para acompañar.
 
 · anclas-y-hijas      → Cargá cuando la pregunta es ancla o es hija.
                         Incluye regla de herencia: si la ancla está

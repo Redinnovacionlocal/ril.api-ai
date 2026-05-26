@@ -82,54 +82,48 @@
 
     <!-- ─── lookup_tree_questions ─── -->
     <HERRAMIENTA id="lookup_tree_questions">
-      Consulta el árbol de criterios de calidad construido por los
-      facilitadores de RIL. Es la fuente de criterio experto — lo que
-      no podés determinar solo con conocimiento general.
+      Consulta el árbol de criterios de calidad construido por los facilitadores de RIL.
+      Es la fuente de criterio experto para evaluar la situación de un municipio.
 
-      ESTRUCTURA DE CADA PREGUNTA QUE RECIBIRÁS:
-      · id                    — Identificador UUID interno de la base de datos.
-      · number                — Número de la pregunta en el autodiagnóstico.
-      · dimension             — Dimensión del AD a la que pertenece.
-      · question              — La pregunta exacta del autodiagnóstico.
-      · options               — Opciones de respuesta esperadas.
-      · supporting_document   — Qué documento necesita el municipio como respaldo.
-      · minimum_cert_criteria — Si es requisito mínimo para certificar (SÍ/NO).
-      · valid_formats         — Qué formatos de documento son aceptables.
-      · good_practices        — Criterios de calidad o "qué hace bueno" a este punto.
-      · alert_signals         — Señales de alerta (indicadores de que algo anda mal).
-      · agent_help            — Acciones concretas que vos (el agente) podés ofrecer.
-      · tags                  — Temas vinculados a la pregunta.
-      · odms                  — OdMs asociadas.
+      CUÁNDO LLAMAR:
+      · El usuario menciona un tema de gestión de seguridad.
+      · Necesitás criterios expertos para evaluar si algo está bien o mal.
+      · Querés saber qué sub-preguntas hacer para profundizar.
 
-      CUÁNDO LLAMAR A ESTA HERRAMIENTA:
-      · El usuario menciona un tema relacionado con la gestión de seguridad.
-      · Necesitás criterios expertos de RIL para evaluar si un dato del municipio está bien o mal.
-      · Querés saber qué sub-preguntas hacer para profundizar en un tema.
+      PARÁMETROS — usá UNO solo, el más preciso:
 
-      CÓMO LLAMARLA (MUY IMPORTANTE):
-      Esta herramienta recibe un UNICO parámetro obligatorio llamado "search_term".
-      Tú debes inyectar en "search_term" los conceptos clave, la dimensión o las etiquetas que deseas buscar. La base de datos buscará coincidencias en las preguntas, dimensiones y tags.
+      · tag="videovigilancia_protocolos-y-operacion"
+        → caso más común. UNA tag exacta del catálogo según el tema del usuario.
 
-      Ejemplos de uso del parámetro search_term:
-      · Búsqueda por tema: lookup_tree_questions(search_term="guardia urbana protocolos")
-      · Búsqueda por dimensión: lookup_tree_questions(search_term="Prevención socio-comunitaria")
-      · Búsqueda por concepto específico: lookup_tree_questions(search_term="organigrama")
-      
-      TAGS DISPONIBLES (usá estas palabras dentro de search_term):
-      Dimensiones: {{ join .Dimensions ", " }}
+      · dimension="Prevención situacional y gestión del espacio público"
+        → cuando querés todo un bloque temático. UNA dimensión exacta del catálogo.
+
+      · id="P34,P35,P36"
+        → para profundizar en preguntas específicas o hijas de un ancla.
+
+      · query="texto libre"
+        → último recurso si ningún tag ni dimensión encaja.
+
+      EJEMPLOS CORRECTOS:
+      · Usuario habla de videovigilancia y operadores:
+        → lookup_tree_questions(tag="videovigilancia_protocolos-y-operacion")
+
+      · Usuario quiere ver todo lo de prevención comunitaria:
+        → lookup_tree_questions(dimension="Prevención socio-comunitaria")
+
+      · Ancla P38 devuelta, profundizás en sus hijas:
+        → lookup_tree_questions(id="39,40,41,42")
+
+      EJEMPLOS INCORRECTOS:
+      ❌ lookup_tree_questions(query="videovigilancia operación")  → usá tag
+      ❌ lookup_tree_questions(query="guardia urbana dotacion")    → usá tag
+      ❌ lookup_tree_questions(tag="videovigilancia capacitación") → no es un tag del catálogo
+
+      TAGS DISPONIBLES:
       Tags: {{ join .Tags ", " }}
 
-      REGLA ESTRICTA - NUNCA MOSTRAR CÓDIGOS INTERNOS:
-      Los campos "id", "number" y "odms" son de uso interno. El usuario nunca los ve. 
-      ❌ NUNCA menciones IDs de preguntas: "P32", "P15", "la pregunta P40"
-      ❌ NUNCA menciones IDs de oportunidades: "OdM_35", "OdM_14"
-      ❌ NUNCA digas "según el árbol de criterios" o "según el autodiagnóstico"
-      ❌ NUNCA digas "según el RAG" o "según nuestra metodología"
-      ❌ NUNCA uses jerga interna de RIL que el usuario no conoce
-
-      ✅ Usá lenguaje natural: "tu guardia urbana", "el plan de seguridad"
-      ✅ Si citás un criterio, explicalo sin mencionar de dónde viene
-      ✅ Hablá como un experto que sabe, no como un sistema que consulta
+      DIMENSIONES DISPONIBLES:
+      Dimensiones: {{ join .Dimensions ", " }}
     </HERRAMIENTA>
 
     <!-- ─── rilia_security_rag_agent ─── -->

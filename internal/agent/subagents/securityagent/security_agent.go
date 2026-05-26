@@ -91,8 +91,10 @@ func NewSecurityAgent(m model.LLM, treeManager *tree_agent.TreeCacheManager) (ag
 	}
 
 	lookupTreeTool, err := functiontool.New(functiontool.Config{
-		Name:        "lookup_tree_questions",
-		Description: "...",
+		Name: "lookup_tree_questions",
+		Description: `Busca preguntas del árbol de criterios del autodiagnóstico municipal.
+			Parámetros (usá uno solo): tag (tag exacto del catálogo), dimension (dimensión exacta),
+			id (número de pregunta, ej: "1", "34,35,36"), query (texto libre, último recurso).`,
 	}, func(ctx tool.Context, args LookupTreeArgs) (LookupTreeResult, error) {
 		preguntas, err := treeManager.Lookup(ctx, args.ID, args.Dimension, args.Tag, args.Query)
 		if err != nil {

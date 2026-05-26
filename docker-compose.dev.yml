@@ -37,6 +37,23 @@ services:
       --address 0.0.0.0
     networks:
       - go_app
+  sandbox:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8090:8090"
+    command: go run ./cmd/sandbox/ web -port 8090 api webui -api_server_address http://localhost:8090/api
+    volumes:
+      - .:/app
+      - ~/.config/gcloud:/root/.config/gcloud:ro
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json
+      - APP_ENV=local
+    networks:
+      - go_app
+    depends_on:
+      - redis
   redis:
     image: redis:alpine
     networks:

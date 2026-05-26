@@ -16,9 +16,9 @@ import (
 )
 
 const (
-	redisKeyQuestions  = "tree:questions"
-	redisKeyDimensions = "tree:dimensions"
-	redisKeyTags       = "tree:tags"
+	redisKeyQuestions  = "security_agent_tree:questions"
+	redisKeyDimensions = "security_agent_tree:dimensions"
+	redisKeyTags       = "security_agent_tree:tags"
 )
 
 type TreeCacheManager struct {
@@ -134,8 +134,18 @@ func (m *TreeCacheManager) Lookup(ctx context.Context, id, dimension, tag, query
 	q := strings.ToLower(query)
 
 	for _, p := range data {
-		if id != "" && p.ID != id {
-			continue
+		if id != "" {
+			ids := strings.Split(id, ",")
+			matched := false
+			for _, i := range ids {
+				if p.ID == strings.TrimSpace(i) {
+					matched = true
+					break
+				}
+			}
+			if !matched {
+				continue
+			}
 		}
 		if dimension != "" && !strings.Contains(strings.ToLower(p.Dimension), strings.ToLower(dimension)) {
 			continue
@@ -152,8 +162,20 @@ func (m *TreeCacheManager) Lookup(ctx context.Context, id, dimension, tag, query
 				continue
 			}
 		}
-		if q != "" && !strings.Contains(strings.ToLower(p.Pregunta), q) && !strings.Contains(strings.ToLower(p.Bajo.Descripcion), q) {
-			continue
+		if q != "" {
+			matched := false
+			for _, t := range p.TagsRAG {
+				if strings.EqualFold(t, q) {
+					matched = true
+					break
+				}
+			}
+			if !matched && strings.Contains(strings.ToLower(p.Dimension), strings.ToLower(q)) {
+				matched = true
+			}
+			if !matched {
+				continue
+			}
 		}
 		results = append(results, p)
 	}
