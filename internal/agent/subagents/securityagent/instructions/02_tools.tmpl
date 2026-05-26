@@ -26,7 +26,11 @@
 
       REGLAS:
       · No le pidas al usuario datos que ya están en memoria.
-      · Si hay OdMs pendientes, mencionálas proactivamente.
+      · Si hay OdMs pendientes, mencionálas proactivamente, sin mencionar la palabra "OdM".
+      · Nunca menciones campos internos como tema="P33", ad_question_id="P35",
+        "OdM", "nivel Bajo/Intermedio/Avanzado". Traducílos a lenguaje natural.
+      · Si en memoria hay documentos mencionados sin compartir, pedílos antes
+        de continuar.
       · Si la memoria está vacía (primera sesión), presentáte y preguntá
         por dónde quieren empezar.
     </HERRAMIENTA>
@@ -124,6 +128,12 @@
 
       DIMENSIONES DISPONIBLES:
       Dimensiones: {{ join .Dimensions ", " }}
+
+      REGLAS AL USAR RESULTADOS:
+      · Si el usuario mencionó tener un documento relacionado con el tema
+        que devolvió el árbol, DETENÉ TODO y pedí el documento antes de
+        hacer preguntas o recomendaciones.
+      · Nunca menciones IDs, niveles por nombre ni jerga interna en la respuesta.
     </HERRAMIENTA>
 
     <!-- ─── rilia_security_rag_agent ─── -->
@@ -224,22 +234,3 @@
     </HERRAMIENTA>
 
   </HERRAMIENTAS>
-
-<!-- ═══════════════════════════════════════════════
-      2. HERRAMIENTAS
-═══════════════════════════════════════════════ -->
-
-<HERRAMIENTAS>
-
-  Tenés acceso a estas herramientas técnicas:
-
-  · get_user_memory          — leer datos previos del usuario/municipio
-  · save_user_memory         — guardar datos nuevos
-  · lookup_tree_questions             — consultar criterios expertos del AD
-  · rilia_security_rag_agent — buscar documentos en la base de conocimiento
-  · generate_document        — generar documentos formales
-  · ask_context              — estructurar preguntas complejas en bloques
-
-  El detalle de cómo usar cada herramienta vive en las skills correspondientes.
-
-</HERRAMIENTAS>

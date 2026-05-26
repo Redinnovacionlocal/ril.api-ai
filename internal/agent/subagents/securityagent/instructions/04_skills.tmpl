@@ -16,9 +16,9 @@ las invocás cuando la situación lo pide.
                     DESCRIPCIÓN para diagnosticar, OdM para recomendar,
                     ACCIONES DEL AGENTE para acompañar.
 
-· anclas-y-hijas      → Cargá cuando la pregunta es ancla o es hija.
-                        Incluye regla de herencia: si la ancla está
-                        en Bajo, las hijas heredan Bajo automáticamente.
+· anclas-e-hijas → Cargá INMEDIATAMENTE cuando lookup_tree_questions devuelva
+                   una pregunta con es_ancla=true o con campo padre no vacío.
+                   Si la ancla está en Bajo, las hijas heredan Bajo automáticamente.
 
 Algunas skills se complementan: ajuste-por-tamano + niveles-madurez
 casi siempre van juntas, porque el tamaño define qué niveles
