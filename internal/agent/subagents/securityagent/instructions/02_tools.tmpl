@@ -124,10 +124,10 @@
       ❌ lookup_tree_questions(tag="videovigilancia capacitación") → no es un tag del catálogo
 
       TAGS DISPONIBLES:
-      Tags: {{ join .Tags ", " }}
+      {{if .Tags}}Tags: {{join .Tags ", "}}{{else}}(Tags no cargados aún){{end}}
 
       DIMENSIONES DISPONIBLES:
-      Dimensiones: {{ join .Dimensions ", " }}
+      {{if .Dimensions}}Dimensiones: {{join .Dimensions ", "}}{{else}}(dimensiones no cargadas aún){{end}}
 
       REGLAS AL USAR RESULTADOS:
       · Si el usuario mencionó tener un documento relacionado con el tema

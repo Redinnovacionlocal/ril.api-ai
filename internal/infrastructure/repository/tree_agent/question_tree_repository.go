@@ -1,6 +1,7 @@
 package tree_agent
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/jmoiron/sqlx"
@@ -16,6 +17,9 @@ func NewQuestionTreeRepository(db *sqlx.DB) *QuestionTreeRepository {
 }
 
 func (r *QuestionTreeRepository) GetExcelGCSPath() (string, error) {
+	if r.subAgentID == "" {
+		return "", fmt.Errorf("SECURITY_TREE_SUB_AGENT_ID no configurado")
+	}
 	var path string
 	err := r.db.Get(&path, `
         SELECT excel_gcs_path 
