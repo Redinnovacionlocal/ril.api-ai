@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -13,7 +14,11 @@ type QuestionTreeRepository struct {
 }
 
 func NewQuestionTreeRepository(db *sqlx.DB) *QuestionTreeRepository {
-	return &QuestionTreeRepository{db: db, subAgentID: os.Getenv("SECURITY_TREE_SUB_AGENT_ID")}
+	id := os.Getenv("SECURITY_TREE_SUB_AGENT_ID")
+	if _, err := uuid.Parse(id); err != nil {
+		id = ""
+	}
+	return &QuestionTreeRepository{db: db, subAgentID: id}
 }
 
 func (r *QuestionTreeRepository) GetExcelGCSPath() (string, error) {
