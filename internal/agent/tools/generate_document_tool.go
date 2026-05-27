@@ -11,12 +11,13 @@ import (
 	"github.com/gomutex/godocx/wml/stypes"
 	"github.com/jung-kurt/gofpdf"
 	"github.com/tealeg/xlsx"
+	"google.golang.org/adk/artifact"
 	"google.golang.org/adk/tool"
 	"google.golang.org/genai"
 )
 
 type GenerateDocumentsArgs struct {
-	Blocks   []Block `json:"blocks" jsonschema:"CRITICAL: Array of structured content blocks. You MUST decompose ALL content into typed blocks. FORBIDDEN in any text field: '#', '##', '**', '*', '-', '>', backticks, or ANY other markdown syntax. Violations will cause rendering errors. Block types and rules: (1) 'h1','h2','h3' = section headings, text field required, plain text only. (2) 'paragraph' = body text, text field required, plain text only. (3) 'bullet' = ONE bullet item per block, text field required, plain text only, do NOT use '-' or '*' prefix. (4) 'divider' = horizontal separator, no text field. (5) 'table' = structured data, requires headers array and rows array, no text field. CORRECT example: [{\"type\":\"h1\",\"text\":\"Annual Report\"},{\"type\":\"paragraph\",\"text\":\"This report covers Q1 results.\"},{\"type\":\"bullet\",\"text\":\"Revenue increased by 12 percent\"},{\"type\":\"table\",\"headers\":[\"Region\",\"Sales\"],\"rows\":[[\"North\",\"120k\"],[\"South\",\"98k\"]]}]. WRONG example: [{\"type\":\"paragraph\",\"text\":\"## Title\\n**bold** and - bullet\"}]"`
+	Blocks   []Block `json:"blocks" jsonschema:"CRITICAL: Array of structured content blocks. You MUST decompose ALL content into typed blocks. FORBIDDEN in any text field: '#', '##', '**', '*', '-', '>', backticks, or ANY other markdown syntax. Violations will cause rendering errors. Block types and rules: (1) 'h1','h2','h3' = section headings, text field required, plain text only. (2) 'paragraph' = body text, text field required, plain text only. (3) 'bullet' = ONE bullet item per block, text field required, plain text only, do NOT use '-' or '*' prefix. (4) 'divider' = horizontal separator, no text field. (5) 'table' = structured data, requires headers array and rows array, no text field. CORRECT example: [{\"type\":\"h1\",\"text\":\"Annual Report\"},{\"type\":\"paragraph\",\"text\":\"This report covers Q1 results.\"},{\"type\":\"bullet\",\"text\":\"Revenue increased by 12 percent\"},{\"type\":\"table\",\"headers\":[\"Region\",\"Sales\"],\"rows\":[[\"North\",\"120k\"],[\"South\",\"98k\"]]}]. WRONG example: [{\"type\":\"paragraph\",\"text\":\"## Title\\n**bold** and - bullet\"}]. CRITICAL LANGUAGE RULE: You MUST maintain proper orthography for the active language. Preserve all diacritics, accents, tildes, cedillas, and special characters (e.g., á, ñ, ã, ç, ü). DO NOT strip them; the system fully supports UTF-8."`
 	MimeType string  `json:"mime_type" jsonschema:"MIME type of the document. Allowed values: 'application/pdf', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/csv', 'text/plain', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'"`
 	FileName string  `json:"file_name" jsonschema:"File name with extension, e.g. 'report.pdf', 'data.xlsx'"`
 }
@@ -96,8 +97,7 @@ func (r *PdfRenderer) Paragraph(text string) {
 func (r *PdfRenderer) Bullet(text string) {
 	r.pdf.SetFont("Arial", "", 11)
 	r.pdf.SetTextColor(0, 0, 0)
-	r.pdf.MultiCell(0, 7, r.tr("."+
-		text), "", "L", false)
+	r.pdf.MultiCell(0, 7, r.tr("• "+text), "", "L", false)
 }
 
 func (r *PdfRenderer) Divider() {
@@ -113,36 +113,103 @@ func (r *PdfRenderer) Table(headers []string, rows [][]string) {
 		return
 	}
 
-	pageWidth, _ := r.pdf.GetPageSize()
-	margins, _, _, _ := r.pdf.GetMargins()
+	pageWidth, pageHeight := r.pdf.GetPageSize()
+	margins, _, bottom, _ := r.pdf.GetMargins()
 	tableWidth := pageWidth - 2*margins
 	colWidth := tableWidth / float64(len(headers))
+	lineHeight := 6.0
+	headerLineHeight := 6.0
+	usableHeight := pageHeight - bottom - margins
 
-	// Headers
-	r.pdf.SetFont("Arial", "B", 10)
-	r.pdf.SetFillColor(79, 70, 229) // indigo
-	r.pdf.SetTextColor(255, 255, 255)
-	for _, h := range headers {
-		r.pdf.CellFormat(colWidth, 8, h, "1", 0, "C", true, 0, "")
+	calcLines := func(text string, width float64, bold bool) int {
+		style := ""
+		if bold {
+			style = "B"
+		}
+		r.pdf.SetFont("Arial", style, 10)
+		lines := r.pdf.SplitLines([]byte(r.tr(text)), width-2)
+		if len(lines) == 0 {
+			return 1
+		}
+		return len(lines)
 	}
-	r.pdf.Ln(-1)
 
-	// Rows
+	maxHeaderLines := 1
+	for _, h := range headers {
+		n := calcLines(h, colWidth, true)
+		if n > maxHeaderLines {
+			maxHeaderLines = n
+		}
+	}
+	headerHeight := float64(maxHeaderLines)*headerLineHeight + 2
+
+	drawHeaders := func() {
+		r.pdf.SetFont("Arial", "B", 10)
+		r.pdf.SetFillColor(79, 70, 229)
+		r.pdf.SetTextColor(255, 255, 255)
+
+		startX, startY := r.pdf.GetX(), r.pdf.GetY()
+		for j, h := range headers {
+			x := startX + float64(j)*colWidth
+			r.pdf.SetXY(x, startY)
+			r.pdf.Rect(x, startY, colWidth, headerHeight, "F")
+			r.pdf.Rect(x, startY, colWidth, headerHeight, "D")
+			r.pdf.SetXY(x+1, startY+1)
+			r.pdf.MultiCell(colWidth-2, headerLineHeight, r.tr(h), "", "C", false)
+		}
+		r.pdf.SetXY(startX, startY+headerHeight)
+	}
+
+	spaceLeft := usableHeight - r.pdf.GetY()
+	if spaceLeft < headerHeight+lineHeight*2 {
+		r.pdf.AddPage()
+	}
+
+	drawHeaders()
+
+	// ── Filas ──
 	r.pdf.SetFont("Arial", "", 9)
-
 	r.pdf.SetTextColor(0, 0, 0)
+
 	for i, row := range rows {
+		maxLines := 1
+		for j, cell := range row {
+			if j < len(headers) {
+				n := calcLines(cell, colWidth, false)
+				if n > maxLines {
+					maxLines = n
+				}
+			}
+		}
+		rowHeight := float64(maxLines) * lineHeight
+
+		if r.pdf.GetY()+rowHeight > usableHeight {
+			r.pdf.AddPage()
+			drawHeaders()
+			r.pdf.SetFont("Arial", "", 9)
+			r.pdf.SetTextColor(0, 0, 0)
+		}
+
 		if i%2 == 0 {
 			r.pdf.SetFillColor(245, 245, 255)
 		} else {
 			r.pdf.SetFillColor(255, 255, 255)
 		}
+
+		startX, startY := r.pdf.GetX(), r.pdf.GetY()
 		for j, cell := range row {
-			if j < len(headers) {
-				r.pdf.CellFormat(colWidth, 7, r.tr(cell), "1", 0, "L", true, 0, "")
+			if j >= len(headers) {
+				continue
 			}
+			x := startX + float64(j)*colWidth
+			r.pdf.SetXY(x, startY)
+			r.pdf.Rect(x, startY, colWidth, rowHeight, "F")
+			r.pdf.Rect(x, startY, colWidth, rowHeight, "D")
+			r.pdf.SetXY(x+1, startY+1)
+			r.pdf.MultiCell(colWidth-2, lineHeight, r.tr(cell), "", "L", false)
 		}
-		r.pdf.Ln(-1)
+
+		r.pdf.SetXY(startX, startY+rowHeight)
 	}
 
 	r.pdf.Ln(4)
@@ -363,19 +430,31 @@ func GenerateDocumentsToolFunc(tctx tool.Context, args GenerateDocumentsArgs) (G
 			Message:    fmt.Sprintf("Error rendering document: %v", err),
 		}, nil
 	}
-	response, err := tctx.Artifacts().Save(
-		tctx, args.FileName, &genai.Part{
-			InlineData: &genai.Blob{
-				MIMEType: args.MimeType,
-				Data:     data,
+	log.Printf("[generate_document] Starting upload - file: %s, size: %d bytes", args.FileName, len(data))
+	var response *artifact.SaveResponse
+	var uploadErr error
+
+	for attempt := 0; attempt < 3; attempt++ {
+		response, uploadErr = tctx.Artifacts().Save(
+			tctx, args.FileName, &genai.Part{
+				InlineData: &genai.Blob{
+					MIMEType: args.MimeType,
+					Data:     data,
+				},
 			},
-		},
-	)
-	if err != nil {
-		log.Printf("Error generating document: %v", err)
+		)
+		if uploadErr == nil {
+			break
+		}
+		log.Printf("[generate_document] Upload attempt %d failed - file: %s, error: %v",
+			attempt+1, args.FileName, uploadErr)
+	}
+
+	log.Printf("[generate_document] Save() completed - err: %v", err)
+	if uploadErr != nil {
 		return GenerateDocumentResponse{
 			StatusCode: 500,
-			Message:    fmt.Sprintf("Error generating document: %v", err),
+			Message:    "Failed to upload document, please try again",
 		}, nil
 	}
 	version := response.Version

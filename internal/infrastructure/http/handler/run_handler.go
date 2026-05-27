@@ -18,15 +18,15 @@ import (
 
 type RunHandler struct {
 	ctx            context.Context
-	runner         runner.Runner
+	runners        map[string]*runner.Runner
 	sessionUseCase usecase.SessionUseCase
 	appName        string
 }
 
-func NewRunHandler(ctx context.Context, runner runner.Runner, sessionUseCase usecase.SessionUseCase) *RunHandler {
+func NewRunHandler(ctx context.Context, runners map[string]*runner.Runner, sessionUseCase usecase.SessionUseCase) *RunHandler {
 	return &RunHandler{
 		ctx:            ctx,
-		runner:         runner,
+		runners:        runners,
 		sessionUseCase: sessionUseCase,
 		appName:        os.Getenv("APP_NAME"),
 	}
@@ -55,7 +55,14 @@ func (rh *RunHandler) RunSSE(c *gin.Context) {
 	c.Writer.Header().Set("Connection", "keep-alive")
 	c.Writer.Header().Set("SessionId", s.ID())
 	c.Writer.Flush()
-	resp := rh.runner.Run(rh.ctx,
+
+	agentKey := c.GetHeader("x-agent")
+	r, ok := rh.runners[agentKey]
+	if !ok {
+		r = rh.runners["orchestrator"]
+	}
+
+	resp := r.Run(rh.ctx,
 		s.UserID(),
 		s.ID(),
 		genai.NewContentFromParts(runSseRequest.Parts, genai.RoleUser),

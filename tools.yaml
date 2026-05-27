@@ -85,19 +85,22 @@ tools:
     source: bigquery-source
     description: "Tool to retrieve the list of active RIL alliances."
     statement: |
-      SELECT
-        a.Name as Nombre,
-        MIN(op.CloseDate) as `Fecha_de_cierre`
-      FROM `ril-admin.salesforce_raw.Opportunity` op
-      INNER JOIN `ril-admin.salesforce_raw.RecordType` rt ON op.RecordTypeId = rt.Id
-      INNER JOIN `salesforce_raw.Account` a ON a.Id = op.AccountId
-      WHERE rt.DeveloperName != 'Alianza_con_Gobierno_Local'
-        AND op.IsDeleted = false
-        AND a.IsDeleted = false
-        AND op.CloseDate > CURRENT_DATE()
-      GROUP BY a.Name
-      ORDER BY SUM(op.Amount) DESC
-      LIMIT 200
+      SELECT ARRAY_AGG(STRUCT(Nombre, Fecha_de_cierre)) as alianzas
+      FROM (
+        SELECT
+          a.Name as Nombre,
+          MIN(op.CloseDate) as `Fecha_de_cierre`
+        FROM `ril-admin.salesforce_raw.Opportunity` op
+        INNER JOIN `ril-admin.salesforce_raw.RecordType` rt ON op.RecordTypeId = rt.Id
+        INNER JOIN `salesforce_raw.Account` a ON a.Id = op.AccountId
+        WHERE rt.DeveloperName != 'Alianza_con_Gobierno_Local'
+          AND op.IsDeleted = false
+          AND a.IsDeleted = false
+          AND op.CloseDate > CURRENT_DATE()
+          AND op.StageName IN ('Closed Won', 'Confirmado')
+        GROUP BY a.Name
+        ORDER BY SUM(op.Amount) DESC
+      )
   get_ril_aliances_by_account_name:
     kind: bigquery-sql
     source: bigquery-source
@@ -118,6 +121,7 @@ tools:
         AND a.IsDeleted = false
         AND op.CloseDate > CURRENT_DATE()
         AND LOWER(a.Name) LIKE CONCAT('%', LOWER(@nombre_cuenta), '%')
+        AND op.StageName IN ('Closed Won', 'Confirmado')
       GROUP BY a.Name
   get_ril_aliances_by_year:
     kind: bigquery-sql
@@ -128,16 +132,50 @@ tools:
         type: string
         description: "The 4-digit year (e.g., 2025)."
     statement: |
-      SELECT
-        a.Name as Nombre,
-        MIN(op.CloseDate) as `Fecha_de_cierre`
-      FROM `ril-admin.salesforce_raw.Opportunity` op
-      INNER JOIN `ril-admin.salesforce_raw.RecordType` rt ON op.RecordTypeId = rt.Id
-      INNER JOIN `salesforce_raw.Account` a ON a.Id = op.AccountId
-      WHERE rt.DeveloperName != 'Alianza_con_Gobierno_Local'
-        AND op.IsDeleted = false
-        AND a.IsDeleted = false
-        AND EXTRACT(YEAR FROM op.CloseDate) = @anio_cierre
-      GROUP BY a.Name
-      ORDER BY SUM(op.Amount) DESC
-      LIMIT 200
+      SELECT ARRAY_AGG(STRUCT(Nombre, Fecha_de_cierre)) as alianzas
+      FROM (
+        SELECT
+          a.Name as Nombre,
+          MIN(op.CloseDate) as `Fecha_de_cierre`
+        FROM `ril-admin.salesforce_raw.Opportunity` op
+        INNER JOIN `ril-admin.salesforce_raw.RecordType` rt ON op.RecordTypeId = rt.Id
+        INNER JOIN `salesforce_raw.Account` a ON a.Id = op.AccountId
+        WHERE rt.DeveloperName != 'Alianza_con_Gobierno_Local'
+          AND op.IsDeleted = false
+          AND a.IsDeleted = false
+          AND EXTRACT(YEAR FROM op.CloseDate) = CAST(@anio_cierre AS INT64)
+          AND op.StageName IN ('Closed Won', 'Confirmado')
+        GROUP BY a.Name
+        ORDER BY SUM(op.Amount) DESC
+      )
+  get_ril_staff:
+    kind: bigquery-sql
+    source: bigquery-source
+    description: "Use this tool to retrieve the list of active RIL team members.
+      Call this tool when the user asks who to contact, wants to reach someone from RIL,
+      or when the conversation topic matches a specific area (e.g. alliances, communication,
+      innovation, sustainability).
+      PRESENTING RESULTS: For each person returned, always display their equipo value
+      exactly as it comes from the data (e.g. Global, Argentina, Brasil, Colombia).
+      Never group, infer, or generalize equipo across multiple results — each person
+      must show their own individual equipo value."
+    statement: |
+      SELECT ARRAY_AGG(STRUCT(nombre, categoria, descripcion, email, equipo)) as team
+      FROM (
+        SELECT 
+          e.nombre, 
+          ec.nombre AS categoria,
+          e.descripcion, 
+          e.email,
+          te.nombre AS equipo
+        FROM `ril-admin.ril_webpublic.sitio_equipo` e
+        INNER JOIN `ril-admin.ril_webpublic.sitio_equipo_categoria` ec
+          ON e.id_equipo_categoria = ec.id_equipo_categoria
+        INNER JOIN `ril-admin.ril_webpublic.sitio_tipo_equipo` te
+          ON e.id_tipo_equipo = te.id 
+        WHERE e.baja = FALSE
+          AND e.activo = TRUE
+          AND ec.baja = FALSE
+          AND ec.activo = TRUE
+        ORDER BY ec.orden, e.orden
+      )
