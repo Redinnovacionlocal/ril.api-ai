@@ -3,6 +3,7 @@ package tree_agent
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -30,6 +31,12 @@ type TreeCacheManager struct {
 	ttl        time.Duration
 }
 
+var ErrTreeNotConfigured = errors.New("Agent tree not configured (configuration pending)")
+
+func (m *TreeCacheManager) isConfigured() bool {
+	return m.repo != nil && m.repo.subAgentID != ""
+}
+
 func NewTreeCacheManager(client *storage.Client, bucket string, repo *QuestionTreeRepository, rdb *redis.Client, ttl time.Duration) *TreeCacheManager {
 	return &TreeCacheManager{
 		gcsClient:  client,
@@ -41,6 +48,9 @@ func NewTreeCacheManager(client *storage.Client, bucket string, repo *QuestionTr
 }
 
 func (m *TreeCacheManager) GetData(ctx context.Context) ([]entity.QuestionTree, error) {
+	if !m.isConfigured() {
+		return nil, ErrTreeNotConfigured
+	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -58,6 +68,9 @@ func (m *TreeCacheManager) GetData(ctx context.Context) ([]entity.QuestionTree, 
 }
 
 func (m *TreeCacheManager) GetDimensions(ctx context.Context) ([]string, error) {
+	if !m.isConfigured() {
+		return []string{}, nil
+	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -74,6 +87,9 @@ func (m *TreeCacheManager) GetDimensions(ctx context.Context) ([]string, error) 
 }
 
 func (m *TreeCacheManager) GetTags(ctx context.Context) ([]string, error) {
+	if !m.isConfigured() {
+		return []string{}, nil
+	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
 

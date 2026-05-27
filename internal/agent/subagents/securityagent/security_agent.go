@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"embed"
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -98,6 +99,9 @@ func NewSecurityAgent(m model.LLM, treeManager *tree_agent.TreeCacheManager) (ag
 	}, func(ctx tool.Context, args LookupTreeArgs) (LookupTreeResult, error) {
 		preguntas, err := treeManager.Lookup(ctx, args.ID, args.Dimension, args.Tag, args.Query)
 		if err != nil {
+			if errors.Is(err, tree_agent.ErrTreeNotConfigured) {
+				return LookupTreeResult{}, fmt.Errorf("el árbol de criterios no está disponible todavía, intentá más tarde")
+			}
 			return LookupTreeResult{}, err
 		}
 		return LookupTreeResult{Questions: preguntas}, nil
