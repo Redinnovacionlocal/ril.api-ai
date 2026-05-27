@@ -17,7 +17,7 @@ import (
 )
 
 type GenerateDocumentsArgs struct {
-	Blocks   []Block `json:"blocks" jsonschema:"CRITICAL: Array of structured content blocks. You MUST decompose ALL content into typed blocks. FORBIDDEN in any text field: '#', '##', '**', '*', '-', '>', backticks, or ANY other markdown syntax. Violations will cause rendering errors. Block types and rules: (1) 'h1','h2','h3' = section headings, text field required, plain text only. (2) 'paragraph' = body text, text field required, plain text only. (3) 'bullet' = ONE bullet item per block, text field required, plain text only, do NOT use '-' or '*' prefix. (4) 'divider' = horizontal separator, no text field. (5) 'table' = structured data, requires headers array and rows array, no text field. CORRECT example: [{\"type\":\"h1\",\"text\":\"Annual Report\"},{\"type\":\"paragraph\",\"text\":\"This report covers Q1 results.\"},{\"type\":\"bullet\",\"text\":\"Revenue increased by 12 percent\"},{\"type\":\"table\",\"headers\":[\"Region\",\"Sales\"],\"rows\":[[\"North\",\"120k\"],[\"South\",\"98k\"]]}]. WRONG example: [{\"type\":\"paragraph\",\"text\":\"## Title\\n**bold** and - bullet\"}]"`
+	Blocks   []Block `json:"blocks" jsonschema:"CRITICAL: Array of structured content blocks. You MUST decompose ALL content into typed blocks. FORBIDDEN in any text field: '#', '##', '**', '*', '-', '>', backticks, or ANY other markdown syntax. Violations will cause rendering errors. Block types and rules: (1) 'h1','h2','h3' = section headings, text field required, plain text only. (2) 'paragraph' = body text, text field required, plain text only. (3) 'bullet' = ONE bullet item per block, text field required, plain text only, do NOT use '-' or '*' prefix. (4) 'divider' = horizontal separator, no text field. (5) 'table' = structured data, requires headers array and rows array, no text field. CORRECT example: [{\"type\":\"h1\",\"text\":\"Annual Report\"},{\"type\":\"paragraph\",\"text\":\"This report covers Q1 results.\"},{\"type\":\"bullet\",\"text\":\"Revenue increased by 12 percent\"},{\"type\":\"table\",\"headers\":[\"Region\",\"Sales\"],\"rows\":[[\"North\",\"120k\"],[\"South\",\"98k\"]]}]. WRONG example: [{\"type\":\"paragraph\",\"text\":\"## Title\\n**bold** and - bullet\"}]. CRITICAL LANGUAGE RULE: You MUST maintain proper orthography for the active language. Preserve all diacritics, accents, tildes, cedillas, and special characters (e.g., á, ñ, ã, ç, ü). DO NOT strip them; the system fully supports UTF-8."`
 	MimeType string  `json:"mime_type" jsonschema:"MIME type of the document. Allowed values: 'application/pdf', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/csv', 'text/plain', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'"`
 	FileName string  `json:"file_name" jsonschema:"File name with extension, e.g. 'report.pdf', 'data.xlsx'"`
 }
@@ -97,8 +97,7 @@ func (r *PdfRenderer) Paragraph(text string) {
 func (r *PdfRenderer) Bullet(text string) {
 	r.pdf.SetFont("Arial", "", 11)
 	r.pdf.SetTextColor(0, 0, 0)
-	r.pdf.MultiCell(0, 7, r.tr("."+
-		text), "", "L", false)
+	r.pdf.MultiCell(0, 7, r.tr("• "+text), "", "L", false)
 }
 
 func (r *PdfRenderer) Divider() {
