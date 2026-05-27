@@ -34,7 +34,7 @@ type TreeCacheManager struct {
 var ErrTreeNotConfigured = errors.New("Agent tree not configured (configuration pending)")
 
 func (m *TreeCacheManager) isConfigured() bool {
-	return m.repo.subAgentID != ""
+	return m.repo != nil && m.repo.subAgentID != ""
 }
 
 func NewTreeCacheManager(client *storage.Client, bucket string, repo *QuestionTreeRepository, rdb *redis.Client, ttl time.Duration) *TreeCacheManager {
