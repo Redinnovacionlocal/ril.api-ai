@@ -68,7 +68,7 @@ func NewAskContextAgent(ctx context.Context) (agent.Agent, error) {
 		Model:       m,
 		GenerateContentConfig: &genai.GenerateContentConfig{
 			Temperature:     &temperature,
-			MaxOutputTokens: 1000,
+			MaxOutputTokens: 8000,
 		},
 		OutputSchema: AskComponentOut,
 	})
