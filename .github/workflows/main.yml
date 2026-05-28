@@ -57,5 +57,6 @@ jobs:
           image: us-docker.pkg.dev/ril-admin/ril-ai-service-repository/go-ai-app:${{ github.sha }}
           env_vars: |
             AGENT_SECURITY_NAME=${{ vars.AGENT_SECURITY_NAME }}
+            AGENT_GIRSU_NAME=${{ vars.AGENT_GIRSU_NAME }}
             SECURITY_TREE_SUB_AGENT_ID=${{ vars.SECURITY_TREE_SUB_AGENT_ID }}
             AGENT_TREE_BUCKET=${{ vars.AGENT_TREE_BUCKET }}

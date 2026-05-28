@@ -1,12 +1,10 @@
-package securityagent
+package girsuagent
 
 import (
 	"bytes"
 	"context"
 	"embed"
-	"errors"
 	"fmt"
-	"io/fs"
 	"os"
 	"strings"
 	"text/template"
@@ -17,13 +15,10 @@ import (
 	"google.golang.org/adk/tool"
 	"google.golang.org/adk/tool/agenttool"
 	"google.golang.org/adk/tool/functiontool"
-	"google.golang.org/adk/tool/skilltoolset"
-	"google.golang.org/adk/tool/skilltoolset/skill"
 	agent2 "ril.api-ia/internal/agent"
 	"ril.api-ia/internal/agent/subagents/askcontextagent"
-	tools2 "ril.api-ia/internal/agent/subagents/securityagent/tools"
+	tools2 "ril.api-ia/internal/agent/subagents/girsuagent/tools"
 	"ril.api-ia/internal/agent/tools"
-	"ril.api-ia/internal/domain/entity"
 	"ril.api-ia/internal/infrastructure/repository/tree_agent"
 )
 
@@ -56,26 +51,28 @@ func buildSystemInstruction(data PromptData) (string, error) {
 	return buf.String(), nil
 }
 
-func NewSecurityAgent(m model.LLM, treeManager *tree_agent.TreeCacheManager) (agent.Agent, error) {
-	securityAgentName := os.Getenv("AGENT_SECURITY_NAME")
+func NewGirsuAgent(m model.LLM, treeManager *tree_agent.TreeCacheManager) (agent.Agent, error) {
+	girsuAgentName := os.Getenv("AGENT_GIRSU_NAME")
 	ctx := context.Background()
 
-	dimensions, err := treeManager.GetDimensions(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("error obteniendo dimensiones: %w", err)
-	}
+	// dimensions, err := treeManager.GetDimensions(ctx)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("error obteniendo dimensiones: %w", err)
+	// }
 
-	tags, err := treeManager.GetTags(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("error obteniendo tags: %w", err)
-	}
+	// tags, err := treeManager.GetTags(ctx)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("error obteniendo tags: %w", err)
+	// }
 
-	SystemInstruction, err := buildSystemInstruction(PromptData{
-		Dimensions: dimensions,
-		Tags:       tags,
-	})
+	SystemInstruction, err := buildSystemInstruction(PromptData{})
 	if err != nil {
 		return nil, err
+	}
+
+	girsuRepo, err := tree_agent.NewGirsuTreeRepository()
+	if err != nil {
+		return nil, fmt.Errorf("error inicializando GirsuTreeRepository: %w", err)
 	}
 
 	type LookupTreeArgs struct {
@@ -86,24 +83,24 @@ func NewSecurityAgent(m model.LLM, treeManager *tree_agent.TreeCacheManager) (ag
 	}
 
 	type LookupTreeResult struct {
-		Questions []entity.QuestionTree `json:"questions"`
+		Questions []tree_agent.GirsuQuestion `json:"questions"`
 	}
 
 	lookupTreeTool, err := functiontool.New(functiontool.Config{
 		Name: "lookup_tree_questions",
 		Description: `Busca preguntas del árbol de criterios del autodiagnóstico municipal.
-			Parámetros (usá uno solo): tag (tag exacto del catálogo), dimension (dimensión exacta),
-			id (número de pregunta, ej: "1", "34,35,36"), query (texto libre, último recurso).`,
+            Parámetros (usá uno solo): tag (tag exacto del catálogo), dimension (dimensión exacta),
+            id (número de pregunta, ej: "1", "34,35,36"), query (texto libre, último recurso).`,
 	}, func(ctx tool.Context, args LookupTreeArgs) (LookupTreeResult, error) {
-		preguntas, err := treeManager.Lookup(ctx, args.ID, args.Dimension, args.Tag, args.Query)
+		preguntas, err := girsuRepo.Lookup(args.ID, args.Dimension, args.Tag, args.Query)
 		if err != nil {
-			if errors.Is(err, tree_agent.ErrTreeNotConfigured) {
-				return LookupTreeResult{}, fmt.Errorf("el árbol de criterios no está disponible todavía, intentá más tarde")
-			}
 			return LookupTreeResult{}, err
 		}
 		return LookupTreeResult{Questions: preguntas}, nil
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	toolGenerateDocument, _ := functiontool.New(functiontool.Config{
 		Name:        "generate_document",
@@ -124,7 +121,7 @@ func NewSecurityAgent(m model.LLM, treeManager *tree_agent.TreeCacheManager) (ag
 	}, tools2.GetUserMemoryToolFunc)
 
 	UseRagDocument, err := functiontool.New(functiontool.Config{
-		Name:        "rilia_security_rag_agent",
+		Name:        "rilia_girsu_rag_agent",
 		Description: "Permite al agente utilizar un documento recuperado del RAG como parte de su respuesta al usuario. El agente puede extraer información relevante del documento para enriquecer sus recomendaciones y respuestas, asegurando que el conocimiento específico de las bases de RIL se integre de manera efectiva en la conversación con el municipio.",
 	}, tools2.UseRagVertexAISearchToolFunc)
 
@@ -133,20 +130,20 @@ func NewSecurityAgent(m model.LLM, treeManager *tree_agent.TreeCacheManager) (ag
 		return nil, err
 	}
 
-	skillsSubFS, err := fs.Sub(skillsFiles, "skills")
-	if err != nil {
-		return nil, fmt.Errorf("error accediendo a skills embebidas: %w", err)
-	}
+	// skillsSubFS, err := fs.Sub(skillsFiles, "skills")
+	// if err != nil {
+	// 	return nil, fmt.Errorf("error accediendo a skills embebidas: %w", err)
+	// }
 
-	mySkillToolset, err := skilltoolset.New(ctx, skilltoolset.Config{
-		Source: skill.NewFileSystemSource(skillsSubFS),
-	})
-	if err != nil {
-		return nil, err
-	}
+	// mySkillToolset, err := skilltoolset.New(ctx, skilltoolset.Config{
+	// 	Source: skill.NewFileSystemSource(skillsSubFS),
+	// })
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	return llmagent.New(llmagent.Config{
-		Name:              securityAgentName,
+		Name:              girsuAgentName,
 		Instruction:       SystemInstruction,
 		GlobalInstruction: agent2.GlobalInstruction,
 		Description:       "Agente especializado en acompañar a municipios en la mejora de su gestión de seguridad ciudadana. Su función es empujar a los municipios a avanzar: completar datos, mejorar lo que ya tienen, priorizar lo que importa, y ejecutar cambios concretos. Para eso, utiliza el conocimiento experto del árbol de criterios de calidad construido por los facilitadores de RIL, y lo aplica al contexto específico de cada municipio para ofrecer recomendaciones personalizadas y accionables.",
@@ -161,6 +158,6 @@ func NewSecurityAgent(m model.LLM, treeManager *tree_agent.TreeCacheManager) (ag
 				SkipSummarization: true,
 			}),
 		},
-		Toolsets: []tool.Toolset{mySkillToolset},
+		// Toolsets: []tool.Toolset{mySkillToolset},
 	})
 }
