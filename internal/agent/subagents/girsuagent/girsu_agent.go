@@ -25,8 +25,7 @@ import (
 //go:embed instructions/*.tmpl
 var instructionFiles embed.FS
 
-//go:embed all:skills
-var skillsFiles embed.FS
+//var skillsFiles embed.FS
 
 type PromptData struct {
 	Tags       []string
