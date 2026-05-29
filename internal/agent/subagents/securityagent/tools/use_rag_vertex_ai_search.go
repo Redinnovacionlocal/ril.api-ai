@@ -45,8 +45,11 @@ func buildFilter(filter map[string]string) string {
 	return strings.Join(parts, " AND ")
 }
 
-func UseRagVertexAISearchToolFunc(ctx tool.Context, args UseRagVertexAISearchToolArgs) (map[string]any, error) {
-	const apiEndpoint = "https://discoveryengine.googleapis.com/v1/projects/ril-admin/locations/global/collections/default_collection/dataStores/ril-security-knowledge_1775562649372_gcs_store/servingConfigs/default_search:search"
+func UseRagVertexAISearchWithDatastore(ctx tool.Context, args UseRagVertexAISearchToolArgs, datastore string) (map[string]any, error) {
+	apiEndpoint := fmt.Sprintf(
+		"https://discoveryengine.googleapis.com/v1/projects/ril-admin/locations/global/collections/default_collection/dataStores/%s/servingConfigs/default_search:search",
+		datastore,
+	)
 
 	// 1. Obtener cliente autenticado (Maneja el cacheo de tokens por ti)
 	// Es mucho más eficiente que obtener el token manualmente cada vez
@@ -100,4 +103,8 @@ func UseRagVertexAISearchToolFunc(ctx tool.Context, args UseRagVertexAISearchToo
 	}
 
 	return result, nil
+}
+
+func UseRagVertexAISearchToolFunc(ctx tool.Context, args UseRagVertexAISearchToolArgs) (map[string]any, error) {
+	return UseRagVertexAISearchWithDatastore(ctx, args, "ril-security-knowledge_1775562649372_gcs_store")
 }

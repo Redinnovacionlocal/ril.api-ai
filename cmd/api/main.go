@@ -30,6 +30,7 @@ import (
 	"ril.api-ia/internal/agent"
 	"ril.api-ia/internal/agent/plugin/agent_active_plugin"
 	"ril.api-ia/internal/agent/plugin/title_plugin"
+	"ril.api-ia/internal/agent/subagents/girsuagent"
 	"ril.api-ia/internal/agent/subagents/securityagent"
 	session2 "ril.api-ia/internal/application/service/session"
 	"ril.api-ia/internal/application/usecase"
@@ -113,6 +114,7 @@ func InitializeRepositories(ctx context.Context, dbCore *sqlx.DB, dbAgent *sqlx.
 
 func initializeRunner(ctx context.Context, sessionService session.Service, artifactService artifact.Service, dbAgent *sqlx.DB, rdb *redis.Client) map[string]*runner.Runner {
 	securityAgentName := os.Getenv("AGENT_SECURITY_NAME")
+	girsuAgentName := os.Getenv("AGENT_GIRSU_NAME")
 	toolboxClient, err := tbadk.NewToolboxClient(os.Getenv("TOOLBOX_CLIENT_URL"))
 	if err != nil {
 		log.Fatal("Error initializing Toolbox client:", err)
@@ -148,9 +150,15 @@ func initializeRunner(ctx context.Context, sessionService session.Service, artif
 		log.Fatal("Error initializing SecurityAgent:", err)
 	}
 
+	girsuAgent, err := girsuagent.NewGirsuAgent(model, treeManager)
+	if err != nil {
+		log.Fatal("Error initializing GirsuAgent:", err)
+	}
+
 	return map[string]*runner.Runner{
 		"orchestrator":    buildRunner(ctx, rilAgent, sessionService, artifactService),
 		securityAgentName: buildRunner(ctx, securityAgent, sessionService, artifactService),
+		girsuAgentName:    buildRunner(ctx, girsuAgent, sessionService, artifactService),
 	}
 }
 
