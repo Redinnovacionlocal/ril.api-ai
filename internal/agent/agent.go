@@ -41,12 +41,13 @@ func NewRilAgent(ctx context.Context, toolboxClient tbadk.ToolboxClient) (agent.
 	toolboxTool, err := toolboxClient.LoadTool("get_user_data_by_id", ctx)
 	getCertificateToolboxTool, _ := toolboxClient.LoadTool("get_certificate_by_id_team", ctx)
 	getAllCertificateToolboxTool, _ := toolboxClient.LoadTool("get_all_certificates_active", ctx)
-	getAllQuestionnareActive, _ := toolboxClient.LoadTool("get_all_questionnare_active", ctx)
+	getAllQuestionnaireActive, _ := toolboxClient.LoadTool("get_all_questionnaire_active", ctx)
 	getQuestionnarieQuestionsByIdOrName, _ := toolboxClient.LoadTool("get_questionnarie_questions_by_id_or_name", ctx)
 	getRilAliances, _ := toolboxClient.LoadTool("get_ril_aliances", ctx)
 	getRilAliancesByAccountName, _ := toolboxClient.LoadTool("get_ril_aliances_by_account_name", ctx)
 	getRilAliancesByYear, _ := toolboxClient.LoadTool("get_ril_aliances_by_year", ctx)
 	getRilStaff, _ := toolboxClient.LoadTool("get_ril_staff", ctx)
+	getEvaluationByName, _ := toolboxClient.LoadTool("get_evaluation_by_name", ctx)
 
 	// Custom tools
 	toolGenerateDocument, _ := functiontool.New(functiontool.Config{
@@ -75,12 +76,13 @@ func NewRilAgent(ctx context.Context, toolboxClient tbadk.ToolboxClient) (agent.
 			&toolboxTool,
 			&getCertificateToolboxTool,
 			&getAllCertificateToolboxTool,
-			&getAllQuestionnareActive,
+			&getAllQuestionnaireActive,
 			&getQuestionnarieQuestionsByIdOrName,
 			&getRilAliances,
 			&getRilAliancesByAccountName,
 			&getRilAliancesByYear,
 			&getRilStaff,
+			&getEvaluationByName,
 			agenttool.New(ragAgent, &agenttool.Config{}),
 		},
 	})

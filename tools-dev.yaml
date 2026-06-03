@@ -47,17 +47,18 @@ tools:
       FROM  `ril-admin.portalrilpril2022_staging.sitio_certificados` as cr
       INNER JOIN `ril-admin.portalrilpril2022_staging.sitio_certificados_tipos` as crt on crt.id_tipo = cr.id_tipo
       where cr.baja = 0 order by cr.fecha_actualizacion DESC;
-  get_all_questionnare_active:
+  get_all_questionnaire_active:
     kind: bigquery-sql
     source: bigquery-source
-    description: "Use this tool to retrieve all active questionnaires from BigQuery. This will return a list of all questionnaires that are currently active, along with their details such as name and description."
+    description: "Use this tool to retrieve all active questionnaires from BigQuery. This will return a list of all questionnaires that are currently active, along with their details such as name, description and access link."
     statement: |
       SELECT 
         sc.nombre AS cuestionario_nombre,
         sc.descripcion,
         sct.nombre AS tipo_nombre,
         sc.duracion,
-        sc.texto_libre
+        sc.texto_libre,
+        CONCAT('https://portalril.org/ar/cuestionario?id_cuestionario=', sc.id_cuestionario) AS link_acceso_cuestionario
       FROM `ril-admin.portalrilpril2022_staging.sitio_cuestionario` AS sc
       -- Usamos LEFT JOIN UNNEST para no perder filas si el ID está vacío
       LEFT JOIN UNNEST(SPLIT(sc.id_cuestionario_tipo, ',')) AS id_individual
@@ -179,3 +180,17 @@ tools:
           AND ec.activo = TRUE
         ORDER BY ec.orden, e.orden
       )
+  get_evaluation_by_name:
+    kind: bigquery-sql
+    source: bigquery-source
+    description: "Use this tool to retrieve active evaluations with their portal links. Call this whenever the user asks about evaluaciones, ads, cuestionarios or assessments."
+    parameters:
+      - name: search_term
+        type: string
+        description: "Keyword to filter evaluations by name"
+    statement: |
+      SELECT nombre, duracion, descripcion,
+        CONCAT('https://portalril.org/ar/cuestionario?id_cuestionario=', id_cuestionario) AS link
+      FROM `ril-admin.portalrilpril2022_staging..sitio_cuestionario`
+      WHERE baja = 0 AND activo = 1
+        AND LOWER(nombre) LIKE LOWER(CONCAT('%', @search_term, '%'))
