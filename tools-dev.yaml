@@ -191,6 +191,6 @@ tools:
     statement: |
       SELECT nombre, duracion, descripcion,
         CONCAT('https://portalril.org/ar/cuestionario?id_cuestionario=', id_cuestionario) AS link
-      FROM `ril-admin.portalrilpril2022_prod.sitio_cuestionario`
+      FROM `ril-admin.portalrilpril2022_staging..sitio_cuestionario`
       WHERE baja = 0 AND activo = 1
         AND LOWER(nombre) LIKE LOWER(CONCAT('%', @search_term, '%'))
