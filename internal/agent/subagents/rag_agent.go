@@ -1,11 +1,11 @@
 package subagents
 
 import (
-	"google.golang.org/adk/agent"
-	"google.golang.org/adk/agent/llmagent"
-	"google.golang.org/adk/model"
+	"context"
+	"log"
+
 	"google.golang.org/adk/tool"
-	"google.golang.org/adk/tool/geminitool"
+	"google.golang.org/adk/tool/functiontool"
 	"google.golang.org/genai"
 )
 
@@ -25,74 +25,101 @@ const SystemInstruction = "Actúa como un motor de recuperación de información
 	"   - 'buscar_cursos_de_academia': Usa este para formación estructurada, rutas de aprendizaje y certificaciones. (OBLIGATORIO: Incluir siempre el Link de acceso).\n" +
 	"OBJETIVO: Extrae y resume toda la información pertinente del documento encontrado para que el agente superior pueda responder al usuario."
 
-func NewRagAgent(m model.LLM) (agent.Agent, error) {
+type RagInput struct {
+	Query string `json:"query"`
+}
+
+type RagOutput struct {
+	Result string `json:"result"`
+	Text   string `json:"text"`
+}
+
+func NewRagProxyTool(ctx context.Context, client *genai.Client, modelName string, saveMetadataFunc func(ctx tool.Context, meta *genai.GroundingMetadata)) (tool.Tool, error) {
 	maxRagResults := int32(10)
-	return llmagent.New(llmagent.Config{
-		Name:        "rilia_rag_agent",
-		Description: "Agente especializado en búsqueda de información dentro de las bases de conocimiento de RIL (RAG). Su función es responder consultas específicas utilizando exclusivamente la información disponible en las bases de datos, sin generar contenido adicional ni realizar inferencias más allá de los datos encontrados.",
-		Instruction: SystemInstruction,
-		Model:       m,
-		Tools: []tool.Tool{
-			geminitool.New("overall_knowledge_rag",
-				"Get overall knowledge information",
-				&genai.Tool{
-					Retrieval: &genai.Retrieval{
-						VertexAISearch: &genai.VertexAISearch{
-							MaxResults: &maxRagResults,
-							Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/agente-politicas-publicas-rag_1754580407685_gcs_store",
-						},
-					},
-				}),
-			geminitool.New("buscar_en_inspirarme_casos",
-				"Find specific cases of municipal initiatives",
-				&genai.Tool{
-					Retrieval: &genai.Retrieval{
-						VertexAISearch: &genai.VertexAISearch{
-							MaxResults: &maxRagResults,
-							Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/ril-inspirarme-casos_1773239632591_vista_inspirarme_casos",
-						},
-					},
-				}),
-			geminitool.New("buscar_webinarios_y_capacitaciones",
-				"Find webinars and training sessions related to RIL",
-				&genai.Tool{
-					Retrieval: &genai.Retrieval{
-						VertexAISearch: &genai.VertexAISearch{
-							MaxResults: &maxRagResults,
-							Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/ril-webinarios_1773674713427_vista_webinarios",
-						},
-					},
-				}),
-			geminitool.New("web_reinnovacionlocal_index_rag",
-				"Find institutional information about RIL, such as programs, events, news and organizational structure",
-				&genai.Tool{
-					Retrieval: &genai.Retrieval{
-						VertexAISearch: &genai.VertexAISearch{
-							MaxResults: &maxRagResults,
-							Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/portaril-web_1754602780931",
-						},
-					},
-				}),
-			geminitool.New("web_+comunidad_index_rag",
-				"Find information from RIL community forums and debates, such as peers' perspectives and open discussions",
-				&genai.Tool{
-					Retrieval: &genai.Retrieval{
-						VertexAISearch: &genai.VertexAISearch{
-							MaxResults: &maxRagResults,
-							Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/comunidad-web_1759777234319",
-						},
-					},
-				}),
-			geminitool.New("buscar_cursos_de_academia",
-				"Buscar cursos de academia relacionados con RIL, incluyendo formación estructurada, rutas de aprendizaje y certificaciones. (OBLIGATORIO: Incluir siempre el Link de acceso).",
-				&genai.Tool{
-					Retrieval: &genai.Retrieval{
-						VertexAISearch: &genai.VertexAISearch{
-							MaxResults: &maxRagResults,
-							Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/ril-academia-cursos_1774889502369_vista_academia_cursos",
-						},
-					},
-				}),
+
+	ragTools := []*genai.Tool{
+		{
+			// overall_knowledge_rag
+			Retrieval: &genai.Retrieval{
+				VertexAISearch: &genai.VertexAISearch{
+					MaxResults: &maxRagResults,
+					Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/agente-politicas-publicas-rag_1754580407685_gcs_store",
+				},
+			},
 		},
-	})
+		{
+			// buscar_en_inspirarme_casos
+			Retrieval: &genai.Retrieval{
+				VertexAISearch: &genai.VertexAISearch{
+					MaxResults: &maxRagResults,
+					Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/ril-inspirarme-casos_1773239632591_vista_inspirarme_casos",
+				},
+			},
+		},
+		{
+			// buscar_webinarios_y_capacitaciones
+			Retrieval: &genai.Retrieval{
+				VertexAISearch: &genai.VertexAISearch{
+					MaxResults: &maxRagResults,
+					Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/ril-webinarios_1773674713427_vista_webinarios",
+				},
+			},
+		},
+		{
+			// web_reinnovacionlocal_index_rag
+			Retrieval: &genai.Retrieval{
+				VertexAISearch: &genai.VertexAISearch{
+					MaxResults: &maxRagResults,
+					Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/portaril-web_1754602780931",
+				},
+			},
+		},
+		{
+			// web_+comunidad_index_rag
+			Retrieval: &genai.Retrieval{
+				VertexAISearch: &genai.VertexAISearch{
+					MaxResults: &maxRagResults,
+					Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/comunidad-web_1759777234319",
+				},
+			},
+		},
+		{
+			// buscar_cursos_de_academia
+			Retrieval: &genai.Retrieval{
+				VertexAISearch: &genai.VertexAISearch{
+					MaxResults: &maxRagResults,
+					Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/ril-academia-cursos_1774889502369_vista_academia_cursos",
+				},
+			},
+		},
+	}
+
+	return functiontool.New(functiontool.Config{
+		Name:        "consultar_bases_conocimiento_ril",
+		Description: "Herramienta OBLIGATORIA para buscar información en las bases de datos internas de RIL (casos inspirarme, webinarios, cursos de academia, comunidad). Pásale la consulta del usuario y te devolverá la información verificada.",
+	}, functiontool.Func[RagInput, RagOutput](func(ctx tool.Context, input RagInput) (RagOutput, error) {
+
+		resp, err := client.Models.GenerateContent(ctx, modelName, genai.Text(input.Query), &genai.GenerateContentConfig{
+			SystemInstruction: genai.NewContentFromText(SystemInstruction, "system"),
+			Tools:             ragTools,
+		})
+		if err != nil {
+			log.Printf("Error crítico en RAG Subagent Proxy: %v", err)
+			return RagOutput{Text: "Error al consultar las bases de conocimiento de RIL. Por favor, intenta de nuevo."}, nil
+		}
+
+		if len(resp.Candidates) > 0 {
+			candidate := resp.Candidates[0]
+
+			if candidate.GroundingMetadata != nil && saveMetadataFunc != nil {
+				saveMetadataFunc(ctx, candidate.GroundingMetadata)
+			}
+
+			if candidate.Content != nil && len(candidate.Content.Parts) > 0 {
+				return RagOutput{Text: candidate.Content.Parts[0].Text}, nil
+			}
+		}
+
+		return RagOutput{Text: "INFORMACIÓN NO LOCALIZADA"}, nil
+	}))
 }
