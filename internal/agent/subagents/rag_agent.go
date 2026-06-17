@@ -21,8 +21,8 @@ const SystemInstruction = "Actúa como un motor de recuperación de información
 	"   - 'buscar_en_inspirarme_casos': casos 'inspirarme' reales de municipios, soluciones implementadas y resultados. (Usa este siempre que la consulta mencione 'casos', 'inspiración' o IDs de casos. OBLIGATORIO: Al responder con un caso, incluye SIEMPRE la URL oficial que viene al final de la descripción).\n" +
 	"   - 'buscar_webinarios_y_capacitaciones': Para contenido audiovisual, charlas de expertos y encuentros sincrónicos grabados. (OBLIGATORIO: Al resumir un webinario, incluye SIEMPRE la URL del portal).\n" +
 	"   - 'web_reinnovacionlocal_index_rag': información institucional de RIL.\n" +
-	"   - 'web_+comunidad_index_rag': foros y discusiones de la comunidad.\n\n" +
 	"   - 'buscar_cursos_de_academia': Usa este para formación estructurada, rutas de aprendizaje y certificaciones. (OBLIGATORIO: Incluir siempre el Link de acceso).\n" +
+	"   - 'buscar_notas_mas_comunidad': Notas y artículos de la comunidad.\n\n" +
 	"OBJETIVO: Extrae y resume toda la información pertinente del documento encontrado para que el agente superior pueda responder al usuario."
 
 type RagInput struct {
@@ -75,20 +75,20 @@ func NewRagProxyTool(ctx context.Context, client *genai.Client, modelName string
 			},
 		},
 		{
-			// web_+comunidad_index_rag
-			Retrieval: &genai.Retrieval{
-				VertexAISearch: &genai.VertexAISearch{
-					MaxResults: &maxRagResults,
-					Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/comunidad-web_1759777234319",
-				},
-			},
-		},
-		{
 			// buscar_cursos_de_academia
 			Retrieval: &genai.Retrieval{
 				VertexAISearch: &genai.VertexAISearch{
 					MaxResults: &maxRagResults,
 					Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/ril-academia-cursos_1774889502369_vista_academia_cursos",
+				},
+			},
+		},
+		{
+			// buscar_notas_mas_comunidad
+			Retrieval: &genai.Retrieval{
+				VertexAISearch: &genai.VertexAISearch{
+					MaxResults: &maxRagResults,
+					Datastore:  "projects/ril-admin/locations/global/collections/default_collection/dataStores/vista-notas-mas-comunid_1781718816011_vista_notas_mas_comunidad",
 				},
 			},
 		},
@@ -98,7 +98,6 @@ func NewRagProxyTool(ctx context.Context, client *genai.Client, modelName string
 		Name:        "consultar_bases_conocimiento_ril",
 		Description: "Herramienta OBLIGATORIA para buscar información en las bases de datos internas de RIL (casos inspirarme, webinarios, cursos de academia, comunidad). Pásale la consulta del usuario y te devolverá la información verificada.",
 	}, functiontool.Func[RagInput, RagOutput](func(ctx tool.Context, input RagInput) (RagOutput, error) {
-
 		resp, err := client.Models.GenerateContent(ctx, modelName, genai.Text(input.Query), &genai.GenerateContentConfig{
 			SystemInstruction: genai.NewContentFromText(SystemInstruction, "system"),
 			Tools:             ragTools,
@@ -107,7 +106,6 @@ func NewRagProxyTool(ctx context.Context, client *genai.Client, modelName string
 			log.Printf("Error crítico en RAG Subagent Proxy: %v", err)
 			return RagOutput{Text: "Error al consultar las bases de conocimiento de RIL. Por favor, intenta de nuevo."}, nil
 		}
-
 		if len(resp.Candidates) > 0 {
 			candidate := resp.Candidates[0]
 

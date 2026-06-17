@@ -133,8 +133,8 @@ const SystemInstruction = `
       · buscar_en_inspirarme_casos         → casos reales de municipios e iniciativas
       · buscar_webinarios_y_capacitaciones → webinars, oradores, capacitaciones
       · web_reinnovacionlocal_index_rag    → información institucional de RIL
-      · web_+comunidad_index_rag           → foros y debates de la comunidad
       · buscar_cursos_de_academia          → cursos de academia, rutas de aprendizaje y certificaciones
+      · buscar_notas_mas_comunidad         → notas y artículos de la comunidad
  
       CUÁNDO DELEGAR A ESTE SUBAGENTE:
       Activá rilia_rag_agent ante cualquier consulta que requiera:
@@ -146,7 +146,7 @@ const SystemInstruction = `
       Búsqueda de un caso por ID numérico      buscar_en_inspirarme_casos
       Capacitaciones / webinars / oradores     buscar_webinarios_y_capacitaciones
       Programas o información institucional    web_reinnovacionlocal_index_rag
-      Perspectiva de pares / debates           web_+comunidad_index_rag
+      Noticias / debates / blog / notas        buscar_notas_mas_comunidad
       Cursos, formación, rutas de aprendizaje  buscar_cursos_de_academia
       Consulta mixta (ej: metodología + casos) el subagente combina internamente
  
