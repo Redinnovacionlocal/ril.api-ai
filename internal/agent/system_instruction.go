@@ -134,7 +134,7 @@ const SystemInstruction = `
       · buscar_webinarios_y_capacitaciones → webinars, oradores, capacitaciones
       · web_reinnovacionlocal_index_rag    → información institucional de RIL
       · buscar_cursos_de_academia          → cursos de academia, rutas de aprendizaje y certificaciones
-      · buscar_notas_mas_comunidad         → notas y artículos de la comunidad
+      · buscar_notas_mas_comunidad         → notas periodísticas, análisis, columnas de opinión y podcasts de +COMUNIDAD sobre ciudades, gestión local y desafíos urbanos y rurales.
  
       CUÁNDO DELEGAR A ESTE SUBAGENTE:
       Activá rilia_rag_agent ante cualquier consulta que requiera:

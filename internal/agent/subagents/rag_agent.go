@@ -22,7 +22,7 @@ const SystemInstruction = "Actúa como un motor de recuperación de información
 	"   - 'buscar_webinarios_y_capacitaciones': Para contenido audiovisual, charlas de expertos y encuentros sincrónicos grabados. (OBLIGATORIO: Al resumir un webinario, incluye SIEMPRE la URL del portal).\n" +
 	"   - 'web_reinnovacionlocal_index_rag': información institucional de RIL.\n" +
 	"   - 'buscar_cursos_de_academia': Usa este para formación estructurada, rutas de aprendizaje y certificaciones. (OBLIGATORIO: Incluir siempre el Link de acceso).\n" +
-	"   - 'buscar_notas_mas_comunidad': Notas y artículos de la comunidad.\n\n" +
+	"   - 'buscar_notas_mas_comunidad': notas periodísticas, análisis, columnas de opinión y podcasts de +COMUNIDAD sobre ciudades, gestión local y desafíos urbanos y rurales. Útil para recuperar perspectivas comunitarias, debates públicos y miradas de especialistas. (OBLIGATORIO: Incluir siempre el Link a la nota o contenido).\n\n" +
 	"OBJETIVO: Extrae y resume toda la información pertinente del documento encontrado para que el agente superior pueda responder al usuario."
 
 type RagInput struct {
