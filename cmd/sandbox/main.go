@@ -48,8 +48,17 @@ func main() {
 		Location: os.Getenv("GOOGLE_CLOUD_LOCATION"),
 		Backend:  genai.BackendVertexAI,
 	})
+	if err != nil {
+		log.Fatal("Error initializing GenAI client:", err)
+	}
 	coordinatorAgent, err := agent.NewRilAgent(ctx, dbAgent, toolboxClient, genaiClient)
+	if err != nil {
+		log.Fatal("Error initializing RilAgent:", err)
+	}
 	model3, err := gemini.NewModel(ctx, os.Getenv("AGENT_MODEL"), nil)
+	if err != nil {
+		log.Fatal("Error initializing Gemini model:", err)
+	}
 	gcsClient, _ := storage.NewClient(ctx)
 	if err != nil {
 		log.Fatal("Error initializing GCS client:", err)

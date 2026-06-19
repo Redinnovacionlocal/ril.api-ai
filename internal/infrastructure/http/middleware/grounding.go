@@ -22,14 +22,27 @@ func GroundingMetadataLogger(dbAgent *sqlx.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		log.Print("start grounding middleware")
 		c.Next()
+
 		sessionIDRaw, exists := c.Get("session_id")
 		if !exists {
 			return
 		}
-		sessionID := sessionIDRaw.(string)
+
+		sessionID, ok := sessionIDRaw.(string)
+		if !ok {
+			log.Println(">> ERROR: session_id is not a string")
+			return
+		}
+		
 		log.Print("end grounding middleware")
+		defer entity.GroundingCache.Delete(sessionID)
+		
 		if val, ok := entity.GroundingCache.Load(sessionID); ok {
-			metadata := val.(*genai.GroundingMetadata)
+			metadata, ok := val.(*genai.GroundingMetadata)
+			if !ok {
+				log.Println(">> ERROR: cached grounding metadata is of invalid type")
+				return
+			}
 			metadataJSON, _ := json.Marshal(metadata)
 
 			query := `
@@ -48,8 +61,6 @@ func GroundingMetadataLogger(dbAgent *sqlx.DB) gin.HandlerFunc {
 			} else {
 				log.Printf("✅ Grounding metadata guardada por SessionID.")
 			}
-
-			entity.GroundingCache.Delete(sessionID)
 		}
 	}
 }
