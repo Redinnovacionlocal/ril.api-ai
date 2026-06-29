@@ -16,12 +16,6 @@ import (
 	"ril.api-ia/internal/domain/entity"
 )
 
-const (
-	redisKeyQuestions  = "security_agent_tree:questions"
-	redisKeyDimensions = "security_agent_tree:dimensions"
-	redisKeyTags       = "security_agent_tree:tags"
-)
-
 type TreeCacheManager struct {
 	mu         sync.Mutex
 	gcsClient  *storage.Client
@@ -34,7 +28,7 @@ type TreeCacheManager struct {
 var ErrTreeNotConfigured = errors.New("Agent tree not configured (configuration pending)")
 
 func (m *TreeCacheManager) isConfigured() bool {
-	return m.repo != nil && m.repo.subAgentID != ""
+	return m.repo != nil
 }
 
 func NewTreeCacheManager(client *storage.Client, bucket string, repo *QuestionTreeRepository, rdb *redis.Client, ttl time.Duration) *TreeCacheManager {
@@ -47,14 +41,14 @@ func NewTreeCacheManager(client *storage.Client, bucket string, repo *QuestionTr
 	}
 }
 
-func (m *TreeCacheManager) GetData(ctx context.Context) ([]entity.QuestionTree, error) {
+func (m *TreeCacheManager) GetData(ctx context.Context, agentPrefix string) ([]entity.QuestionTree, error) {
 	if !m.isConfigured() {
 		return nil, ErrTreeNotConfigured
 	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
-
-	val, err := m.rdb.Get(ctx, redisKeyQuestions).Result()
+	keyQuestions := fmt.Sprintf("%s:tree:questions", agentPrefix)
+	val, err := m.rdb.Get(ctx, keyQuestions).Result()
 
 	if err == nil {
 		var preguntas []entity.QuestionTree
@@ -63,18 +57,19 @@ func (m *TreeCacheManager) GetData(ctx context.Context) ([]entity.QuestionTree, 
 		}
 	}
 	log.Printf("Cache miss para preguntas, refrescando cache: %v", err)
-	preguntas, _, _, err := m.refreshCache(ctx)
+	preguntas, _, _, err := m.refreshCache(ctx, agentPrefix)
 	return preguntas, err
 }
 
-func (m *TreeCacheManager) GetDimensions(ctx context.Context) ([]string, error) {
+func (m *TreeCacheManager) GetDimensions(ctx context.Context, agentPrefix string) ([]string, error) {
 	if !m.isConfigured() {
 		return []string{}, nil
 	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	val, err := m.rdb.Get(ctx, redisKeyDimensions).Result()
+	keyDimensions := fmt.Sprintf("%s:tree:dimensions", agentPrefix)
+	val, err := m.rdb.Get(ctx, keyDimensions).Result()
 	if err == nil {
 		var dims []string
 		if json.Unmarshal([]byte(val), &dims) == nil {
@@ -82,18 +77,19 @@ func (m *TreeCacheManager) GetDimensions(ctx context.Context) ([]string, error) 
 		}
 	}
 
-	_, dims, _, err := m.refreshCache(ctx)
+	_, dims, _, err := m.refreshCache(ctx, agentPrefix)
 	return dims, err
 }
 
-func (m *TreeCacheManager) GetTags(ctx context.Context) ([]string, error) {
+func (m *TreeCacheManager) GetTags(ctx context.Context, agentPrefix string) ([]string, error) {
 	if !m.isConfigured() {
 		return []string{}, nil
 	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	val, err := m.rdb.Get(ctx, redisKeyTags).Result()
+	keyTags := fmt.Sprintf("%s:tree:tags", agentPrefix)
+	val, err := m.rdb.Get(ctx, keyTags).Result()
 	if err == nil {
 		var tags []string
 		if json.Unmarshal([]byte(val), &tags) == nil {
@@ -101,12 +97,12 @@ func (m *TreeCacheManager) GetTags(ctx context.Context) ([]string, error) {
 		}
 	}
 
-	_, _, tags, err := m.refreshCache(ctx)
+	_, _, tags, err := m.refreshCache(ctx, agentPrefix)
 	return tags, err
 }
 
-func (m *TreeCacheManager) refreshCache(ctx context.Context) ([]entity.QuestionTree, []string, []string, error) {
-	objectName, err := m.repo.GetExcelGCSPath()
+func (m *TreeCacheManager) refreshCache(ctx context.Context, agentPrefix string) ([]entity.QuestionTree, []string, []string, error) {
+	objectName, err := m.repo.GetExcelGCSPath(agentPrefix)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("error obteniendo excel_gcs_path: %w", err)
 	}
@@ -127,21 +123,25 @@ func (m *TreeCacheManager) refreshCache(ctx context.Context) ([]entity.QuestionT
 		return nil, nil, nil, fmt.Errorf("error parseando excel: %w", err)
 	}
 
+	keyQuestions := fmt.Sprintf("%s:tree:questions", agentPrefix)
+	keyDimensions := fmt.Sprintf("%s:tree:dimensions", agentPrefix)
+	keyTags := fmt.Sprintf("%s:tree:tags", agentPrefix)
+
 	data, _ := json.Marshal(preguntas)
-	m.rdb.Set(ctx, redisKeyQuestions, data, m.ttl)
+	m.rdb.Set(ctx, keyQuestions, data, m.ttl)
 
 	dims, _ := json.Marshal(dimensions)
-	m.rdb.Set(ctx, redisKeyDimensions, dims, m.ttl)
+	m.rdb.Set(ctx, keyDimensions, dims, m.ttl)
 
 	t, _ := json.Marshal(tags)
-	m.rdb.Set(ctx, redisKeyTags, t, m.ttl)
+	m.rdb.Set(ctx, keyTags, t, m.ttl)
 
 	fmt.Printf("Caché actualizada: %d preguntas, %d dimensiones, %d tags\n", len(preguntas), len(dimensions), len(tags))
 	return preguntas, dimensions, tags, nil
 }
 
-func (m *TreeCacheManager) Lookup(ctx context.Context, id, dimension, tag, query string) ([]entity.QuestionTree, error) {
-	data, err := m.GetData(ctx)
+func (m *TreeCacheManager) Lookup(ctx context.Context, id, dimension, tag, query string, agentPrefix string) ([]entity.QuestionTree, error) {
+	data, err := m.GetData(ctx, agentPrefix)
 	if err != nil {
 		return nil, err
 	}

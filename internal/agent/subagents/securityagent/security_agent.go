@@ -58,14 +58,15 @@ func buildSystemInstruction(data PromptData) (string, error) {
 
 func NewSecurityAgent(m model.LLM, treeManager *tree_agent.TreeCacheManager) (agent.Agent, error) {
 	securityAgentName := os.Getenv("AGENT_SECURITY_NAME")
+	securityPrefix := "security"
 	ctx := context.Background()
 
-	dimensions, err := treeManager.GetDimensions(ctx)
+	dimensions, err := treeManager.GetDimensions(ctx, securityPrefix)
 	if err != nil {
 		return nil, fmt.Errorf("error obteniendo dimensiones: %w", err)
 	}
 
-	tags, err := treeManager.GetTags(ctx)
+	tags, err := treeManager.GetTags(ctx, securityPrefix)
 	if err != nil {
 		return nil, fmt.Errorf("error obteniendo tags: %w", err)
 	}
@@ -95,7 +96,7 @@ func NewSecurityAgent(m model.LLM, treeManager *tree_agent.TreeCacheManager) (ag
 			Parámetros (usá uno solo): tag (tag exacto del catálogo), dimension (dimensión exacta),
 			id (número de pregunta, ej: "1", "34,35,36"), query (texto libre, último recurso).`,
 	}, func(ctx tool.Context, args LookupTreeArgs) (LookupTreeResult, error) {
-		preguntas, err := treeManager.Lookup(ctx, args.ID, args.Dimension, args.Tag, args.Query)
+		preguntas, err := treeManager.Lookup(ctx, args.ID, args.Dimension, args.Tag, args.Query, securityPrefix)
 		if err != nil {
 			if errors.Is(err, tree_agent.ErrTreeNotConfigured) {
 				return LookupTreeResult{}, fmt.Errorf("el árbol de criterios no está disponible todavía, intentá más tarde")

@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"context"
 	"embed"
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"strings"
 	"text/template"
@@ -15,17 +17,21 @@ import (
 	"google.golang.org/adk/tool"
 	"google.golang.org/adk/tool/agenttool"
 	"google.golang.org/adk/tool/functiontool"
+	"google.golang.org/adk/tool/skilltoolset"
+	"google.golang.org/adk/tool/skilltoolset/skill"
 	agent2 "ril.api-ia/internal/agent"
 	"ril.api-ia/internal/agent/subagents/askcontextagent"
 	tools2 "ril.api-ia/internal/agent/subagents/girsuagent/tools"
 	"ril.api-ia/internal/agent/tools"
+	"ril.api-ia/internal/domain/entity"
 	"ril.api-ia/internal/infrastructure/repository/tree_agent"
 )
 
 //go:embed instructions/*.tmpl
 var instructionFiles embed.FS
 
-//var skillsFiles embed.FS
+//go:embed all:skills
+var skillsFiles embed.FS
 
 type PromptData struct {
 	Tags       []string
@@ -52,26 +58,25 @@ func buildSystemInstruction(data PromptData) (string, error) {
 
 func NewGirsuAgent(m model.LLM, treeManager *tree_agent.TreeCacheManager) (agent.Agent, error) {
 	girsuAgentName := os.Getenv("AGENT_GIRSU_NAME")
+	girsuPrefix := "girsu"
 	ctx := context.Background()
 
-	// dimensions, err := treeManager.GetDimensions(ctx)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("error obteniendo dimensiones: %w", err)
-	// }
-
-	// tags, err := treeManager.GetTags(ctx)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("error obteniendo tags: %w", err)
-	// }
-
-	SystemInstruction, err := buildSystemInstruction(PromptData{})
+	dimensions, err := treeManager.GetDimensions(ctx, girsuPrefix)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error obteniendo dimensiones: %w", err)
 	}
 
-	girsuRepo, err := tree_agent.NewGirsuTreeRepository()
+	tags, err := treeManager.GetTags(ctx, girsuPrefix)
 	if err != nil {
-		return nil, fmt.Errorf("error inicializando GirsuTreeRepository: %w", err)
+		return nil, fmt.Errorf("error obteniendo tags: %w", err)
+	}
+
+	SystemInstruction, err := buildSystemInstruction(PromptData{
+		Dimensions: dimensions,
+		Tags:       tags,
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	type LookupTreeArgs struct {
@@ -82,17 +87,20 @@ func NewGirsuAgent(m model.LLM, treeManager *tree_agent.TreeCacheManager) (agent
 	}
 
 	type LookupTreeResult struct {
-		Questions []tree_agent.GirsuQuestion `json:"questions"`
+		Questions []entity.QuestionTree `json:"questions"`
 	}
 
 	lookupTreeTool, err := functiontool.New(functiontool.Config{
 		Name: "lookup_tree_questions",
-		Description: `Busca preguntas del árbol de criterios del autodiagnóstico municipal.
+		Description: `LLAMADA OBLIGATORIA: Cada vez que el usuario introduzca un nuevo tema relacionado con GIRSU (ej. caracterización de residuos, recolección, basurales, etc.), DEBÉS ejecutar esta herramienta ANTES de hacer preguntas de seguimiento. Usa los criterios expertos devueltos para formular tu próxima pregunta.
             Parámetros (usá uno solo): tag (tag exacto del catálogo), dimension (dimensión exacta),
             id (número de pregunta, ej: "1", "34,35,36"), query (texto libre, último recurso).`,
 	}, func(ctx tool.Context, args LookupTreeArgs) (LookupTreeResult, error) {
-		preguntas, err := girsuRepo.Lookup(args.ID, args.Dimension, args.Tag, args.Query)
+		preguntas, err := treeManager.Lookup(ctx, args.ID, args.Dimension, args.Tag, args.Query, girsuPrefix)
 		if err != nil {
+			if errors.Is(err, tree_agent.ErrTreeNotConfigured) {
+				return LookupTreeResult{}, fmt.Errorf("el árbol de criterios no está disponible todavía, intentá más tarde")
+			}
 			return LookupTreeResult{}, err
 		}
 		return LookupTreeResult{Questions: preguntas}, nil
@@ -108,7 +116,7 @@ func NewGirsuAgent(m model.LLM, treeManager *tree_agent.TreeCacheManager) (agent
 
 	saveUserMemory, err := functiontool.New(functiontool.Config{
 		Name:        "save_user_memory",
-		Description: "LLAMAR OBLIGATORIAMENTE cada vez que el usuario aporte cualquier dato nuevo sobre su municipio. Guarda en la memoria del usuario todo lo que el municipio aporta durante la conversación. Permite registrar datos concretos sobre el municipio, oportunidades de mejora identificadas y contexto relevante para personalizar recomendaciones futuras. Es fundamental para construir una memoria acumulada que permita un acompañamiento cada vez más adaptado y efectivo.",
+		Description: "LLAMADA OBLIGATORIA PREVIA: Si el usuario aporta cualquier dato nuevo sobre su municipio (ej. responde a tus preguntas), DEBÉS llamar a esta herramienta ANTES de escribir una sola palabra en tu respuesta. Guarda en la memoria todo lo que el municipio aporta durante la conversación. Permite registrar datos concretos sobre el municipio, registrar niveles detectados, oportunidades de mejora (OdM) y contexto relevante. Es fundamental para construir una memoria acumulada que permita un acompañamiento adaptado y efectivo.",
 	}, tools2.SaveUserMemoryToolFunc)
 	if err != nil {
 		return nil, err
@@ -129,17 +137,17 @@ func NewGirsuAgent(m model.LLM, treeManager *tree_agent.TreeCacheManager) (agent
 		return nil, err
 	}
 
-	// skillsSubFS, err := fs.Sub(skillsFiles, "skills")
-	// if err != nil {
-	// 	return nil, fmt.Errorf("error accediendo a skills embebidas: %w", err)
-	// }
+	skillsSubFS, err := fs.Sub(skillsFiles, "skills")
+	if err != nil {
+		return nil, fmt.Errorf("error accediendo a skills embebidas: %w", err)
+	}
 
-	// mySkillToolset, err := skilltoolset.New(ctx, skilltoolset.Config{
-	// 	Source: skill.NewFileSystemSource(skillsSubFS),
-	// })
-	// if err != nil {
-	// 	return nil, err
-	// }
+	mySkillToolset, err := skilltoolset.New(ctx, skilltoolset.Config{
+		Source: skill.NewFileSystemSource(skillsSubFS),
+	})
+	if err != nil {
+		return nil, err
+	}
 
 	return llmagent.New(llmagent.Config{
 		Name:              girsuAgentName,
@@ -157,6 +165,6 @@ func NewGirsuAgent(m model.LLM, treeManager *tree_agent.TreeCacheManager) (agent
 				SkipSummarization: true,
 			}),
 		},
-		// Toolsets: []tool.Toolset{mySkillToolset},
+		Toolsets: []tool.Toolset{mySkillToolset},
 	})
 }
