@@ -59,4 +59,5 @@ jobs:
             AGENT_SECURITY_NAME=${{ vars.AGENT_SECURITY_NAME }}
             AGENT_GIRSU_NAME=${{ vars.AGENT_GIRSU_NAME }}
             SECURITY_TREE_SUB_AGENT_ID=${{ vars.SECURITY_TREE_SUB_AGENT_ID }}
+            GIRSU_TREE_SUB_AGENT_ID=${{ vars.GIRSU_TREE_SUB_AGENT_ID }}
             AGENT_TREE_BUCKET=${{ vars.AGENT_TREE_BUCKET }}
