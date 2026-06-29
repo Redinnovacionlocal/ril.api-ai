@@ -26,6 +26,7 @@ import (
 	"google.golang.org/adk/runner"
 	"google.golang.org/adk/session"
 	"google.golang.org/adk/session/database"
+	"google.golang.org/genai"
 	"gorm.io/driver/postgres"
 	"ril.api-ia/internal/agent"
 	"ril.api-ia/internal/agent/plugin/agent_active_plugin"
@@ -85,7 +86,7 @@ func main() {
 	transcribeUseCase := usecase.NewTranscribeUseCase(ctx)
 
 	// HTTP Server and routes
-	router := setupRouter(ctx, sessionUseCase, userUseCase, eventFeedbackUseCase, transcribeUseCase, runners)
+	router := setupRouter(ctx, dbAgent, sessionUseCase, userUseCase, eventFeedbackUseCase, transcribeUseCase, runners)
 	startServer(router)
 }
 
@@ -119,8 +120,15 @@ func initializeRunner(ctx context.Context, sessionService session.Service, artif
 	if err != nil {
 		log.Fatal("Error initializing Toolbox client:", err)
 	}
-
-	rilAgent, err := agent.NewRilAgent(ctx, toolboxClient)
+	genaiClient, err := genai.NewClient(ctx, &genai.ClientConfig{
+		Project:  os.Getenv("GOOGLE_CLOUD_PROJECT"),
+		Location: os.Getenv("GOOGLE_CLOUD_LOCATION"),
+		Backend:  genai.BackendVertexAI,
+	})
+	if err != nil {
+		log.Fatal("Error initializing GenAI client:", err)
+	}
+	rilAgent, err := agent.NewRilAgent(ctx, dbAgent, toolboxClient, genaiClient)
 	if err != nil {
 		log.Fatal("Error initializing RilAgent:", err)
 	}
@@ -186,7 +194,7 @@ func buildRunner(ctx context.Context, ag internalagent.Agent, sessionService ses
 	return r
 }
 
-func setupRouter(ctx context.Context, sessionUseCase *usecase.SessionUseCase, userUseCase *usecase.UserUseCase, feedbackUseCase *usecase.EventFeedbackUseCase, transcribeUseCase *usecase.TranscribeUseCase, runners map[string]*runner.Runner) *gin.Engine {
+func setupRouter(ctx context.Context, dbAgent *sqlx.DB, sessionUseCase *usecase.SessionUseCase, userUseCase *usecase.UserUseCase, feedbackUseCase *usecase.EventFeedbackUseCase, transcribeUseCase *usecase.TranscribeUseCase, runners map[string]*runner.Runner) *gin.Engine {
 	r := gin.Default()
 	configCors := cors.DefaultConfig()
 	configCors.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Accept", "Authorization", "x-agent"}
@@ -199,12 +207,12 @@ func setupRouter(ctx context.Context, sessionUseCase *usecase.SessionUseCase, us
 	runHandler := handler.NewRunHandler(ctx, runners, *sessionUseCase)
 	speechToTextHandler := handler.NewSpeechToTextHandler(ctx, transcribeUseCase)
 
-	registerRoutes(r, sessionHandler, runHandler, feedbackHandler, speechToTextHandler)
+	registerRoutes(r, dbAgent, sessionHandler, runHandler, feedbackHandler, speechToTextHandler)
 
 	return r
 }
 
-func registerRoutes(r *gin.Engine, sessionHandler *handler.SessionHandler, runHandler *handler.RunHandler, feedbackHandler *handler.FeedbackHandler, speechToTextHandler *handler.SpeechToTextHandler) {
+func registerRoutes(r *gin.Engine, dbAgent *sqlx.DB, sessionHandler *handler.SessionHandler, runHandler *handler.RunHandler, feedbackHandler *handler.FeedbackHandler, speechToTextHandler *handler.SpeechToTextHandler) {
 	sessions := r.Group("/sessions")
 	{
 		sessions.POST("", sessionHandler.CreateSession)
@@ -215,7 +223,7 @@ func registerRoutes(r *gin.Engine, sessionHandler *handler.SessionHandler, runHa
 	}
 	r.POST("/speech-to-text", speechToTextHandler.GenerateTranscription)
 	r.POST("/events/:invocation_id/feedback", feedbackHandler.SaveFeedback)
-	r.POST("/run-sse", runHandler.RunSSE)
+	r.POST("/run-sse", middleware.GroundingMetadataLogger(dbAgent), runHandler.RunSSE)
 }
 
 func startServer(router *gin.Engine) {

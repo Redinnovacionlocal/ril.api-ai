@@ -7,18 +7,19 @@ import (
 	"strconv"
 
 	"github.com/googleapis/mcp-toolbox-sdk-go/tbadk"
+	"github.com/jmoiron/sqlx"
 	"google.golang.org/adk/agent"
 	"google.golang.org/adk/agent/llmagent"
 	"google.golang.org/adk/model/gemini"
 	"google.golang.org/adk/tool"
-	"google.golang.org/adk/tool/agenttool"
 	"google.golang.org/adk/tool/functiontool"
 	"google.golang.org/genai"
 	"ril.api-ia/internal/agent/subagents"
 	"ril.api-ia/internal/agent/tools"
+	"ril.api-ia/internal/domain/entity"
 )
 
-func NewRilAgent(ctx context.Context, toolboxClient tbadk.ToolboxClient) (agent.Agent, error) {
+func NewRilAgent(ctx context.Context, db *sqlx.DB, toolboxClient tbadk.ToolboxClient, genaiClient *genai.Client) (agent.Agent, error) {
 	// Overall configuration
 	m, err := gemini.NewModel(ctx, os.Getenv("AGENT_MODEL"), nil)
 	if err != nil {
@@ -58,11 +59,19 @@ func NewRilAgent(ctx context.Context, toolboxClient tbadk.ToolboxClient) (agent.
 		log.Fatalf("Failed to load tool: %v", err)
 	}
 
-	// Subagents
-	ragModel, err := gemini.NewModel(ctx, os.Getenv("AGENT_RAG_MODEL"), nil)
-	ragAgent, err := subagents.NewRagAgent(ragModel)
+	saveMetadataFunc := func(toolCtx tool.Context, metadata *genai.GroundingMetadata) {
+		sessionID := toolCtx.SessionID()
+		if sessionID != "" {
+			entity.GroundingCache.Store(sessionID, metadata)
+		} else {
+			log.Println(">> ERROR: La herramienta no recibió un SessionID")
+		}
+	}
+
+	ragModelName := os.Getenv("AGENT_RAG_MODEL")
+	ragProxyTool, err := subagents.NewRagProxyTool(ctx, genaiClient, ragModelName, saveMetadataFunc)
 	if err != nil {
-		log.Fatalf("Failed to create RAG agent: %v", err)
+		log.Fatalf("Failed to create RAG proxy tool: %v", err)
 	}
 	return llmagent.New(llmagent.Config{
 		Name:                  "rilia_agent",
@@ -83,7 +92,7 @@ func NewRilAgent(ctx context.Context, toolboxClient tbadk.ToolboxClient) (agent.
 			&getRilAliancesByYear,
 			&getRilStaff,
 			&getEvaluationByName,
-			agenttool.New(ragAgent, &agenttool.Config{}),
+			ragProxyTool,
 		},
 	})
 }
