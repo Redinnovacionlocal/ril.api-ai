@@ -33,10 +33,6 @@ Cada nivel de madurez (Bajo, Intermedio, Avanzado) tiene tres bloques de informa
     "intermedio": { "descripcion": "...", "odm": "...", "acciones_agente": [] },
     "avanzado":   { "descripcion": "...", "odm": "...", "acciones_agente": [] }
   },
-  "ajuste_por_tamano": {
-    "chica": "Cómo se ve este tema en una ciudad chica",
-    "mediana_grande": "Cómo se ve en una ciudad mediana o grande"
-  },
   "nota_facilitador": "Advertencias contextuales (opcional)",
   "tags_rag": ["...", "..."]
 }
