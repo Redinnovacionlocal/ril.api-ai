@@ -40,7 +40,7 @@ func buildFilter(filter map[string]string) string {
 	}
 	parts := make([]string, 0, len(filter))
 	for k, v := range filter {
-		parts = append(parts, fmt.Sprintf("%s: \"%s\"", k, v))
+		parts = append(parts, fmt.Sprintf("%s: ANY(\"%s\")", k, v))
 	}
 	return strings.Join(parts, " AND ")
 }
@@ -94,7 +94,17 @@ func UseRagVertexAISearchWithDatastore(ctx tool.Context, args UseRagVertexAISear
 
 	body, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("error %d: %s", resp.StatusCode, string(body))
+		bodyStr := string(body)
+
+		if resp.StatusCode == http.StatusBadRequest && strings.Contains(bodyStr, "Unsupported field") {
+			fmt.Printf("Aviso RAG: Filtro ignorado (campo no existe en Schema). Devolviendo 0 resultados. Detalle: %s\n", bodyStr)
+
+			return map[string]any{
+				"results": []any{},
+			}, nil
+		}
+
+		return nil, fmt.Errorf("error %d: %s", resp.StatusCode, bodyStr)
 	}
 
 	var result map[string]any
