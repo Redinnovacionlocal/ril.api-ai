@@ -153,7 +153,7 @@ func NewGirsuAgent(m model.LLM, treeManager *tree_agent.TreeCacheManager) (agent
 		Name:              girsuAgentName,
 		Instruction:       SystemInstruction,
 		GlobalInstruction: agent2.GlobalInstruction,
-		Description:       "Agente especializado en acompañar a municipios en la mejora de su gestión de seguridad ciudadana. Su función es empujar a los municipios a avanzar: completar datos, mejorar lo que ya tienen, priorizar lo que importa, y ejecutar cambios concretos. Para eso, utiliza el conocimiento experto del árbol de criterios de calidad construido por los facilitadores de RIL, y lo aplica al contexto específico de cada municipio para ofrecer recomendaciones personalizadas y accionables.",
+		Description:       "Agente especializado en acompañar a municipios en la mejora de su gestión integral de residuos sólidos urbanos, fortaleciendo la planificación, la eficiencia operativa y la sostenibilidad ambiental. Su función es empujar a los municipios a avanzar: completar datos, mejorar lo que ya tienen, priorizar lo que importa, y ejecutar cambios concretos. Para eso, utiliza el conocimiento experto del árbol de criterios de calidad construido por los facilitadores de RIL, y lo aplica al contexto específico de cada municipio para ofrecer recomendaciones personalizadas y accionables.",
 		Model:             m,
 		Tools: []tool.Tool{
 			UseRagDocument,

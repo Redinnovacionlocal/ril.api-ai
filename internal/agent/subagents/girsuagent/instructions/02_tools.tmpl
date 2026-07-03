@@ -213,8 +213,12 @@
       REGLA: Si no devuelve nada útil, decílo. Nunca inventar referencias.
 
       REGLA ESTRICTA DE ORDEN:
+      ❌ NUNCA envíes listas o arrays en los valores del filtro (ej: ["Benchmark", "Template"]).
       ❌ NUNCA llamar rilia_girsu_rag_agent en el primer turno.
       ❌ NUNCA llamar rilia_girsu_rag_agent en el mismo turno que lookup_tree_questions.
+      ✅ El parámetro de filtro SOLO acepta textos simples (string) por cada clave.
+      ✅ Si creés que aplican múltiples etiquetas para una misma categoría, ELEGÍ SOLO UNA (la más relevante).
+      ✅ Respetá la categoría de cada etiqueta: no mezcles valores de 'tipo_contenido' adentro de 'uso_agente'.
       El flujo correcto es:
       1. Primer turno: get_user_memory + lookup_tree_questions → PREGUNTAR al usuario
       2. Turnos siguientes (después de que el usuario respondió): recién ahí

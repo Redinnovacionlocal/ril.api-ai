@@ -9,6 +9,6 @@ func UseRagVertexAISearchToolFunc(ctx tool.Context, args tools2.UseRagVertexAISe
 	return tools2.UseRagVertexAISearchWithDatastore(
 		ctx,
 		args,
-		"rilia-girsu-rag-agent_1779975379853_gcs_store",
+		"rilia-girsu-rag-agent_1783019204455_gcs_store",
 	)
 }
