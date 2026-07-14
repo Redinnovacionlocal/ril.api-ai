@@ -11,6 +11,7 @@ import (
 
 	"golang.org/x/oauth2/google"
 	"google.golang.org/adk/tool"
+	"google.golang.org/adk/tool/functiontool"
 )
 
 type UseRagVertexAISearchToolArgs struct {
@@ -18,45 +19,11 @@ type UseRagVertexAISearchToolArgs struct {
 	Filter map[string]string `json:"filter,omitempty" jsonSchema:"Optional filters to apply to the search results."`
 }
 
-func getADCToken(ctx context.Context) (string, error) {
-	tokenSource, err := google.DefaultTokenSource(ctx,
-		"https://www.googleapis.com/auth/cloud-platform",
-	)
-	if err != nil {
-		return "", fmt.Errorf("failed to get token source: %w", err)
-	}
-
-	token, err := tokenSource.Token()
-	if err != nil {
-		return "", fmt.Errorf("failed to get token: %w", err)
-	}
-
-	return token.AccessToken, nil
-}
-
-func buildFilter(filter map[string]string) string {
-	if len(filter) == 0 {
-		return ""
-	}
-	parts := make([]string, 0, len(filter))
-	for k, v := range filter {
-		parts = append(parts, fmt.Sprintf("%s: ANY(\"%s\")", k, v))
-	}
-	return strings.Join(parts, " AND ")
-}
-
-func UseRagVertexAISearchWithDatastore(ctx tool.Context, args UseRagVertexAISearchToolArgs, datastore string) (map[string]any, error) {
+func useRagVertexAISearchWithDatastore(ctx tool.Context, client *http.Client, args UseRagVertexAISearchToolArgs, datastore string) (map[string]any, error) {
 	apiEndpoint := fmt.Sprintf(
 		"https://discoveryengine.googleapis.com/v1/projects/ril-admin/locations/global/collections/default_collection/dataStores/%s/servingConfigs/default_search:search",
 		datastore,
 	)
-
-	// 1. Obtener cliente autenticado (Maneja el cacheo de tokens por ti)
-	// Es mucho más eficiente que obtener el token manualmente cada vez
-	client, err := google.DefaultClient(ctx, "https://www.googleapis.com/auth/cloud-platform")
-	if err != nil {
-		return nil, fmt.Errorf("failed to create authenticated client: %w", err)
-	}
 
 	payload := map[string]any{
 		"query":    args.Query,
@@ -115,6 +82,31 @@ func UseRagVertexAISearchWithDatastore(ctx tool.Context, args UseRagVertexAISear
 	return result, nil
 }
 
-func UseRagVertexAISearchToolFunc(ctx tool.Context, args UseRagVertexAISearchToolArgs) (map[string]any, error) {
-	return UseRagVertexAISearchWithDatastore(ctx, args, "ril-security-knowledge_1775562649372_gcs_store")
+func NewRagTool(datastoreID string) (tool.Tool, error) {
+	if datastoreID == "" {
+		return nil, fmt.Errorf("datastoreID is required")
+	}
+
+	client, err := google.DefaultClient(context.Background(), "https://www.googleapis.com/auth/cloud-platform")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create authenticated client: %w", err)
+	}
+
+	return functiontool.New(functiontool.Config{
+		Name:        "rilia_rag_agent",
+		Description: "Permite al agente utilizar un documento recuperado del RAG como parte de su respuesta al usuario. El agente puede extraer información relevante del documento para enriquecer sus recomendaciones.",
+	}, func(ctx tool.Context, args UseRagVertexAISearchToolArgs) (map[string]any, error) {
+		return useRagVertexAISearchWithDatastore(ctx, client, args, datastoreID)
+	})
+}
+
+func buildFilter(filter map[string]string) string {
+	if len(filter) == 0 {
+		return ""
+	}
+	parts := make([]string, 0, len(filter))
+	for k, v := range filter {
+		parts = append(parts, fmt.Sprintf("%s: ANY(\"%s\")", k, v))
+	}
+	return strings.Join(parts, " AND ")
 }

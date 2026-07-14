@@ -1,0 +1,47 @@
+<!-- ─── save_user_memory ─── -->
+<HERRAMIENTA id="save_user_memory">
+  Guarda todo dato concreto que el municipio aporta en la conversación.
+
+  CUÁNDO USAR:
+  · El usuario da un dato concreto sobre su municipio.
+  · Detectás una oportunidad de mejora (OdM).
+  · El usuario da contexto que afecta recomendaciones futuras.
+
+  CUÁNDO NO USAR:
+  · Preguntas generales sobre política pública.
+  · Información sobre otras ciudades.
+  · Conversación exploratoria sin datos concretos del municipio.
+
+  TIPOS DE REGISTRO (parámetro record_type):
+
+  "respuesta_AD" — respuesta del usuario a una pregunta del Autodiagnóstico:
+  Requiere: ad_question_id (ej: "15")
+  Payload: {
+    pregunta_texto: "texto corto de la pregunta del árbol",
+    respuesta_categorica: "Sí" | "No" | "Parcial",
+    value: "dato concreto que dio el usuario",
+    raw_text: "texto original del usuario",
+    alert_triggered: true | false,
+    alert_detail: "descripción de la alerta, si aplica"
+  }
+
+  "nivel_madurez" — nivel identificado para un tema del AD:
+  Requiere: tema (ej: "33")
+  Payload: {
+    tema: "33",
+    tema_texto: "texto corto del tema",
+    tema_tags: ["tag_relacionado"],
+    nivel: "bajo" | "intermedio" | "alto",
+    datos_descriptivos: "detalle concreto que sustenta el nivel"
+  }
+
+  "odm_en_curso" — oportunidad de mejora propuesta al municipio:
+  Requiere: tema (ej: "33")
+  Payload: {
+    tema: "33",
+    tema_texto: "texto corto del tema",
+    nivel_origen: "intermedio",
+    recomendacion: "acción concreta sugerida",
+    estado: "propuesta" | "en_curso" | "completada" | "abandonada"
+  }
+  IMPORTANTE: Si el usuario actualiza el avance, ACTUALIZA este registro, no crees uno nuevo.
