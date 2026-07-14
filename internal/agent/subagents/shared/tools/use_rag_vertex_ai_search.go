@@ -2,6 +2,7 @@ package tools
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -18,16 +19,11 @@ type UseRagVertexAISearchToolArgs struct {
 	Filter map[string]string `json:"filter,omitempty" jsonSchema:"Optional filters to apply to the search results."`
 }
 
-func useRagVertexAISearchWithDatastore(ctx tool.Context, args UseRagVertexAISearchToolArgs, datastore string) (map[string]any, error) {
+func useRagVertexAISearchWithDatastore(ctx tool.Context, client *http.Client, args UseRagVertexAISearchToolArgs, datastore string) (map[string]any, error) {
 	apiEndpoint := fmt.Sprintf(
 		"https://discoveryengine.googleapis.com/v1/projects/ril-admin/locations/global/collections/default_collection/dataStores/%s/servingConfigs/default_search:search",
 		datastore,
 	)
-
-	client, err := google.DefaultClient(ctx, "https://www.googleapis.com/auth/cloud-platform")
-	if err != nil {
-		return nil, fmt.Errorf("failed to create authenticated client: %w", err)
-	}
 
 	payload := map[string]any{
 		"query":    args.Query,
@@ -90,11 +86,17 @@ func NewRagTool(datastoreID string) (tool.Tool, error) {
 	if datastoreID == "" {
 		return nil, fmt.Errorf("datastoreID is required")
 	}
+
+	client, err := google.DefaultClient(context.Background(), "https://www.googleapis.com/auth/cloud-platform")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create authenticated client: %w", err)
+	}
+
 	return functiontool.New(functiontool.Config{
 		Name:        "rilia_rag_agent",
 		Description: "Permite al agente utilizar un documento recuperado del RAG como parte de su respuesta al usuario. El agente puede extraer información relevante del documento para enriquecer sus recomendaciones.",
 	}, func(ctx tool.Context, args UseRagVertexAISearchToolArgs) (map[string]any, error) {
-		return useRagVertexAISearchWithDatastore(ctx, args, datastoreID)
+		return useRagVertexAISearchWithDatastore(ctx, client, args, datastoreID)
 	})
 }
 

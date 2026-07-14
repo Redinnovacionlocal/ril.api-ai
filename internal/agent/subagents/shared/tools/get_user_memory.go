@@ -4,10 +4,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"os"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
-	"github.com/jmoiron/sqlx"
 	"google.golang.org/adk/tool"
 	"google.golang.org/adk/tool/functiontool"
 )
@@ -19,11 +17,10 @@ func NewGetMemoryTool() (tool.Tool, error) {
 		Name:        "get_user_memory",
 		Description: "Recupera la memoria acumulada del usuario sobre su municipio. Devuelve datos concretos aportados por el usuario, oportunidades de mejora identificadas y contexto relevante.",
 	}, func(ctx tool.Context, _ GetUserMemoryToolArgs) (map[string]any, error) {
-		db, err := sqlx.Open("pgx", os.Getenv("DATABASE_AGENT_DSN"))
+		db, err := getDB()
 		if err != nil {
-			return nil, fmt.Errorf("failed to open db: %w", err)
+			return nil, fmt.Errorf("failed to get db: %w", err)
 		}
-		defer db.Close()
 
 		rows, err := db.QueryContext(ctx,
 			`SELECT id, record_type, ad_question_id, payload, created_at, updated_at

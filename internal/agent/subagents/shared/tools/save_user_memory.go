@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -25,17 +26,34 @@ type SaveUserMemoryToolInput struct {
 	Records []MemoryRecord `json:"records" jsonSchema:"minItems:1"`
 }
 
+var (
+	dbInstance *sqlx.DB
+	dbOnce     sync.Once
+	dbErr      error
+)
+
+func getDB() (*sqlx.DB, error) {
+	dbOnce.Do(func() {
+		dbInstance, dbErr = sqlx.Open("pgx", os.Getenv("DATABASE_AGENT_DSN"))
+		if dbErr == nil {
+			dbInstance.SetMaxOpenConns(25)
+			dbInstance.SetMaxIdleConns(25)
+			dbInstance.SetConnMaxLifetime(5 * time.Minute)
+		}
+	})
+	return dbInstance, dbErr
+}
+
 func NewSaveMemoryTool() (tool.Tool, error) {
 	return functiontool.New(functiontool.Config{
 		Name:        "save_user_memory",
 		Description: "LLAMADA OBLIGATORIA PREVIA: Si el usuario aporta cualquier dato nuevo sobre su municipio (ej. responde a tus preguntas), DEBÉS llamar a esta herramienta ANTES de escribir una sola palabra en tu respuesta. Guarda en la memoria todo lo que el municipio aporta durante la conversación.",
 	}, func(ctx tool.Context, input SaveUserMemoryToolInput) (map[string]any, error) {
 		log.Printf("Saving %d memory records for user %s", len(input.Records), ctx.UserID())
-		db, err := sqlx.Open("pgx", os.Getenv("DATABASE_AGENT_DSN"))
+		db, err := getDB()
 		if err != nil {
-			return nil, fmt.Errorf("failed to open db: %w", err)
+			return nil, fmt.Errorf("failed to get db: %w", err)
 		}
-		defer db.Close()
 
 		teamId, _ := ctx.State().Get("team_id")
 		if teamId == nil {
