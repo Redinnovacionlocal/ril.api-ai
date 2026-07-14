@@ -85,6 +85,10 @@ func buildSystemInstruction(data PromptData, specificFS fs.FS) (string, error) {
 }
 
 func NewDomainAgent(ctx context.Context, cfg AgentConfig) (agent.Agent, error) {
+	if err := cfg.validate(); err != nil {
+		return nil, fmt.Errorf("invalid agent config: %w", err)
+	}
+
 	dimensions, err := cfg.TreeManager.GetDimensions(ctx, cfg.DomainPrefix)
 	if err != nil {
 		return nil, fmt.Errorf("error obteniendo dimensiones para %s: %w", cfg.DomainPrefix, err)
@@ -182,8 +186,12 @@ type unionFS struct {
 
 func (u unionFS) Open(name string) (fs.File, error) {
 	for _, f := range u.fss {
-		if file, err := f.Open(name); err == nil {
+		file, err := f.Open(name)
+		if err == nil {
 			return file, nil
+		}
+		if !errors.Is(err, fs.ErrNotExist) {
+			return nil, err
 		}
 	}
 	return nil, fs.ErrNotExist
@@ -196,13 +204,17 @@ func (u unionFS) ReadDir(name string) ([]fs.DirEntry, error) {
 
 	for _, f := range u.fss {
 		dirs, err := fs.ReadDir(f, name)
-		if err == nil {
-			found = true
-			for _, d := range dirs {
-				if !seen[d.Name()] {
-					seen[d.Name()] = true
-					entries = append(entries, d)
-				}
+		if err != nil {
+			if errors.Is(err, fs.ErrNotExist) {
+				continue
+			}
+			return nil, err
+		}
+		found = true
+		for _, d := range dirs {
+			if !seen[d.Name()] {
+				seen[d.Name()] = true
+				entries = append(entries, d)
 			}
 		}
 	}
@@ -211,4 +223,26 @@ func (u unionFS) ReadDir(name string) ([]fs.DirEntry, error) {
 		return nil, fs.ErrNotExist
 	}
 	return entries, nil
+}
+
+func (cfg AgentConfig) validate() error {
+	if cfg.Name == "" {
+		return errors.New("name is required")
+	}
+	if cfg.DomainPrefix == "" {
+		return errors.New("domain prefix is required")
+	}
+	if cfg.Model == nil {
+		return errors.New("model is required")
+	}
+	if cfg.TreeManager == nil {
+		return errors.New("tree manager is required")
+	}
+	if cfg.InstructionFiles == nil {
+		return errors.New("instruction files are required")
+	}
+	if cfg.SkillsFiles == nil {
+		return errors.New("skills files are required")
+	}
+	return nil
 }

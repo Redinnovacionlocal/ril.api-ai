@@ -47,6 +47,10 @@ func NewSaveMemoryTool() (tool.Tool, error) {
 		upserted := 0
 
 		for _, record := range input.Records {
+			if len(record.Payload) == 0 {
+				return nil, fmt.Errorf("record_type %s: payload is required and cannot be empty", record.RecordType)
+			}
+
 			if record.RecordType == "context_municipio" {
 				record.RecordType = "contexto_municipio"
 			}
@@ -94,12 +98,14 @@ func NewSaveMemoryTool() (tool.Tool, error) {
 					record.RecordType,
 					record.Payload["key"],
 				)
-				if err == nil {
-					rows, _ := result.RowsAffected()
-					if rows > 0 {
-						upserted++
-						continue
-					}
+				if err != nil {
+					return nil, fmt.Errorf("failed to update contexto_municipio key %v: %w", record.Payload["key"], err)
+				}
+
+				rows, _ := result.RowsAffected()
+				if rows > 0 {
+					upserted++
+					continue
 				}
 			}
 

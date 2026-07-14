@@ -87,6 +87,9 @@ func useRagVertexAISearchWithDatastore(ctx tool.Context, args UseRagVertexAISear
 }
 
 func NewRagTool(datastoreID string) (tool.Tool, error) {
+	if datastoreID == "" {
+		return nil, fmt.Errorf("datastoreID is required")
+	}
 	return functiontool.New(functiontool.Config{
 		Name:        "rilia_rag_agent",
 		Description: "Permite al agente utilizar un documento recuperado del RAG como parte de su respuesta al usuario. El agente puede extraer información relevante del documento para enriquecer sus recomendaciones.",
