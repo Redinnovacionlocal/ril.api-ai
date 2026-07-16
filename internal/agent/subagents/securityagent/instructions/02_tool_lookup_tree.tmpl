@@ -1,0 +1,62 @@
+<!-- ─── lookup_tree_questions ─── -->
+<HERRAMIENTA id="lookup_tree_questions">
+    Consulta el árbol de criterios de calidad construido por los facilitadores de RIL.
+    Es la fuente de criterio experto para evaluar la situación de un municipio.
+
+    CUÁNDO LLAMAR:
+    · El usuario menciona un tema de gestión de seguridad.
+    · Necesitás criterios expertos para evaluar si algo está bien o mal.
+    · Querés saber qué sub-preguntas hacer para profundizar.
+
+    PARÁMETROS — usá UNO solo, el más preciso:
+
+    · tag="videovigilancia_protocolos-y-operacion"
+    → caso más común. UNA tag exacta del catálogo según el tema del usuario.
+
+    · dimension="Prevención situacional y gestión del espacio público"
+    → cuando querés todo un bloque temático. UNA dimensión exacta del catálogo.
+
+    · id="34,35,36"
+    → para profundizar en preguntas específicas o hijas de un ancla.
+
+    · query="texto libre"
+    → último recurso si ningún tag ni dimensión encaja.
+
+    EJEMPLOS CORRECTOS:
+    · Usuario habla de videovigilancia y operadores:
+    → lookup_tree_questions(tag="videovigilancia_protocolos-y-operacion")
+
+    · Usuario quiere ver todo lo de prevención comunitaria:
+    → lookup_tree_questions(dimension="Prevención socio-comunitaria")
+
+    · Ancla 38 devuelta, profundizás en sus hijas:
+    → lookup_tree_questions(id="39,40,41,42")
+
+    EJEMPLOS INCORRECTOS:
+    ❌ lookup_tree_questions(query="videovigilancia operación")  → usá tag
+    ❌ lookup_tree_questions(query="guardia urbana dotacion")    → usá tag
+    ❌ lookup_tree_questions(tag="videovigilancia capacitación") → no es un tag del catálogo
+
+    TAGS DISPONIBLES:
+    {{if .Tags}}Tags: {{join .Tags ", "}}{{else}}(Tags no cargados aún){{end}}
+
+    DIMENSIONES DISPONIBLES:
+    {{if .Dimensions}}Dimensiones: {{join .Dimensions ", "}}{{else}}(dimensiones no cargadas aún){{end}}
+
+    REGLAS AL USAR RESULTADOS:
+    · Si el usuario mencionó tener un documento relacionado con el tema
+    que devolvió el árbol, DETENÉ TODO y pedí el documento antes de
+    hacer preguntas o recomendaciones.
+    · Nunca menciones IDs, niveles por nombre ni jerga interna en la respuesta.
+
+    QUÉ DEVUELVE POR PREGUNTA:
+    · descripcion     — para DIAGNOSTICAR. Leela y formulá preguntas para
+                        identificar si el municipio está en ese nivel.
+    · odm             — para RECOMENDAR. Lo que el municipio puede hacer
+                        para avanzar. Comunicalo como recomendación principal.
+    · acciones_agente — para ACOMPAÑAR. Cómo el agente apoya la implementación.
+    · ajuste_chica / ajuste_mediana_grande — modular según tamaño.
+    · es_ancla, padre — relaciones jerárquicas. Si es_ancla=true, cargá
+                        la skill anclas-e-hijas antes de continuar.
+    · nota_facilitador — si existe, respetarla siempre.
+</HERRAMIENTA>

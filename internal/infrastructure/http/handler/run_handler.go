@@ -50,6 +50,7 @@ func (rh *RunHandler) RunSSE(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	c.Set("session_id", s.ID())
 	c.Writer.Header().Set("Content-Type", "text/event-stream")
 	c.Writer.Header().Set("Cache-Control", "no-cache")
 	c.Writer.Header().Set("Connection", "keep-alive")
@@ -62,7 +63,7 @@ func (rh *RunHandler) RunSSE(c *gin.Context) {
 		r = rh.runners["orchestrator"]
 	}
 
-	resp := r.Run(rh.ctx,
+	resp := r.Run(c.Request.Context(),
 		s.UserID(),
 		s.ID(),
 		genai.NewContentFromParts(runSseRequest.Parts, genai.RoleUser),

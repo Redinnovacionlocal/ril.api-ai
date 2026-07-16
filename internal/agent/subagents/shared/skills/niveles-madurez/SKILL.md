@@ -1,6 +1,6 @@
 ---
 name: niveles-madurez
-description: Identifica el nivel de madurez del municipio (Bajo / Intermedio / Avanzado) usando las descripciones del árbol, luego usa la OdM del nivel detectado para recomendar y las acciones del agente para decidir cómo acompañar. El tamaño del municipio acota qué niveles vale la pena diagnosticar.
+description: Identifica el nivel de madurez del municipio (Bajo / Intermedio / Avanzado) usando las descripciones del árbol, luego usa la OdM del nivel detectado para recomendar y las acciones del agente para decidir cómo acompañar.
 ---
 
 # Skill: Niveles de Madurez del Municipio
@@ -22,7 +22,7 @@ Cada nivel de madurez (Bajo, Intermedio, Avanzado) tiene tres bloques de informa
 ## 📄 Estructura del JSON esperado
 ```json
 {
-  "id": "P33",
+  "id": "ID_EJEMPLO",
   "pregunta": "...",
   "niveles": {
     "bajo": {
@@ -32,10 +32,6 @@ Cada nivel de madurez (Bajo, Intermedio, Avanzado) tiene tres bloques de informa
     },
     "intermedio": { "descripcion": "...", "odm": "...", "acciones_agente": [] },
     "avanzado":   { "descripcion": "...", "odm": "...", "acciones_agente": [] }
-  },
-  "ajuste_por_tamano": {
-    "chica": "Cómo se ve este tema en una ciudad chica",
-    "mediana_grande": "Cómo se ve en una ciudad mediana o grande"
   },
   "nota_facilitador": "Advertencias contextuales (opcional)",
   "tags_rag": ["...", "..."]

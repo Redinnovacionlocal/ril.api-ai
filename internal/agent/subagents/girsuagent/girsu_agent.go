@@ -1,4 +1,4 @@
-package securityagent
+package girsuagent
 
 import (
 	"context"
@@ -21,7 +21,7 @@ var instructionFiles embed.FS
 //go:embed all:skills
 var skillsFiles embed.FS
 
-func NewSecurityAgent(m model.LLM, treeManager *tree_agent.TreeCacheManager) (agent.Agent, error) {
+func NewGirsuAgent(m model.LLM, treeManager *tree_agent.TreeCacheManager) (agent.Agent, error) {
 	ctx := context.Background()
 
 	saveUserMemory, err := tools.NewSaveMemoryTool()
@@ -34,15 +34,15 @@ func NewSecurityAgent(m model.LLM, treeManager *tree_agent.TreeCacheManager) (ag
 		return nil, fmt.Errorf("creating get_user_memory tool: %w", err)
 	}
 
-	useRagDocument, err := tools.NewRagTool("ril-security-knowledge_1775562649372_gcs_store")
+	useRagDocument, err := tools.NewRagTool("rilia-girsu-rag-agent_1783019204455_gcs_store")
 	if err != nil {
 		return nil, fmt.Errorf("creating rag tool: %w", err)
 	}
 
 	cfg := shared.AgentConfig{
-		Name:             os.Getenv("AGENT_SECURITY_NAME"),
-		DomainPrefix:     "security",
-		Description:      "Agente especializado en acompañar a municipios en la mejora de su gestión de seguridad ciudadana. Su función es empujar a los municipios a avanzar: completar datos, mejorar lo que ya tienen, priorizar lo que importa, y ejecutar cambios concretos. Para eso, utiliza el conocimiento experto del árbol de criterios de calidad construido por los facilitadores de RIL, y lo aplica al contexto específico de cada municipio para ofrecer recomendaciones personalizadas y accionables.",
+		Name:             os.Getenv("AGENT_GIRSU_NAME"),
+		DomainPrefix:     "girsu",
+		Description:      "Agente especializado en acompañar a municipios en la mejora de su gestión integral de residuos sólidos urbanos, fortaleciendo la planificación, la eficiencia operativa y la sostenibilidad ambiental. Su función es empujar a los municipios a avanzar: completar datos, mejorar lo que ya tienen, priorizar lo que importa, y ejecutar cambios concretos. Para eso, utiliza el conocimiento experto del árbol de criterios de calidad construido por los facilitadores de RIL, y lo aplica al contexto específico de cada municipio para ofrecer recomendaciones personalizadas y accionables.",
 		Model:            m,
 		TreeManager:      treeManager,
 		InstructionFiles: instructionFiles,

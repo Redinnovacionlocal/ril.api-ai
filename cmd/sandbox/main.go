@@ -22,10 +22,11 @@ import (
 	"google.golang.org/adk/model/gemini"
 	"google.golang.org/adk/plugin"
 	"google.golang.org/adk/runner"
+	"google.golang.org/genai"
 	"ril.api-ia/internal/agent"
 	"ril.api-ia/internal/agent/plugin/agent_active_plugin"
 	"ril.api-ia/internal/agent/plugin/title_plugin"
-	"ril.api-ia/internal/agent/subagents"
+	"ril.api-ia/internal/agent/subagents/girsuagent"
 	"ril.api-ia/internal/agent/subagents/securityagent"
 	"ril.api-ia/internal/infrastructure/repository/tree_agent"
 )
@@ -37,20 +38,31 @@ func main() {
 	if err != nil {
 		log.Fatal("Error initializing Toolbox client:", err)
 	}
-	coordinatorAgent, err := agent.NewRilAgent(ctx, toolboxClient)
-	model2_5, err := gemini.NewModel(ctx, os.Getenv("AGENT_RAG_MODEL"), nil)
-	model3, err := gemini.NewModel(ctx, os.Getenv("AGENT_MODEL"), nil)
-	agentKnowledge, err := subagents.NewRagAgent(model2_5)
-	gcsClient, _ := storage.NewClient(ctx)
-	if err != nil {
-		log.Fatal("Error initializing GCS client:", err)
-	}
 	dbAgent, err := sqlx.Open("pgx", os.Getenv("DATABASE_AGENT_DSN"))
 	if err != nil {
 		log.Fatal("Error connecting to agent DB:", err)
 	}
 	defer dbAgent.Close()
-
+	genaiClient, err := genai.NewClient(ctx, &genai.ClientConfig{
+		Project:  os.Getenv("GOOGLE_CLOUD_PROJECT"),
+		Location: os.Getenv("GOOGLE_CLOUD_LOCATION"),
+		Backend:  genai.BackendVertexAI,
+	})
+	if err != nil {
+		log.Fatal("Error initializing GenAI client:", err)
+	}
+	coordinatorAgent, err := agent.NewRilAgent(ctx, dbAgent, toolboxClient, genaiClient)
+	if err != nil {
+		log.Fatal("Error initializing RilAgent:", err)
+	}
+	model3, err := gemini.NewModel(ctx, os.Getenv("AGENT_MODEL"), nil)
+	if err != nil {
+		log.Fatal("Error initializing Gemini model:", err)
+	}
+	gcsClient, _ := storage.NewClient(ctx)
+	if err != nil {
+		log.Fatal("Error initializing GCS client:", err)
+	}
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     os.Getenv("REDIS_ADDR"),
 		Password: os.Getenv("REDIS_PASSWORD"),
@@ -69,7 +81,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	loader, _ := a2.NewMultiLoader(coordinatorAgent, agentKnowledge, securityAgent)
+	girsuAgent, err := girsuagent.NewGirsuAgent(model3, treeManager)
+	if err != nil {
+		log.Fatal("Error initializing GirsuAgent:", err)
+	}
+	loader, _ := a2.NewMultiLoader(coordinatorAgent, securityAgent, girsuAgent)
 	artifactService, _ := gcsartifact.NewService(ctx, os.Getenv("ARTIFACT_BUCKET_NAME"))
 	titlePlugin, _ := title_plugin.New(ctx, "title_plugin")
 	agentActivePlugin, _ := agent_active_plugin.New(ctx, "agent_active_plugin")

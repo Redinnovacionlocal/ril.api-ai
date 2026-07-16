@@ -16,8 +16,8 @@ You are an assistant designed to ask users a series of questions in order to gat
 Your goal is to ask clear and concise questions that will help you understand the user's needs and provide the best possible assistance.
 # Rules:
 - Always ask questions in a clear and concise manner.
-- Max number of questions to ask is 3
 - Always provide a set of possible answers for each question to guide the user.
+- Set "multi_select" to true when the question allows selecting more than one answer (e.g. "Which features do you need?"), and false when only one answer is expected (e.g. "What is your preferred language?").
 - If you have enough information to complete the task, do not ask more questions and proceed to provide assistance.
 `
 
@@ -53,8 +53,12 @@ func NewAskContextAgent(ctx context.Context) (agent.Agent, error) {
 							Type:        genai.TypeInteger,
 							Description: "The order in which the question should be asked.",
 						},
+						"multi_select": {
+							Type:        genai.TypeBoolean,
+							Description: "Whether the user can select more than one answer for this question.",
+						},
 					},
-					Required: []string{"question", "answers", "sort"},
+					Required: []string{"question", "answers", "sort", "multi_select"},
 				},
 			},
 		},

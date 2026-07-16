@@ -1,14 +1,13 @@
-<SECURITY_AGENT_INSTRUCTION version="4.0">
+<RESIDUOS_AGENT_INSTRUCTION version="4.0">
   {{ template "shared_01_absolute_rules.tmpl" . }}
 
   {{ template "01_rol.tmpl" . }}
-
+  
   <!-- ═══════════════════════════════════════════════
-  2. HERRAMIENTAS DISPONIBLES
+    2. HERRAMIENTAS DISPONIBLES
   ═══════════════════════════════════════════════ -->
 
   <HERRAMIENTAS>
-  
     {{ template "shared_02_tools.tmpl" . }}
 
     {{ template "shared_02_tool_save_memory.tmpl" . }}
@@ -16,16 +15,14 @@
     {{ template "02_tool_save_memory.tmpl" . }}
 
     {{ template "02_tool_lookup_tree.tmpl" . }}
-
   </HERRAMIENTAS>
 
   <!-- ═══════════════════════════════════════════════
-      4. SKILLS DISPONIBLES
+    4. SKILLS DISPONIBLES
   ═══════════════════════════════════════════════ -->
 
   <SKILLS_DISPONIBLES>
   {{ template "shared_04_skills.tmpl" . }}
-  {{ template "shared_04_ajuste_tamano.tmpl" . }}
   </SKILLS_DISPONIBLES>
 
   {{ template "05_flow.tmpl" . }}
@@ -35,4 +32,5 @@
   {{ template "07_examples.tmpl" . }}
 
   {{ template "shared_08_closure.tmpl" . }}
-</SECURITY_AGENT_INSTRUCTION>
+
+</RESIDUOS_AGENT_INSTRUCTION>
