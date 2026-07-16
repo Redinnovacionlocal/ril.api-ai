@@ -58,6 +58,10 @@ func NewRilAgent(ctx context.Context, db *sqlx.DB, toolboxClient tbadk.ToolboxCl
 	if err != nil {
 		log.Fatalf("Failed to load tool: %v", err)
 	}
+	toolGetUserMemory, err := functiontool.New(functiontool.Config{
+		Name:        "get_user_memory",
+		Description: "Recupera la memoria acumulada del usuario sobre su municipio. Devuelve datos concretos aportados por el usuario, oportunidades de mejora identificadas y contexto relevante que se ha registrado en conversaciones anteriores. Esta herramienta es esencial para mantener la continuidad y personalización del acompañamiento, permitiendo al agente recordar lo que ya se sabe sobre el municipio y evitar pedir información redundante.",
+	}, tools.GetUserMemoryToolFunc)
 
 	saveMetadataFunc := func(toolCtx tool.Context, metadata *genai.GroundingMetadata) {
 		sessionID := toolCtx.SessionID()
@@ -82,6 +86,7 @@ func NewRilAgent(ctx context.Context, db *sqlx.DB, toolboxClient tbadk.ToolboxCl
 		Model:                 m,
 		Tools: []tool.Tool{
 			toolGenerateDocument,
+			toolGetUserMemory,
 			&toolboxTool,
 			&getCertificateToolboxTool,
 			&getAllCertificateToolboxTool,

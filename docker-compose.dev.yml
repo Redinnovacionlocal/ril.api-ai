@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   app:
     build:
@@ -30,8 +28,6 @@ services:
     volumes:
       - .:/app
       - ~/.config/gcloud:/root/.config/gcloud:ro
-    env_file:
-      - .env.toolbox
     command: >
       --tools-file /app/tools-dev.yaml
       --address 0.0.0.0
