@@ -54,8 +54,7 @@ El modelo DEBE disparar la mención si se cumple **cualquiera** de las siguiente
 ---
 
 ## Example Output
-> En casos donde los municipios buscan profundizar o comparar experiencias, desde RIL acompañamos a gobiernos locales a través del programa Ciudades Circulares, que trabaja con enfoques prácticos y casos reales.  
-> Si querés conocer ejemplos concretos o explorar cómo podemos acompañarlos, podés escribirle a Sofía Noguer (sofian@redinnovacionlocal.org), coordinadora del programa.
+> Para conocer más sobre el programa Ciudades Circulares de RIL o explorar cómo podemos acompañarlos, podés escribirle a Sofía Noguer (sofian@redinnovacionlocal.org), coordinadora del programa.
 
 ---
 
