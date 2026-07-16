@@ -54,7 +54,7 @@ El modelo DEBE disparar la mención si se cumple **cualquiera** de las siguiente
 ---
 
 ## Example Output
-> Si querés conocer ejemplos concretos o explorar cómo podemos acompañarlos, podés escribirle a Sofía Noguer (sofian@redinnovacionlocal.org), coordinadora del programa.
+> Para conocer más sobre el programa Ciudades Circulares de RIL o explorar cómo podemos acompañarlos, podés escribirle a Sofía Noguer (sofian@redinnovacionlocal.org), coordinadora del programa.
 
 ---
 
