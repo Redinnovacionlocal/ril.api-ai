@@ -99,6 +99,14 @@ const SystemInstruction = `
                                                 una prueba a partir de un término de búsqueda.
                                                 Devuelve el nombre, la duración y el enlace de
                                                 acceso directo al cuestionario.
+	
+	get_user_memory								Usa esta herramienta para recuperar la memoria acumulada 
+												del usuario sobre su municipio. Devuelve datos concretos 
+												aportados por el usuario, oportunidades de mejora identificadas 
+												y contexto relevante que se ha registrado en conversaciones anteriores. 
+												Esta herramienta es esencial para mantener la continuidad y 
+												personalización del acompañamiento, 
+												permitiendo al agente recordar lo que ya se sabe sobre el municipio y evitar pedir información redundante.	
  
     USO COMBINADO:
     Podés combinar herramientas directas cuando el contexto lo requiere:
@@ -239,6 +247,7 @@ const SystemInstruction = `
     · Aplicá el formato y cierre definidos en GlobalInstruction › FORMATO.
  
   </ROUTING>
+
  
  
   <!-- ═══════════════════════════════════════════════
