@@ -81,7 +81,8 @@ func NewSaveMemoryTool() (tool.Tool, error) {
 				result, err := db.ExecContext(ctx,
 					`UPDATE public.user_security_memory
 						SET payload = $1,
-							updated_at = $2
+							updated_at = $2,
+							source_agent = $6
 					  WHERE user_id     = $3
 						AND record_type = $4
 						AND payload->>'tema' = $5`,
@@ -90,6 +91,7 @@ func NewSaveMemoryTool() (tool.Tool, error) {
 					ctx.UserID(),
 					record.RecordType,
 					*record.Tema,
+					ctx.AgentName(),
 				)
 				if err != nil {
 					return nil, fmt.Errorf("failed to update record_type %s tema %s: %w", record.RecordType, *record.Tema, err)
@@ -106,7 +108,8 @@ func NewSaveMemoryTool() (tool.Tool, error) {
 				result, err := db.ExecContext(ctx,
 					`UPDATE public.user_security_memory
 						SET payload = $1,
-							updated_at = $2
+							updated_at = $2,
+							source_agent = $6
 					WHERE user_id     = $3
 						AND record_type = $4
 						AND payload->>'key' = $5`,
@@ -115,6 +118,7 @@ func NewSaveMemoryTool() (tool.Tool, error) {
 					ctx.UserID(),
 					record.RecordType,
 					record.Payload["key"],
+					ctx.AgentName(),
 				)
 				if err != nil {
 					return nil, fmt.Errorf("failed to update contexto_municipio key %v: %w", record.Payload["key"], err)

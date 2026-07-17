@@ -23,7 +23,7 @@ func NewGetMemoryTool() (tool.Tool, error) {
 		}
 
 		rows, err := db.QueryContext(ctx,
-			`SELECT id, record_type, ad_question_id, payload, created_at, updated_at
+			`SELECT id, record_type, ad_question_id, payload, source_agent, created_at, updated_at
 			   FROM public.user_security_memory
 			  WHERE user_id = $1
 			  ORDER BY updated_at DESC`,
@@ -34,12 +34,16 @@ func NewGetMemoryTool() (tool.Tool, error) {
 		}
 		defer rows.Close()
 
-		grouped := map[string][]map[string]any{
+		currentAgent := ctx.AgentName()
+
+		currentAgentData := map[string][]map[string]any{
 			"respuesta_AD":       {},
 			"nivel_madurez":      {},
 			"odm_en_curso":       {},
 			"contexto_municipio": {},
 		}
+
+		otherAgentData := make(map[string]map[string][]map[string]any)
 
 		for rows.Next() {
 			var (
@@ -47,11 +51,12 @@ func NewGetMemoryTool() (tool.Tool, error) {
 				recordType   string
 				adQuestionId sql.NullString
 				payloadRaw   []byte
+				sourceAgent  string
 				createdAt    string
 				updatedAt    string
 			)
 
-			if err := rows.Scan(&id, &recordType, &adQuestionId, &payloadRaw, &createdAt, &updatedAt); err != nil {
+			if err := rows.Scan(&id, &recordType, &adQuestionId, &payloadRaw, &sourceAgent, &createdAt, &updatedAt); err != nil {
 				return nil, fmt.Errorf("failed to scan row: %w", err)
 			}
 
@@ -70,8 +75,18 @@ func NewGetMemoryTool() (tool.Tool, error) {
 				record["ad_question_id"] = adQuestionId.String
 			}
 
-			if _, ok := grouped[recordType]; ok {
-				grouped[recordType] = append(grouped[recordType], record)
+			if sourceAgent == currentAgent {
+				currentAgentData[recordType] = append(currentAgentData[recordType], record)
+			} else {
+				if _, ok := otherAgentData[sourceAgent]; !ok {
+					otherAgentData[sourceAgent] = map[string][]map[string]any{
+						"respuesta_AD":       {},
+						"nivel_madurez":      {},
+						"odm_en_curso":       {},
+						"contexto_municipio": {},
+					}
+				}
+				otherAgentData[sourceAgent][recordType] = append(otherAgentData[sourceAgent][recordType], record)
 			}
 		}
 
@@ -80,10 +95,8 @@ func NewGetMemoryTool() (tool.Tool, error) {
 		}
 
 		return map[string]any{
-			"respuestas_AD":      grouped["respuesta_AD"],
-			"niveles_madurez":    grouped["nivel_madurez"],
-			"odms_en_curso":      grouped["odm_en_curso"],
-			"contexto_municipio": grouped["contexto_municipio"],
+			"tu_memoria":            currentAgentData,
+			"memoria_otros_agentes": otherAgentData,
 		}, nil
 	})
 }
