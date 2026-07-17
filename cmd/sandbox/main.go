@@ -27,6 +27,7 @@ import (
 	"ril.api-ia/internal/agent/plugin/agent_active_plugin"
 	"ril.api-ia/internal/agent/plugin/title_plugin"
 	"ril.api-ia/internal/agent/subagents/girsuagent"
+	"ril.api-ia/internal/agent/subagents/professionalizationagent"
 	"ril.api-ia/internal/agent/subagents/securityagent"
 	"ril.api-ia/internal/infrastructure/repository/tree_agent"
 )
@@ -85,7 +86,11 @@ func main() {
 	if err != nil {
 		log.Fatal("Error initializing GirsuAgent:", err)
 	}
-	loader, _ := a2.NewMultiLoader(coordinatorAgent, securityAgent, girsuAgent)
+	professionalizationAgent, err := professionalizationagent.NewProfessionalizationAgent(model3, treeManager)
+	if err != nil {
+		log.Fatal("Error initializing ProfessionalizationAgent:", err)
+	}
+	loader, _ := a2.NewMultiLoader(coordinatorAgent, securityAgent, girsuAgent, professionalizationAgent)
 	artifactService, _ := gcsartifact.NewService(ctx, os.Getenv("ARTIFACT_BUCKET_NAME"))
 	titlePlugin, _ := title_plugin.New(ctx, "title_plugin")
 	agentActivePlugin, _ := agent_active_plugin.New(ctx, "agent_active_plugin")
