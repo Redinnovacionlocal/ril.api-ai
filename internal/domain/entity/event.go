@@ -37,7 +37,7 @@ func FromSessionEvent(event session.Event) Event {
 		Author:             event.Author,
 		Partial:            event.Partial,
 		LongRunningToolIDs: event.LongRunningToolIDs,
-		Content:            event.LLMResponse.Content,
+		Content:            filterThoughts(event.LLMResponse.Content),
 		GroundingMetadata:  event.LLMResponse.GroundingMetadata,
 		TurnComplete:       event.LLMResponse.TurnComplete,
 		Interrupted:        event.LLMResponse.Interrupted,
@@ -47,5 +47,22 @@ func FromSessionEvent(event session.Event) Event {
 			StateDelta:    event.Actions.StateDelta,
 			ArtifactDelta: event.Actions.ArtifactDelta,
 		},
+	}
+}
+
+func filterThoughts(content *genai.Content) *genai.Content {
+	if content == nil {
+		return nil
+	}
+	filtered := make([]*genai.Part, 0, len(content.Parts))
+	for _, p := range content.Parts {
+		if p.Thought {
+			continue
+		}
+		filtered = append(filtered, p)
+	}
+	return &genai.Content{
+		Role:  content.Role,
+		Parts: filtered,
 	}
 }
