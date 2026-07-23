@@ -56,7 +56,7 @@ func filterThoughts(content *genai.Content) *genai.Content {
 	}
 	filtered := make([]*genai.Part, 0, len(content.Parts))
 	for _, p := range content.Parts {
-		if p.Thought {
+		if p.Thought || len(p.ThoughtSignature) > 0 {
 			continue
 		}
 		filtered = append(filtered, p)
