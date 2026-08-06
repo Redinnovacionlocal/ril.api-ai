@@ -52,10 +52,6 @@ func main() {
 	if err != nil {
 		log.Fatal("Error initializing GenAI client:", err)
 	}
-	coordinatorAgent, err := agent.NewRilAgent(ctx, dbAgent, toolboxClient, genaiClient)
-	if err != nil {
-		log.Fatal("Error initializing RilAgent:", err)
-	}
 	model3, err := gemini.NewModel(ctx, os.Getenv("AGENT_MODEL"), nil)
 	if err != nil {
 		log.Fatal("Error initializing Gemini model:", err)
@@ -78,6 +74,10 @@ func main() {
 		rdb,
 		1*time.Hour,
 	)
+	coordinatorAgent, err := agent.NewRilAgent(ctx, dbAgent, toolboxClient, genaiClient, treeManager)
+	if err != nil {
+		log.Fatal("Error initializing RilAgent:", err)
+	}
 	securityAgent, err := securityagent.NewSecurityAgent(model3, treeManager)
 	if err != nil {
 		panic(err)

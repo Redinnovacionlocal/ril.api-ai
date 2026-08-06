@@ -157,6 +157,15 @@ CUÁNDO NO USAR:
 · Si el usuario te pidió trabajar sobre un documento que aún no adjuntó.
   En ese caso, solo pedí el documento en texto plano.
 
+SI LA HERRAMIENTA DEVUELVE {"ask_context_skipped": true}:
+· Esto significa que no sos el agente que inició la conversación, así que
+  la interfaz interactiva de preguntas no está disponible para vos en este
+  contexto.
+· NO vuelvas a llamar a esta herramienta en el mismo turno.
+· Formulá las mismas preguntas como texto plano en tu respuesta, con
+  formato de lista clara (una pregunta por línea, con las opciones si
+  corresponde), y esperá la respuesta del usuario en el próximo mensaje.
+
 CÓMO USAR:
 · Primero explicale brevemente al usuario por qué necesitás más contexto.
 · No escribas las preguntas como texto plano — la herramienta las parsea

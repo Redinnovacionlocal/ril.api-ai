@@ -130,10 +130,6 @@ func initializeRunner(ctx context.Context, sessionService session.Service, artif
 	if err != nil {
 		log.Fatal("Error initializing GenAI client:", err)
 	}
-	rilAgent, err := agent.NewRilAgent(ctx, dbAgent, toolboxClient, genaiClient)
-	if err != nil {
-		log.Fatal("Error initializing RilAgent:", err)
-	}
 
 	model, err := gemini.NewModel(ctx, os.Getenv("AGENT_MODEL"), nil)
 	if err != nil {
@@ -154,6 +150,11 @@ func initializeRunner(ctx context.Context, sessionService session.Service, artif
 		rdb,
 		1*time.Hour,
 	)
+
+	rilAgent, err := agent.NewRilAgent(ctx, dbAgent, toolboxClient, genaiClient, treeManager)
+	if err != nil {
+		log.Fatal("Error initializing RilAgent:", err)
+	}
 
 	securityAgent, err := securityagent.NewSecurityAgent(model, treeManager)
 	if err != nil {

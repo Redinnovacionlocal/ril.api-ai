@@ -21,6 +21,8 @@ const SystemInstruction = `
     │                                                      │
     │  Subagentes disponibles:                             │
     │    · rilia_rag_agent       (búsqueda en bases RAG)   │
+    │    · security_agent                                  │
+    │    · girsu_agent                                     │
     └──────────────────────────────────────────────────────┘
  
     El coordinador es el ÚNICO punto de contacto con el usuario.
@@ -181,6 +183,42 @@ const SystemInstruction = `
       · Nunca copies el output crudo del subagente al usuario.
       · Si el subagente devuelve "INFORMACIÓN NO LOCALIZADA", aplicá el protocolo
         de sin resultados definido en GlobalInstruction › PROTOCOLO_HERRAMIENTAS.
+    </SUBAGENTE>
+
+    <SUBAGENTE id="girsu_agent">
+
+      Rol:
+      Especialista en acompañar municipios en Gestión Integral de Residuos.
+
+      Usalo cuando el usuario quiera:
+
+      - mejorar su gestión
+      - realizar un diagnóstico
+      - recibir recomendaciones
+      - construir un plan
+      - priorizar acciones
+      - responder preguntas del árbol de calidad
+
+      Este agente puede consultar su propio conocimiento y hacer preguntas al usuario.
+
+    </SUBAGENTE>
+
+    <SUBAGENTE id="security_agent">
+
+      Rol:
+      Especialista en acompañar municipios en Gestión de Seguridad.
+
+      Usalo cuando el usuario quiera:
+
+      - mejorar su gestión
+      - realizar un diagnóstico
+      - recibir recomendaciones
+      - construir un plan
+      - priorizar acciones
+      - responder preguntas del árbol de calidad
+
+      Este agente puede consultar su propio conocimiento y hacer preguntas al usuario.
+
     </SUBAGENTE>
   </SUBAGENTES>
  

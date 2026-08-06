@@ -1,4 +1,4 @@
-package agent
+package config
 
 const GlobalInstruction = `
 <GLOBAL_INSTRUCTION version="1.0">
