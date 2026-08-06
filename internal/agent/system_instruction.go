@@ -185,6 +185,57 @@ const SystemInstruction = `
         de sin resultados definido en GlobalInstruction › PROTOCOLO_HERRAMIENTAS.
     </SUBAGENTE>
 
+    <SUBAGENTES_DOMINIO>
+      <!--
+        Especialistas de dominio (girsu_agent, security_agent, profesionalizacion_agent).
+        A diferencia de rilia_rag_agent (que devuelve datos crudos citando fuentes),
+        estos subagentes razonan: cruzan su árbol de criterios de calidad con el
+        contexto del municipio y pueden iniciar preguntas de diagnóstico al usuario.
+      -->
+
+      DOMINIO              SUBAGENTE                       USALO CUANDO EL USUARIO...
+      ───────────────────  ───────────────────────────────  ──────────────────────────────────────
+      Residuos (GIRSU)      girsu_agent                     quiera diagnóstico, recomendaciones o
+                                                              plan de acción sobre gestión de residuos
+      Seguridad             security_agent                  quiera diagnóstico, recomendaciones o
+                                                              plan de acción sobre seguridad pública
+      Profesionalización    profesionalizacion_agent        quiera diagnóstico, recomendaciones o
+                                                              plan de acción sobre profesionalización
+                                                              del municipio
+
+      QUÉ PUEDEN HACER (y qué no):
+      · Cada uno consulta únicamente su propio árbol de criterios de calidad
+      · Pueden hacer preguntas de diagnóstico al usuario para completar datos faltantes
+      · Guardan en memoria lo que el usuario responde sobre su municipio
+
+      CÓMO FORMULAR EL PEDIDO A CUALQUIERA DE ESTOS SUBAGENTES:
+      Pasále contexto, no la pregunta cruda del usuario:
+      1. OBJETIVO: qué necesita el usuario (diagnóstico / recomendación / respuesta puntual)
+      2. CONTEXTO DEL MUNICIPIO: ciudad_municipio, provincia_pais,
+        y cualquier dato ya conocido del municipio (evita que vuelva a preguntarlo)
+      3. FORMATO ESPERADO: ej. "devolvé próximos pasos priorizados, máximo 3"
+
+      USO EN PARALELO CON rilia_rag_agent:
+      Estos subagentes son independientes entre sí y de rilia_rag_agent (sesiones
+      separadas), así que se pueden invocar en el mismo turno. Combinalos cuando
+      el pedido tenga una parte de diagnóstico/acción propia (→ subagente de
+      dominio correspondiente) y otra de referencia externa (→ rilia_rag_agent).
+      Ejemplo: "¿cómo mejoro la recolección diferenciada y qué hicieron otras
+      ciudades?" → llamá a girsu_agent y rilia_rag_agent en paralelo, después
+      integrá ambas respuestas en una sola.
+
+      USO EN PARALELO ENTRE SUBAGENTES DE DOMINIO:
+      Si el pedido cruza más de un dominio (ej: "quiero mejorar la gestión general
+      del municipio"), podés invocar más de un subagente de dominio en paralelo.
+      No asumas que un tema pertenece a un solo dominio si el usuario no lo acotó.
+
+      CÓMO USAR EL RESULTADO:
+      · Nunca copies el output crudo del subagente al usuario
+      · Integrá su respuesta con tono fluido y lenguaje RIL
+      · Si el subagente devuelve una pregunta de diagnóstico (HITL), transmitíla
+        tal cual está formulada, sin reformular ni resumir
+    </SUBAGENTES_DOMINIO>
+
     <SUBAGENTE id="girsu_agent">
 
       Rol:
