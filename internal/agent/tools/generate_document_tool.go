@@ -457,8 +457,6 @@ func GenerateDocumentsToolFunc(tctx tool.Context, args GenerateDocumentsArgs) (G
 		}, nil
 	}
 
-	tctx.Actions().SkipSummarization = true
-
 	version := response.Version
 	filePath := fmt.Sprintf("%s/%s/%s/%s/%d", tctx.AppName(), tctx.UserID(), tctx.SessionID(), args.FileName, version)
 	fileCdn := os.Getenv("ARTIFACT_BUCKET_URL")
