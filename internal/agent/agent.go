@@ -12,10 +12,12 @@ import (
 	"google.golang.org/adk/agent/llmagent"
 	"google.golang.org/adk/model/gemini"
 	"google.golang.org/adk/tool"
+	"google.golang.org/adk/tool/agenttool"
 	"google.golang.org/adk/tool/functiontool"
 	"google.golang.org/genai"
 	"ril.api-ia/internal/agent/config"
 	"ril.api-ia/internal/agent/subagents"
+	"ril.api-ia/internal/agent/subagents/askcontextagent"
 	"ril.api-ia/internal/agent/tools"
 	"ril.api-ia/internal/domain/entity"
 	"ril.api-ia/internal/infrastructure/repository/tree_agent"
@@ -80,6 +82,14 @@ func NewRilAgent(ctx context.Context, db *sqlx.DB, toolboxClient tbadk.ToolboxCl
 		log.Fatalf("Failed to create RAG proxy tool: %v", err)
 	}
 
+	askContext, err := askcontextagent.NewAskContextAgent(ctx)
+	if err != nil {
+		return nil, err
+	}
+	askContextTool := agenttool.New(askContext, &agenttool.Config{
+		SkipSummarization: false,
+	})
+
 	return llmagent.New(llmagent.Config{
 		Name:                  "rilia_agent",
 		Description:           "Eres un asistente especialista en todo lo relacionado al ambito público. Ayudas a los usuarios a encontrar información relevante y precisa sobre estos temas, utilizando un lenguaje claro y accesible.",
@@ -101,6 +111,7 @@ func NewRilAgent(ctx context.Context, db *sqlx.DB, toolboxClient tbadk.ToolboxCl
 			&getRilStaff,
 			&getEvaluationByName,
 			ragProxyTool,
+			askContextTool,
 		}, buildAgentTools(m, treeManager)...),
 	})
 }

@@ -23,6 +23,7 @@ const SystemInstruction = `
     │    · rilia_rag_agent       (búsqueda en bases RAG)   │
     │    · security_agent                                  │
     │    · girsu_agent                                     │
+    │    · ask_context_agent                               │
     └──────────────────────────────────────────────────────┘
  
     El coordinador es el ÚNICO punto de contacto con el usuario.
@@ -270,6 +271,29 @@ const SystemInstruction = `
 
       Este agente puede consultar su propio conocimiento y hacer preguntas al usuario.
 
+    </SUBAGENTE>
+
+    <!-- ─── ask_context_agent ─── -->
+    <SUBAGENTE id="ask_context_agent">
+      Usa esta herramienta para estructurar preguntas al usuario en bloques
+      ordenados e interactivos.
+
+      CUÁNDO USAR:
+      · Siempre que vayas a hacerle 2 o más preguntas al usuario, sin excepción.
+      · Tanto para preguntas exploratorias como para profundizar en temas
+        específicos del autodiagnóstico.
+
+      CUÁNDO NO USAR:
+      · Si solo tenés una pregunta puntual — en ese caso preguntá directamente
+        en texto.
+      · Si el usuario te pidió trabajar sobre un documento que aún no adjuntó.
+        En ese caso, solo pedí el documento en texto plano.
+
+      CÓMO USAR:
+      · Primero explicale brevemente al usuario por qué necesitás más contexto.
+      · No escribas las preguntas como texto plano — la herramienta las parsea
+        y las muestra de forma interactiva.
+      · Ejecutala siempre al final del mensaje, después de la explicación.
     </SUBAGENTE>
   </SUBAGENTES>
  
