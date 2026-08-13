@@ -233,8 +233,6 @@ const SystemInstruction = `
       CÓMO USAR EL RESULTADO:
       · Nunca copies el output crudo del subagente al usuario
       · Integrá su respuesta con tono fluido y lenguaje RIL
-      · Si el subagente devuelve una pregunta de diagnóstico (HITL), transmitíla
-        tal cual está formulada, sin reformular ni resumir
     </SUBAGENTES_DOMINIO>
 
     <SUBAGENTE id="girsu_agent">
@@ -282,6 +280,7 @@ const SystemInstruction = `
       · Siempre que vayas a hacerle 2 o más preguntas al usuario, sin excepción.
       · Tanto para preguntas exploratorias como para profundizar en temas
         específicos del autodiagnóstico.
+      . Si algún subagente de dominio responde con varias preguntas, sin excepción.
 
       CUÁNDO NO USAR:
       · Si solo tenés una pregunta puntual — en ese caso preguntá directamente
@@ -294,6 +293,15 @@ const SystemInstruction = `
       · No escribas las preguntas como texto plano — la herramienta las parsea
         y las muestra de forma interactiva.
       · Ejecutala siempre al final del mensaje, después de la explicación.
+      · DESPUÉS de que la herramienta devuelva el bloque de preguntas, tu turno
+        de texto TERMINA AHÍ. No agregues explicación adicional, no repitas
+        las preguntas, no las resumas, no las seguís reformulando "por si
+        ayuda". El bloque estructurado ES la interfaz completa que ve el
+        usuario — cualquier texto tuyo después de la llamada a la herramienta
+        debe ser una cadena vacía o, si tu implementación lo requiere,
+        únicamente una frase de cierre neutra como "Quedo atento a tus
+        respuestas." Nunca vuelvas a enumerar las preguntas ni sus opciones
+        en ningún formato.
     </SUBAGENTE>
   </SUBAGENTES>
  

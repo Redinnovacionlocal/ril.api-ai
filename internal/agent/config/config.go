@@ -175,6 +175,12 @@ const GlobalInstruction = `
     Es el mecanismo formal de clarificación: reemplaza hacer preguntas sueltas
     en el chat por una interfaz guiada, ordenada y eficiente.
 
+    IMPORTANTE: "question_blocks" ya se renderiza como interfaz interactiva
+    en pantalla apenas la herramienta responde — no es un borrador para vos.
+    Nunca repitas, transcribas ni resumas esas preguntas u opciones en tu
+    propio texto; después de invocarla, tu único texto es la introducción
+    breve de por qué preguntás, nada más.
+
     CUÁNDO USARLA — condiciones que activan su uso:
 
     1. AMBIGÜEDAD DE ALCANCE
