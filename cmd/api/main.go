@@ -31,6 +31,7 @@ import (
 	"ril.api-ia/internal/agent"
 	"ril.api-ia/internal/agent/plugin/agent_active_plugin"
 	"ril.api-ia/internal/agent/plugin/title_plugin"
+	"ril.api-ia/internal/agent/subagents/educationagent"
 	"ril.api-ia/internal/agent/subagents/girsuagent"
 	"ril.api-ia/internal/agent/subagents/professionalizationagent"
 	"ril.api-ia/internal/agent/subagents/securityagent"
@@ -118,6 +119,7 @@ func initializeRunner(ctx context.Context, sessionService session.Service, artif
 	securityAgentName := os.Getenv("AGENT_SECURITY_NAME")
 	girsuAgentName := os.Getenv("AGENT_GIRSU_NAME")
 	professionalizationAgentName := os.Getenv("AGENT_PROFESSIONALIZATION_NAME")
+	educationAgentName := os.Getenv("AGENT_EDUCATION_NAME")
 	toolboxClient, err := tbadk.NewToolboxClient(os.Getenv("TOOLBOX_CLIENT_URL"))
 	if err != nil {
 		log.Fatal("Error initializing Toolbox client:", err)
@@ -171,11 +173,17 @@ func initializeRunner(ctx context.Context, sessionService session.Service, artif
 		log.Fatal("Error initializing ProfessionalizationAgent:", err)
 	}
 
+	educationAgent, err := educationagent.NewEducationAgent(model, treeManager)
+	if err != nil {
+		log.Fatal("Error initializing EducationAgent:", err)
+	}
+
 	return map[string]*runner.Runner{
 		"orchestrator":               buildRunner(ctx, rilAgent, sessionService, artifactService),
 		securityAgentName:            buildRunner(ctx, securityAgent, sessionService, artifactService),
 		girsuAgentName:               buildRunner(ctx, girsuAgent, sessionService, artifactService),
 		professionalizationAgentName: buildRunner(ctx, professionalizationAgent, sessionService, artifactService),
+		educationAgentName:           buildRunner(ctx, educationAgent, sessionService, artifactService),
 	}
 }
 
