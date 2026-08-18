@@ -8,6 +8,7 @@ import (
 	"google.golang.org/adk/tool"
 	"google.golang.org/adk/tool/agenttool"
 
+	"ril.api-ia/internal/agent/subagents/educationagent"
 	"ril.api-ia/internal/agent/subagents/girsuagent"
 	"ril.api-ia/internal/agent/subagents/professionalizationagent"
 	"ril.api-ia/internal/agent/subagents/securityagent"
@@ -25,6 +26,7 @@ var domainAgentSpecs = []domainAgentSpec{
 	{"girsu", girsuagent.NewGirsuAgent},
 	{"security", securityagent.NewSecurityAgent},
 	{"profesionalizacion", professionalizationagent.NewProfessionalizationAgent},
+	{"education", educationagent.NewEducationAgent},
 }
 
 func buildAgentTools(m model.LLM, treeManager *tree_agent.TreeCacheManager) []tool.Tool {
