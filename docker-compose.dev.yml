@@ -8,16 +8,17 @@ services:
       - ~/.config/gcloud:/root/.config/gcloud:ro
     ports:
       - "8080:8080"
-    # IMPORTANTE: Esto evita que los logs se queden en el buffer
     environment:
       - GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json
       - APP_ENV=local
-      - GIN_MODE=release # O debug
+      - GIN_MODE=release
+      - DATABASE_AGENT_DSN=host=postgres-local user=postgres password=postgres dbname=rilia_local port=5432 sslmode=disable TimeZone=UTC
     networks:
       - ril_network
       - go_app
     depends_on:
       - redis
+      - postgres-local
   mcp-toolbox:
     image: us-central1-docker.pkg.dev/database-toolbox/toolbox/toolbox:latest
     user: root
@@ -46,10 +47,12 @@ services:
     environment:
       - GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json
       - APP_ENV=local
+      - DATABASE_AGENT_DSN=host=postgres-local user=postgres password=postgres dbname=rilia_local port=5432 sslmode=disable TimeZone=UTC
     networks:
       - go_app
     depends_on:
       - redis
+      - postgres-local
   redis:
     image: redis:alpine
     networks:
@@ -59,6 +62,18 @@ services:
     volumes:
       - redis-data:/data
     command: [ "redis-server", "--save", "60", "1", "--appendonly", "yes" ]
+  postgres-local:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: rilia_local
+    ports:
+      - "5433:5432"
+    volumes:
+      - pg-local-data:/var/lib/postgresql/data
+    networks:
+      - go_app
 networks:
   ril_network:
     external: true
@@ -66,4 +81,6 @@ networks:
     driver: bridge
 volumes:
   redis-data:
+    driver: local
+  pg-local-data:
     driver: local

@@ -50,7 +50,15 @@ func main() {
 	ctx := context.Background()
 	_ = godotenv.Overload()
 
+	isLocal := os.Getenv("APP_ENV") == "local"
+
 	runMigrations(os.Getenv("DATABASE_AGENT_DSN"))
+
+	dbAgent, err := sqlx.Open("pgx", os.Getenv("DATABASE_AGENT_DSN"))
+	if err != nil {
+		log.Fatal("Error connecting to agent DB:", err)
+	}
+	defer dbAgent.Close()
 
 	//Init redis
 	rdb := redis.NewClient(&redis.Options{
@@ -59,14 +67,8 @@ func main() {
 		DB:       0,
 	})
 
-	dbAgent, err := sqlx.Open("pgx", os.Getenv("DATABASE_AGENT_DSN"))
-	if err != nil {
-		log.Fatal("Error connecting to agent DB:", err)
-	}
-	defer dbAgent.Close()
-
 	var dbCore *sqlx.DB
-	if os.Getenv("APP_ENV") != "local" {
+	if !isLocal {
 		dbCore, err = sqlx.ConnectContext(ctx, "mysql", os.Getenv("DATABASE_CORE_DSN"))
 		if err != nil {
 			log.Fatal("Error connecting to core DB:", err)
@@ -75,7 +77,7 @@ func main() {
 	}
 
 	// Agents service and runners
-	sessionService := initializeSessionService()
+	sessionService := initializeSessionService(isLocal)
 	artifactService, _ := gcsartifact.NewService(ctx, os.Getenv("ARTIFACT_BUCKET_NAME"))
 	userRepository, eventFeedbackRepository := InitializeRepositories(ctx, dbCore, dbAgent)
 
@@ -92,7 +94,10 @@ func main() {
 	startServer(router)
 }
 
-func initializeSessionService() session2.Service {
+func initializeSessionService(isLocal bool) session2.Service {
+	if isLocal {
+		return session2.NewMyDatabaseService(session.InMemoryService(), nil)
+	}
 	sessionService, err := database.NewSessionService(postgres.Open(os.Getenv("DATABASE_AGENT_DSN")))
 	mySessionService := session2.NewMyDatabaseService(sessionService, postgres.Open(os.Getenv("DATABASE_AGENT_DSN")))
 	if err != nil {
