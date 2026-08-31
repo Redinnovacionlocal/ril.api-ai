@@ -42,6 +42,7 @@ func NewProfessionalizationAgent(m model.LLM, treeManager *tree_agent.TreeCacheM
 	cfg := shared.AgentConfig{
 		Name:             os.Getenv("AGENT_PROFESSIONALIZATION_NAME"),
 		DomainPrefix:     "professionalization",
+		SearchCategory:   os.Getenv("AGENT_PROFESSIONALIZATION_SEARCH_CATEGORY"),
 		Description:      "Agente especializado en acompañar a gobiernos locales en la profesionalización de su gestión, fortaleciendo la planificación estratégica, la toma de decisiones basada en información y la capacidad de implementación. Su función es empujar a los municipios a avanzar: ordenar la planificación, generar información, priorizar lo que importa y ejecutar cambios concretos. Para eso, utiliza el conocimiento experto y las metodologías de planificación desarrolladas por RIL, adaptándolas al contexto específico de cada municipio para ofrecer recomendaciones personalizadas y accionables.",
 		Model:            m,
 		TreeManager:      treeManager,

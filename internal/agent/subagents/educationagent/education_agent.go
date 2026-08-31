@@ -43,6 +43,7 @@ func NewEducationAgent(m model.LLM, treeManager *tree_agent.TreeCacheManager) (a
 	cfg := shared.AgentConfig{
 		Name:             os.Getenv("AGENT_EDUCATION_NAME"),
 		DomainPrefix:     "education",
+		SearchCategory:   os.Getenv("AGENT_EDUCATION_SEARCH_CATEGORY"),
 		Description:      "Agente especializado en acompañar a municipios en la mejora de su gestión educativa. Su función es empujar a los municipios a avanzar: ordenar el área, generar información, mejorar lo que ya tienen, priorizar lo que importa y ejecutar acciones concretas. Para eso, utiliza el conocimiento experto sobre gestión educativa y lo aplica al contexto específico de cada municipio para ofrecer recomendaciones personalizadas, accionables y orientadas a la implementación.",
 		Model:            m,
 		TreeManager:      treeManager,

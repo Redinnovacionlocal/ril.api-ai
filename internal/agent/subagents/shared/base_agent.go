@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/fs"
 	"log"
+	"os"
 	"strings"
 	"text/template"
 
@@ -21,6 +22,7 @@ import (
 	"google.golang.org/adk/tool/skilltoolset/skill"
 	"ril.api-ia/internal/agent/config"
 	"ril.api-ia/internal/agent/subagents/askcontextagent"
+	sharedTools "ril.api-ia/internal/agent/subagents/shared/tools"
 	"ril.api-ia/internal/agent/tools"
 	"ril.api-ia/internal/domain/entity"
 	"ril.api-ia/internal/infrastructure/repository/tree_agent"
@@ -35,6 +37,7 @@ var SharedSkillsFiles embed.FS
 type AgentConfig struct {
 	Name             string
 	DomainPrefix     string
+	SearchCategory   string
 	Description      string
 	Model            model.LLM
 	TreeManager      *tree_agent.TreeCacheManager
@@ -139,9 +142,21 @@ func NewDomainAgent(ctx context.Context, cfg AgentConfig) (agent.Agent, error) {
 		return nil, err
 	}
 
+	searchCfg := sharedTools.SearchToolConfig{
+		ProjectID:   os.Getenv("GOOGLE_CLOUD_PROJECT"),
+		Location:    os.Getenv("GOOGLE_CLOUD_LOCATION"),
+		DataStoreID: "ril-inspirarme-casos_1773239632591_vista_inspirarme_casos",
+	}
+
+	getInspireCasesTool, err := sharedTools.NewGetInspireCasesTool(searchCfg, cfg.SearchCategory)
+	if err != nil {
+		return nil, fmt.Errorf("error creando inspire cases tool: %w", err)
+	}
+
 	allTools := []tool.Tool{
 		toolGenerateDocument,
 		lookupTreeTool,
+		getInspireCasesTool,
 		agenttool.New(askContext, &agenttool.Config{
 			SkipSummarization: false,
 		}),
