@@ -2,6 +2,8 @@ package agent
 
 import (
 	"log"
+	"os"
+	"strings"
 
 	"google.golang.org/adk/agent"
 	"google.golang.org/adk/model"
@@ -15,26 +17,50 @@ import (
 	"ril.api-ia/internal/infrastructure/repository/tree_agent"
 )
 
-type domainAgentConstructor func(m model.LLM, treeManager *tree_agent.TreeCacheManager) (agent.Agent, error)
+type DomainAgentConstructor func(m model.LLM, treeManager *tree_agent.TreeCacheManager) (agent.Agent, error)
 
-type domainAgentSpec struct {
-	name        string
-	constructor domainAgentConstructor
+type DomainAgentSpec struct {
+	Name        string
+	DomainLabel string
+	UseCase     string
+	Constructor DomainAgentConstructor
 }
 
-var domainAgentSpecs = []domainAgentSpec{
-	{"girsu", girsuagent.NewGirsuAgent},
-	{"security", securityagent.NewSecurityAgent},
-	{"profesionalizacion", professionalizationagent.NewProfessionalizationAgent},
-	{"education", educationagent.NewEducationAgent},
+var domainAgentSpecs = []DomainAgentSpec{
+	{"girsu_agent", "Residuos", "gestión de residuos", girsuagent.NewGirsuAgent},
+	{"security_agent", "Seguridad", "seguridad pública", securityagent.NewSecurityAgent},
+	{"profesionalizacion_agent", "Profesionalización", "profesionalización del municipio", professionalizationagent.NewProfessionalizationAgent},
+	{"education_agent", "Educación", "educación", educationagent.NewEducationAgent},
+}
+
+func EnabledDomainAgentSpecs() []DomainAgentSpec {
+	raw := os.Getenv("ENABLED_DOMAIN_AGENTS")
+	if raw == "" {
+		return domainAgentSpecs
+	}
+
+	enabled := make(map[string]bool, len(domainAgentSpecs))
+	for _, name := range strings.Split(raw, ",") {
+		enabled[strings.TrimSpace(name)] = true
+	}
+
+	out := make([]DomainAgentSpec, 0, len(domainAgentSpecs))
+	for _, spec := range domainAgentSpecs {
+		if enabled[spec.Name] {
+			out = append(out, spec)
+		}
+	}
+
+	return out
 }
 
 func buildAgentTools(m model.LLM, treeManager *tree_agent.TreeCacheManager) []tool.Tool {
-	agentTools := make([]tool.Tool, 0, len(domainAgentSpecs))
-	for _, spec := range domainAgentSpecs {
-		a, err := spec.constructor(m, treeManager)
+	specs := EnabledDomainAgentSpecs()
+	agentTools := make([]tool.Tool, 0, len(specs))
+	for _, spec := range specs {
+		a, err := spec.Constructor(m, treeManager)
 		if err != nil {
-			log.Fatalf("Failed to create %s agent: %v", spec.name, err)
+			log.Fatalf("Failed to create %s agent: %v", spec.Name, err)
 		}
 		agentTools = append(agentTools, agenttool.New(a, &agenttool.Config{}))
 	}

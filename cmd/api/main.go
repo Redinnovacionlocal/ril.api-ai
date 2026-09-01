@@ -31,10 +31,6 @@ import (
 	"ril.api-ia/internal/agent"
 	"ril.api-ia/internal/agent/plugin/agent_active_plugin"
 	"ril.api-ia/internal/agent/plugin/title_plugin"
-	"ril.api-ia/internal/agent/subagents/educationagent"
-	"ril.api-ia/internal/agent/subagents/girsuagent"
-	"ril.api-ia/internal/agent/subagents/professionalizationagent"
-	"ril.api-ia/internal/agent/subagents/securityagent"
 	session2 "ril.api-ia/internal/application/service/session"
 	"ril.api-ia/internal/application/usecase"
 	"ril.api-ia/internal/domain/entity"
@@ -121,10 +117,6 @@ func InitializeRepositories(ctx context.Context, dbCore *sqlx.DB, dbAgent *sqlx.
 }
 
 func initializeRunner(ctx context.Context, sessionService session.Service, artifactService artifact.Service, dbAgent *sqlx.DB, rdb *redis.Client) map[string]*runner.Runner {
-	securityAgentName := os.Getenv("AGENT_SECURITY_NAME")
-	girsuAgentName := os.Getenv("AGENT_GIRSU_NAME")
-	professionalizationAgentName := os.Getenv("AGENT_PROFESSIONALIZATION_NAME")
-	educationAgentName := os.Getenv("AGENT_EDUCATION_NAME")
 	toolboxClient, err := tbadk.NewToolboxClient(os.Getenv("TOOLBOX_CLIENT_URL"))
 	if err != nil {
 		log.Fatal("Error initializing Toolbox client:", err)
@@ -163,33 +155,19 @@ func initializeRunner(ctx context.Context, sessionService session.Service, artif
 		log.Fatal("Error initializing RilAgent:", err)
 	}
 
-	securityAgent, err := securityagent.NewSecurityAgent(model, treeManager)
-	if err != nil {
-		log.Fatal("Error initializing SecurityAgent:", err)
+	runners := map[string]*runner.Runner{
+		"orchestrator": buildRunner(ctx, rilAgent, sessionService, artifactService),
 	}
 
-	girsuAgent, err := girsuagent.NewGirsuAgent(model, treeManager)
-	if err != nil {
-		log.Fatal("Error initializing GirsuAgent:", err)
+	for _, spec := range agent.EnabledDomainAgentSpecs() {
+		domainAgent, err := spec.Constructor(model, treeManager)
+		if err != nil {
+			log.Fatalf("Error initializing %s: %v", spec.Name, err)
+		}
+		runners[spec.Name] = buildRunner(ctx, domainAgent, sessionService, artifactService)
 	}
 
-	professionalizationAgent, err := professionalizationagent.NewProfessionalizationAgent(model, treeManager)
-	if err != nil {
-		log.Fatal("Error initializing ProfessionalizationAgent:", err)
-	}
-
-	educationAgent, err := educationagent.NewEducationAgent(model, treeManager)
-	if err != nil {
-		log.Fatal("Error initializing EducationAgent:", err)
-	}
-
-	return map[string]*runner.Runner{
-		"orchestrator":               buildRunner(ctx, rilAgent, sessionService, artifactService),
-		securityAgentName:            buildRunner(ctx, securityAgent, sessionService, artifactService),
-		girsuAgentName:               buildRunner(ctx, girsuAgent, sessionService, artifactService),
-		professionalizationAgentName: buildRunner(ctx, professionalizationAgent, sessionService, artifactService),
-		educationAgentName:           buildRunner(ctx, educationAgent, sessionService, artifactService),
-	}
+	return runners
 }
 
 func buildRunner(ctx context.Context, ag internalagent.Agent, sessionService session.Service, artifactService artifact.Service) *runner.Runner {

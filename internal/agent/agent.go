@@ -1,7 +1,10 @@
 package agent
 
 import (
+	"bytes"
 	"context"
+	"fmt"
+	"html/template"
 	"log"
 	"os"
 	"strconv"
@@ -90,10 +93,17 @@ func NewRilAgent(ctx context.Context, db *sqlx.DB, toolboxClient tbadk.ToolboxCl
 		SkipSummarization: false,
 	})
 
+	enabledAgents := EnabledDomainAgentSpecs()
+
+	systemInstruction, err := BuildSystemInstruction(enabledAgents)
+	if err != nil {
+		log.Fatalf("Error building system instruction: %v", err)
+	}
+
 	return llmagent.New(llmagent.Config{
 		Name:                  "rilia_agent",
 		Description:           "Eres un asistente especialista en todo lo relacionado al ambito público. Ayudas a los usuarios a encontrar información relevante y precisa sobre estos temas, utilizando un lenguaje claro y accesible.",
-		Instruction:           SystemInstruction,
+		Instruction:           systemInstruction,
 		GenerateContentConfig: contentConfiguration,
 		GlobalInstruction:     config.GlobalInstruction,
 		Model:                 m,
@@ -114,4 +124,22 @@ func NewRilAgent(ctx context.Context, db *sqlx.DB, toolboxClient tbadk.ToolboxCl
 			askContextTool,
 		}, buildAgentTools(m, treeManager)...),
 	})
+}
+
+func BuildSystemInstruction(enabledDomainAgents []DomainAgentSpec) (string, error) {
+	tmpl, err := template.New("system_instruction").Parse(systemInstructionTemplate)
+	if err != nil {
+		return "", fmt.Errorf("error parseando system instruction template: %w", err)
+	}
+
+	var buf bytes.Buffer
+	data := struct {
+		DomainAgents []DomainAgentSpec
+	}{
+		DomainAgents: enabledDomainAgents,
+	}
+	if err := tmpl.Execute(&buf, data); err != nil {
+		return "", fmt.Errorf("error ejecutando system instruction template: %w", err)
+	}
+	return buf.String(), nil
 }
