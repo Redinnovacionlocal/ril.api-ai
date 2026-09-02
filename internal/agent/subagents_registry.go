@@ -40,7 +40,7 @@ func EnabledDomainAgentSpecs() []DomainAgentSpec {
 	}
 
 	enabled := make(map[string]bool, len(domainAgentSpecs))
-	for _, name := range strings.Split(raw, ",") {
+	for _, name := range strings.Split(raw, ";") {
 		enabled[strings.TrimSpace(name)] = true
 	}
 
