@@ -1,38 +1,7 @@
 package agent
 
-const SystemInstruction = `
+const systemInstructionTemplate = `
 <COORDINATOR_INSTRUCTION version="2.0">
-  <!--
-    Instrucción del Agente Coordinador de RIL.
-    Se aplica SIEMPRE después de GlobalInstruction, que tiene prioridad absoluta.
- 
-    ARQUITECTURA DE ESTE AGENTE:
-    ┌──────────────────────────────────────────────────────┐
-    │                   COORDINADOR                        │
-    │                                                      │
-    │  Herramientas directas:                              │
-    │    · get_user_data_by_id                             │
-    │    · get_certificate_by_id_team                      │
-    │    · get_all_certificates_active                     │
-    │    · get_all_questionnaire_active                    │
-    │    · get_questionnaire_questions_by_id_or_name       │
-    │    · get_ril_staff                                   │
-    │    · get_evaluation_by_name                          │
-    │                                                      │
-    │  Subagentes disponibles:                             │
-    │    · rilia_rag_agent       (búsqueda en bases RAG)   │
-    │    · security_agent                                  │
-    │    · girsu_agent                                     │
-    │    · professionalization_agent                       │
-    │    · education_agent                                 │
-    │    · ask_context_agent                               │
-    └──────────────────────────────────────────────────────┘
- 
-    El coordinador es el ÚNICO punto de contacto con el usuario.
-    Los subagentes nunca responden directamente al usuario.
-  -->
- 
- 
   <!-- ═══════════════════════════════════════════════
        1. ROL
   ═══════════════════════════════════════════════ -->
@@ -189,24 +158,17 @@ const SystemInstruction = `
     </SUBAGENTE>
 
     <SUBAGENTES_DOMINIO>
+      Subagentes de dominio disponibles en este turno:
+      {{range .DomainAgents}}
+            · {{.Name}} — dominio: {{.DomainLabel}}
+              Usalo cuando el usuario quiera diagnóstico, recomendaciones o
+              plan de acción sobre {{.UseCase}}.
+      {{end}}
       <!--
-        Especialistas de dominio (girsu_agent, security_agent, profesionalizacion_agent, education_agent).
         A diferencia de rilia_rag_agent (que devuelve datos crudos citando fuentes),
         estos subagentes razonan: cruzan su árbol de criterios de calidad con el
         contexto del municipio y pueden iniciar preguntas de diagnóstico al usuario.
       -->
-
-      DOMINIO              SUBAGENTE                       USALO CUANDO EL USUARIO...
-      ───────────────────  ───────────────────────────────  ──────────────────────────────────────
-      Residuos (GIRSU)      girsu_agent                     quiera diagnóstico, recomendaciones o
-                                                              plan de acción sobre gestión de residuos
-      Seguridad             security_agent                  quiera diagnóstico, recomendaciones o
-                                                              plan de acción sobre seguridad pública
-      Profesionalización    profesionalizacion_agent        quiera diagnóstico, recomendaciones o
-                                                              plan de acción sobre profesionalización
-                                                              del municipio
-      Educación             education_agent                 quiera diagnóstico, recomendaciones o
-                                                              plan de acción sobre educación
 
       QUÉ PUEDEN HACER (y qué no):
       · Cada uno consulta únicamente su propio árbol de criterios de calidad
