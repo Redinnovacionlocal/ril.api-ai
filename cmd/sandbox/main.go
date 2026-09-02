@@ -26,7 +26,9 @@ import (
 	"ril.api-ia/internal/agent"
 	"ril.api-ia/internal/agent/plugin/agent_active_plugin"
 	"ril.api-ia/internal/agent/plugin/title_plugin"
+	"ril.api-ia/internal/agent/subagents/educationagent"
 	"ril.api-ia/internal/agent/subagents/girsuagent"
+	"ril.api-ia/internal/agent/subagents/professionalizationagent"
 	"ril.api-ia/internal/agent/subagents/securityagent"
 	"ril.api-ia/internal/infrastructure/repository/tree_agent"
 )
@@ -51,10 +53,6 @@ func main() {
 	if err != nil {
 		log.Fatal("Error initializing GenAI client:", err)
 	}
-	coordinatorAgent, err := agent.NewRilAgent(ctx, dbAgent, toolboxClient, genaiClient)
-	if err != nil {
-		log.Fatal("Error initializing RilAgent:", err)
-	}
 	model3, err := gemini.NewModel(ctx, os.Getenv("AGENT_MODEL"), nil)
 	if err != nil {
 		log.Fatal("Error initializing Gemini model:", err)
@@ -77,6 +75,10 @@ func main() {
 		rdb,
 		1*time.Hour,
 	)
+	coordinatorAgent, err := agent.NewRilAgent(ctx, dbAgent, toolboxClient, genaiClient, treeManager)
+	if err != nil {
+		log.Fatal("Error initializing RilAgent:", err)
+	}
 	securityAgent, err := securityagent.NewSecurityAgent(model3, treeManager)
 	if err != nil {
 		panic(err)
@@ -85,7 +87,15 @@ func main() {
 	if err != nil {
 		log.Fatal("Error initializing GirsuAgent:", err)
 	}
-	loader, _ := a2.NewMultiLoader(coordinatorAgent, securityAgent, girsuAgent)
+	professionalizationAgent, err := professionalizationagent.NewProfessionalizationAgent(model3, treeManager)
+	if err != nil {
+		log.Fatal("Error initializing ProfessionalizationAgent:", err)
+	}
+	educationAgent, err := educationagent.NewEducationAgent(model3, treeManager)
+	if err != nil {
+		log.Fatal("Error initializing EducationAgent:", err)
+	}
+	loader, _ := a2.NewMultiLoader(coordinatorAgent, securityAgent, girsuAgent, professionalizationAgent, educationAgent)
 	artifactService, _ := gcsartifact.NewService(ctx, os.Getenv("ARTIFACT_BUCKET_NAME"))
 	titlePlugin, _ := title_plugin.New(ctx, "title_plugin")
 	agentActivePlugin, _ := agent_active_plugin.New(ctx, "agent_active_plugin")

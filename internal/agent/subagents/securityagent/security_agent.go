@@ -42,6 +42,7 @@ func NewSecurityAgent(m model.LLM, treeManager *tree_agent.TreeCacheManager) (ag
 	cfg := shared.AgentConfig{
 		Name:             os.Getenv("AGENT_SECURITY_NAME"),
 		DomainPrefix:     "security",
+		SearchCategory:   os.Getenv("AGENT_SECURITY_SEARCH_CATEGORY"),
 		Description:      "Agente especializado en acompañar a municipios en la mejora de su gestión de seguridad ciudadana. Su función es empujar a los municipios a avanzar: completar datos, mejorar lo que ya tienen, priorizar lo que importa, y ejecutar cambios concretos. Para eso, utiliza el conocimiento experto del árbol de criterios de calidad construido por los facilitadores de RIL, y lo aplica al contexto específico de cada municipio para ofrecer recomendaciones personalizadas y accionables.",
 		Model:            m,
 		TreeManager:      treeManager,

@@ -31,8 +31,6 @@ import (
 	"ril.api-ia/internal/agent"
 	"ril.api-ia/internal/agent/plugin/agent_active_plugin"
 	"ril.api-ia/internal/agent/plugin/title_plugin"
-	"ril.api-ia/internal/agent/subagents/girsuagent"
-	"ril.api-ia/internal/agent/subagents/securityagent"
 	session2 "ril.api-ia/internal/application/service/session"
 	"ril.api-ia/internal/application/usecase"
 	"ril.api-ia/internal/domain/entity"
@@ -48,7 +46,15 @@ func main() {
 	ctx := context.Background()
 	_ = godotenv.Overload()
 
+	isLocal := os.Getenv("APP_ENV") == "local"
+
 	runMigrations(os.Getenv("DATABASE_AGENT_DSN"))
+
+	dbAgent, err := sqlx.Open("pgx", os.Getenv("DATABASE_AGENT_DSN"))
+	if err != nil {
+		log.Fatal("Error connecting to agent DB:", err)
+	}
+	defer dbAgent.Close()
 
 	//Init redis
 	rdb := redis.NewClient(&redis.Options{
@@ -57,14 +63,8 @@ func main() {
 		DB:       0,
 	})
 
-	dbAgent, err := sqlx.Open("pgx", os.Getenv("DATABASE_AGENT_DSN"))
-	if err != nil {
-		log.Fatal("Error connecting to agent DB:", err)
-	}
-	defer dbAgent.Close()
-
 	var dbCore *sqlx.DB
-	if os.Getenv("APP_ENV") != "local" {
+	if !isLocal {
 		dbCore, err = sqlx.ConnectContext(ctx, "mysql", os.Getenv("DATABASE_CORE_DSN"))
 		if err != nil {
 			log.Fatal("Error connecting to core DB:", err)
@@ -73,7 +73,7 @@ func main() {
 	}
 
 	// Agents service and runners
-	sessionService := initializeSessionService()
+	sessionService := initializeSessionService(isLocal)
 	artifactService, _ := gcsartifact.NewService(ctx, os.Getenv("ARTIFACT_BUCKET_NAME"))
 	userRepository, eventFeedbackRepository := InitializeRepositories(ctx, dbCore, dbAgent)
 
@@ -90,7 +90,10 @@ func main() {
 	startServer(router)
 }
 
-func initializeSessionService() session2.Service {
+func initializeSessionService(isLocal bool) session2.Service {
+	if isLocal {
+		return session2.NewMyDatabaseService(session.InMemoryService(), nil)
+	}
 	sessionService, err := database.NewSessionService(postgres.Open(os.Getenv("DATABASE_AGENT_DSN")))
 	mySessionService := session2.NewMyDatabaseService(sessionService, postgres.Open(os.Getenv("DATABASE_AGENT_DSN")))
 	if err != nil {
@@ -114,8 +117,6 @@ func InitializeRepositories(ctx context.Context, dbCore *sqlx.DB, dbAgent *sqlx.
 }
 
 func initializeRunner(ctx context.Context, sessionService session.Service, artifactService artifact.Service, dbAgent *sqlx.DB, rdb *redis.Client) map[string]*runner.Runner {
-	securityAgentName := os.Getenv("AGENT_SECURITY_NAME")
-	girsuAgentName := os.Getenv("AGENT_GIRSU_NAME")
 	toolboxClient, err := tbadk.NewToolboxClient(os.Getenv("TOOLBOX_CLIENT_URL"))
 	if err != nil {
 		log.Fatal("Error initializing Toolbox client:", err)
@@ -127,10 +128,6 @@ func initializeRunner(ctx context.Context, sessionService session.Service, artif
 	})
 	if err != nil {
 		log.Fatal("Error initializing GenAI client:", err)
-	}
-	rilAgent, err := agent.NewRilAgent(ctx, dbAgent, toolboxClient, genaiClient)
-	if err != nil {
-		log.Fatal("Error initializing RilAgent:", err)
 	}
 
 	model, err := gemini.NewModel(ctx, os.Getenv("AGENT_MODEL"), nil)
@@ -153,21 +150,24 @@ func initializeRunner(ctx context.Context, sessionService session.Service, artif
 		1*time.Hour,
 	)
 
-	securityAgent, err := securityagent.NewSecurityAgent(model, treeManager)
+	rilAgent, err := agent.NewRilAgent(ctx, dbAgent, toolboxClient, genaiClient, treeManager)
 	if err != nil {
-		log.Fatal("Error initializing SecurityAgent:", err)
+		log.Fatal("Error initializing RilAgent:", err)
 	}
 
-	girsuAgent, err := girsuagent.NewGirsuAgent(model, treeManager)
-	if err != nil {
-		log.Fatal("Error initializing GirsuAgent:", err)
+	runners := map[string]*runner.Runner{
+		"orchestrator": buildRunner(ctx, rilAgent, sessionService, artifactService),
 	}
 
-	return map[string]*runner.Runner{
-		"orchestrator":    buildRunner(ctx, rilAgent, sessionService, artifactService),
-		securityAgentName: buildRunner(ctx, securityAgent, sessionService, artifactService),
-		girsuAgentName:    buildRunner(ctx, girsuAgent, sessionService, artifactService),
+	for _, spec := range agent.EnabledDomainAgentSpecs() {
+		domainAgent, err := spec.Constructor(model, treeManager)
+		if err != nil {
+			log.Fatalf("Error initializing %s: %v", spec.Name, err)
+		}
+		runners[spec.Name] = buildRunner(ctx, domainAgent, sessionService, artifactService)
 	}
+
+	return runners
 }
 
 func buildRunner(ctx context.Context, ag internalagent.Agent, sessionService session.Service, artifactService artifact.Service) *runner.Runner {

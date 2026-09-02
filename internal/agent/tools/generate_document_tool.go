@@ -4,14 +4,12 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/gomutex/godocx"
 	"github.com/gomutex/godocx/docx"
 	"github.com/gomutex/godocx/wml/stypes"
 	"github.com/jung-kurt/gofpdf"
 	"github.com/tealeg/xlsx"
-	"google.golang.org/adk/artifact"
 	"google.golang.org/adk/tool"
 	"google.golang.org/genai"
 )
@@ -31,7 +29,6 @@ type Block struct {
 type GenerateDocumentResponse struct {
 	StatusCode int    `json:"status_code"`
 	Message    string `json:"message"`
-	FileUrl    string `json:"file_url,omitempty"`
 }
 
 type Render interface {
@@ -430,11 +427,10 @@ func GenerateDocumentsToolFunc(tctx tool.Context, args GenerateDocumentsArgs) (G
 		}, nil
 	}
 	log.Printf("[generate_document] Starting upload - file: %s, size: %d bytes", args.FileName, len(data))
-	var response *artifact.SaveResponse
 	var uploadErr error
 
 	for attempt := 0; attempt < 3; attempt++ {
-		response, uploadErr = tctx.Artifacts().Save(
+		_, uploadErr = tctx.Artifacts().Save(
 			tctx, args.FileName, &genai.Part{
 				InlineData: &genai.Blob{
 					MIMEType: args.MimeType,
@@ -456,13 +452,9 @@ func GenerateDocumentsToolFunc(tctx tool.Context, args GenerateDocumentsArgs) (G
 			Message:    "Failed to upload document, please try again",
 		}, nil
 	}
-	version := response.Version
-	filePath := fmt.Sprintf("%s/%s/%s/%s/%d", tctx.AppName(), tctx.UserID(), tctx.SessionID(), args.FileName, version)
-	fileCdn := os.Getenv("ARTIFACT_BUCKET_URL")
-	fileUrl := fmt.Sprintf("%s/%s", fileCdn, filePath)
+
 	return GenerateDocumentResponse{
 		StatusCode: 200,
-		FileUrl:    fileUrl,
 		Message:    "Document generated with success",
 	}, nil
 }

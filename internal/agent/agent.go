@@ -1,7 +1,10 @@
 package agent
 
 import (
+	"bytes"
 	"context"
+	"fmt"
+	"html/template"
 	"log"
 	"os"
 	"strconv"
@@ -12,14 +15,18 @@ import (
 	"google.golang.org/adk/agent/llmagent"
 	"google.golang.org/adk/model/gemini"
 	"google.golang.org/adk/tool"
+	"google.golang.org/adk/tool/agenttool"
 	"google.golang.org/adk/tool/functiontool"
 	"google.golang.org/genai"
+	"ril.api-ia/internal/agent/config"
 	"ril.api-ia/internal/agent/subagents"
+	"ril.api-ia/internal/agent/subagents/askcontextagent"
 	"ril.api-ia/internal/agent/tools"
 	"ril.api-ia/internal/domain/entity"
+	"ril.api-ia/internal/infrastructure/repository/tree_agent"
 )
 
-func NewRilAgent(ctx context.Context, db *sqlx.DB, toolboxClient tbadk.ToolboxClient, genaiClient *genai.Client) (agent.Agent, error) {
+func NewRilAgent(ctx context.Context, db *sqlx.DB, toolboxClient tbadk.ToolboxClient, genaiClient *genai.Client, treeManager *tree_agent.TreeCacheManager) (agent.Agent, error) {
 	// Overall configuration
 	m, err := gemini.NewModel(ctx, os.Getenv("AGENT_MODEL"), nil)
 	if err != nil {
@@ -58,6 +65,10 @@ func NewRilAgent(ctx context.Context, db *sqlx.DB, toolboxClient tbadk.ToolboxCl
 	if err != nil {
 		log.Fatalf("Failed to load tool: %v", err)
 	}
+	toolGetUserMemory, err := functiontool.New(functiontool.Config{
+		Name:        "get_user_memory",
+		Description: "Recupera la memoria acumulada del usuario sobre su municipio. Devuelve datos concretos aportados por el usuario, oportunidades de mejora identificadas y contexto relevante que se ha registrado en conversaciones anteriores. Esta herramienta es esencial para mantener la continuidad y personalización del acompañamiento, permitiendo al agente recordar lo que ya se sabe sobre el municipio y evitar pedir información redundante.",
+	}, tools.GetUserMemoryToolFunc)
 
 	saveMetadataFunc := func(toolCtx tool.Context, metadata *genai.GroundingMetadata) {
 		sessionID := toolCtx.SessionID()
@@ -73,15 +84,32 @@ func NewRilAgent(ctx context.Context, db *sqlx.DB, toolboxClient tbadk.ToolboxCl
 	if err != nil {
 		log.Fatalf("Failed to create RAG proxy tool: %v", err)
 	}
+
+	askContext, err := askcontextagent.NewAskContextAgent(ctx)
+	if err != nil {
+		return nil, err
+	}
+	askContextTool := agenttool.New(askContext, &agenttool.Config{
+		SkipSummarization: false,
+	})
+
+	enabledAgents := EnabledDomainAgentSpecs()
+
+	systemInstruction, err := BuildSystemInstruction(enabledAgents)
+	if err != nil {
+		log.Fatalf("Error building system instruction: %v", err)
+	}
+
 	return llmagent.New(llmagent.Config{
 		Name:                  "rilia_agent",
 		Description:           "Eres un asistente especialista en todo lo relacionado al ambito público. Ayudas a los usuarios a encontrar información relevante y precisa sobre estos temas, utilizando un lenguaje claro y accesible.",
-		Instruction:           SystemInstruction,
+		Instruction:           systemInstruction,
 		GenerateContentConfig: contentConfiguration,
-		GlobalInstruction:     GlobalInstruction,
+		GlobalInstruction:     config.GlobalInstruction,
 		Model:                 m,
-		Tools: []tool.Tool{
+		Tools: append([]tool.Tool{
 			toolGenerateDocument,
+			toolGetUserMemory,
 			&toolboxTool,
 			&getCertificateToolboxTool,
 			&getAllCertificateToolboxTool,
@@ -93,6 +121,25 @@ func NewRilAgent(ctx context.Context, db *sqlx.DB, toolboxClient tbadk.ToolboxCl
 			&getRilStaff,
 			&getEvaluationByName,
 			ragProxyTool,
-		},
+			askContextTool,
+		}, buildAgentTools(m, treeManager)...),
 	})
+}
+
+func BuildSystemInstruction(enabledDomainAgents []DomainAgentSpec) (string, error) {
+	tmpl, err := template.New("system_instruction").Parse(systemInstructionTemplate)
+	if err != nil {
+		return "", fmt.Errorf("error parseando system instruction template: %w", err)
+	}
+
+	var buf bytes.Buffer
+	data := struct {
+		DomainAgents []DomainAgentSpec
+	}{
+		DomainAgents: enabledDomainAgents,
+	}
+	if err := tmpl.Execute(&buf, data); err != nil {
+		return "", fmt.Errorf("error ejecutando system instruction template: %w", err)
+	}
+	return buf.String(), nil
 }

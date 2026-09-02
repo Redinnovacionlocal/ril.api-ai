@@ -32,6 +32,10 @@ func New(ctx context.Context, name string) (*plugin.Plugin, error) {
 func (a *AgentActivePlugin) BeforeAgentCallback(ctx agent.CallbackContext) (*genai.Content, error) {
 	// Add last agent active
 	agentAuthor := ctx.AgentName()
+	if _, err := ctx.State().Get("root_agent"); err != nil {
+		// Add root agent
+		ctx.State().Set("root_agent", ctx.AgentName())
+	}
 	err := ctx.State().Set("last_agent_active", agentAuthor)
 	if err != nil {
 		// Log the error but don't fail the callback

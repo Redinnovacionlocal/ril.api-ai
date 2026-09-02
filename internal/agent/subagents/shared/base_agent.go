@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"log"
+	"os"
 	"strings"
 	"text/template"
 
@@ -18,9 +20,9 @@ import (
 	"google.golang.org/adk/tool/functiontool"
 	"google.golang.org/adk/tool/skilltoolset"
 	"google.golang.org/adk/tool/skilltoolset/skill"
-
-	agent2 "ril.api-ia/internal/agent"
+	"ril.api-ia/internal/agent/config"
 	"ril.api-ia/internal/agent/subagents/askcontextagent"
+	sharedTools "ril.api-ia/internal/agent/subagents/shared/tools"
 	"ril.api-ia/internal/agent/tools"
 	"ril.api-ia/internal/domain/entity"
 	"ril.api-ia/internal/infrastructure/repository/tree_agent"
@@ -35,6 +37,7 @@ var SharedSkillsFiles embed.FS
 type AgentConfig struct {
 	Name             string
 	DomainPrefix     string
+	SearchCategory   string
 	Description      string
 	Model            model.LLM
 	TreeManager      *tree_agent.TreeCacheManager
@@ -139,11 +142,23 @@ func NewDomainAgent(ctx context.Context, cfg AgentConfig) (agent.Agent, error) {
 		return nil, err
 	}
 
+	searchCfg := sharedTools.SearchToolConfig{
+		ProjectID:   os.Getenv("GOOGLE_CLOUD_PROJECT"),
+		Location:    os.Getenv("GOOGLE_CLOUD_LOCATION"),
+		DataStoreID: "ril-inspirarme-casos_1773239632591_vista_inspirarme_casos",
+	}
+
+	getInspireCasesTool, err := sharedTools.NewGetInspireCasesTool(searchCfg, cfg.SearchCategory)
+	if err != nil {
+		return nil, fmt.Errorf("error creando inspire cases tool: %w", err)
+	}
+
 	allTools := []tool.Tool{
 		toolGenerateDocument,
 		lookupTreeTool,
+		getInspireCasesTool,
 		agenttool.New(askContext, &agenttool.Config{
-			SkipSummarization: true,
+			SkipSummarization: false,
 		}),
 	}
 	allTools = append(allTools, cfg.DomainTools...)
@@ -170,13 +185,14 @@ func NewDomainAgent(ctx context.Context, cfg AgentConfig) (agent.Agent, error) {
 	}
 
 	return llmagent.New(llmagent.Config{
-		Name:              cfg.Name,
-		Instruction:       systemInstruction,
-		GlobalInstruction: agent2.GlobalInstruction,
-		Description:       cfg.Description,
-		Model:             cfg.Model,
-		Tools:             allTools,
-		Toolsets:          []tool.Toolset{mySkillToolset},
+		Name:                cfg.Name,
+		Instruction:         systemInstruction,
+		GlobalInstruction:   config.GlobalInstruction,
+		Description:         cfg.Description,
+		Model:               cfg.Model,
+		Tools:               allTools,
+		Toolsets:            []tool.Toolset{mySkillToolset},
+		BeforeToolCallbacks: []llmagent.BeforeToolCallback{SkipAskContextWhenDelegated(cfg.Name)},
 	})
 }
 
@@ -245,4 +261,22 @@ func (cfg AgentConfig) validate() error {
 		return errors.New("skills files are required")
 	}
 	return nil
+}
+
+func SkipAskContextWhenDelegated(agentName string) llmagent.BeforeToolCallback {
+	return func(ctx tool.Context, t tool.Tool, args map[string]any) (map[string]any, error) {
+		if t.Name() != "ask_context_agent" {
+			return nil, nil
+		}
+
+		root, _ := ctx.State().Get("root_agent")
+		log.Printf("SkipAskContextWhenDelegated: root=%v, agent=%s", root, agentName)
+		if root == agentName {
+			return nil, nil
+		}
+
+		return map[string]any{
+			"ask_context_skipped": true,
+		}, nil
+	}
 }

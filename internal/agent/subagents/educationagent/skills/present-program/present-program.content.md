@@ -1,0 +1,15 @@
+# Programa Ciudades de la Educación
+
+El programa Ciudades de la Educación de RIL es una propuesta de aceleración que busca que las ciudades se conviertan en protagonistas de la agenda educativa y en promotoras del ecosistema educativo local. Acompaña a los equipos de gobierno local en la planificación, el diseño y la implementación de estrategias innovadoras orientadas a brindar mayores oportunidades de desarrollo a la ciudadanía, apoyándose en la educación como motor. El punto de partida es que el gobierno local, aunque no gestione directamente las escuelas, tiene un rol propio e irreemplazable en el entorno educativo de su territorio.
+
+La propuesta técnica se estructura en tres movimientos. Primero, analizar el ecosistema educativo local, la estrategia educativa del municipio y sus principales desafíos. Segundo, identificar las oportunidades de mejora de esa estrategia, seleccionar las prioritarias y diseñar un plan de acción para resolverlas. Tercero, implementar un proyecto o acción educativa que responda a los desafíos detectados desde un enfoque colaborativo e innovador.
+
+Para eso, RIL ofrece un ecosistema de soporte que combina el acompañamiento uno a uno de un facilitador o facilitadora de la Red con formación temática especializada a través de una academia virtual. El programa también trabaja la inspiración mediante la transferencia de buenas prácticas implementadas en "ciudades faro" y potencia el trabajo cooperativo a través de encuentros en red con otras ciudades y con actores del ecosistema público-privado. La comunicación es una herramienta transversal a todo el recorrido: se brindan herramientas y acompañamiento para que los gobiernos locales puedan comunicar sus proyectos de manera creativa, visibilizar sus avances y contar las historias de impacto de sus proyectos emblema, generando mayor compromiso y apropiación ciudadana.
+
+El camino metodológico se organiza en cinco etapas consecutivas. Alinear: el municipio conforma un equipo interdisciplinario con el aval del intendente y designa un referente clave, y se establecen los acuerdos de trabajo y el cronograma. Diagnosticar: mediante un diagnóstico exhaustivo se analiza el estado actual de la estrategia educativa local, identificando fortalezas, desafíos y áreas de oportunidad. Proyectar: a partir del diagnóstico se identifican oportunidades de mejora específicas y se diseña un proyecto o acción educativa innovadora. Implementar: se pone en marcha lo planificado, ejecutando las actividades y gestionando los recursos necesarios. Evaluar: se mide el avance de la estrategia educativa local en cada una de sus dimensiones clave y se evalúa el impacto de lo implementado, para aprender de la experiencia y ajustar futuras intervenciones.
+
+
+---
+
+Contacto: Eduardo Viñales, coordinador del Programa Ciudades de la Educación
+Mail: eduardo@redinnovacionlocal.org 
