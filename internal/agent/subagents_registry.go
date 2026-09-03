@@ -29,7 +29,7 @@ type DomainAgentSpec struct {
 var domainAgentSpecs = []DomainAgentSpec{
 	{"girsu_agent", "Residuos", "gestión de residuos", girsuagent.NewGirsuAgent},
 	{"security_agent", "Seguridad", "seguridad pública", securityagent.NewSecurityAgent},
-	{"profesionalizacion_agent", "Profesionalización", "profesionalización del municipio", professionalizationagent.NewProfessionalizationAgent},
+	{"professionalization_agent", "Profesionalización", "profesionalización del municipio", professionalizationagent.NewProfessionalizationAgent},
 	{"education_agent", "Educación", "educación", educationagent.NewEducationAgent},
 }
 
@@ -50,7 +50,7 @@ func EnabledDomainAgentSpecs() []DomainAgentSpec {
 			out = append(out, spec)
 		}
 	}
-
+	log.Printf("Enabled domain agents: %v", out)
 	return out
 }
 
