@@ -50,7 +50,6 @@ func EnabledDomainAgentSpecs() []DomainAgentSpec {
 			out = append(out, spec)
 		}
 	}
-	log.Printf("Enabled domain agents: %v", out)
 	return out
 }
 
