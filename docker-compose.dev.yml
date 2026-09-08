@@ -19,6 +19,7 @@ services:
     depends_on:
       - redis
       - postgres-local
+      - jaeger
   mcp-toolbox:
     image: us-central1-docker.pkg.dev/database-toolbox/toolbox/toolbox:latest
     user: root
@@ -62,6 +63,15 @@ services:
     volumes:
       - redis-data:/data
     command: [ "redis-server", "--save", "60", "1", "--appendonly", "yes" ]
+  jaeger:
+    image: jaegertracing/all-in-one:1.62.0
+    ports:
+      - "16686:16686"   # UI web
+      - "4318:4318"     # OTLP/HTTP (receptor de traces)
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - go_app
   postgres-local:
     image: postgres:16
     environment:

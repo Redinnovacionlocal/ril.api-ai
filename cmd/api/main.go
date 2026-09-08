@@ -3,9 +3,13 @@ package main
 import (
 	"context"
 	cryptoRand "crypto/rand"
+	"errors"
 	"log"
 	"math/rand"
+	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"cloud.google.com/go/storage"
@@ -37,6 +41,7 @@ import (
 	"ril.api-ia/internal/domain/repository"
 	"ril.api-ia/internal/infrastructure/http/handler"
 	"ril.api-ia/internal/infrastructure/http/middleware"
+	"ril.api-ia/internal/infrastructure/observability"
 	m "ril.api-ia/internal/infrastructure/repository/memory"
 	"ril.api-ia/internal/infrastructure/repository/sql"
 	"ril.api-ia/internal/infrastructure/repository/tree_agent"
@@ -45,6 +50,13 @@ import (
 func main() {
 	ctx := context.Background()
 	_ = godotenv.Overload()
+
+	observability.SetupLogging()
+
+	shutdownTracing, err := observability.SetupTracing(ctx)
+	if err != nil {
+		log.Fatal("Error initializing tracing:", err)
+	}
 
 	isLocal := os.Getenv("APP_ENV") == "local"
 
@@ -87,7 +99,7 @@ func main() {
 
 	// HTTP Server and routes
 	router := setupRouter(ctx, dbAgent, sessionUseCase, userUseCase, eventFeedbackUseCase, transcribeUseCase, runners)
-	startServer(router)
+	startServer(ctx, router, shutdownTracing)
 }
 
 func initializeSessionService(isLocal bool) session2.Service {
@@ -200,6 +212,7 @@ func setupRouter(ctx context.Context, dbAgent *sqlx.DB, sessionUseCase *usecase.
 	configCors.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Accept", "Authorization", "x-agent"}
 	configCors.AllowAllOrigins = true
 	r.Use(cors.New(configCors))
+	r.Use(middleware.Tracing())
 	r.Use(middleware.AuthMiddleware(*userUseCase))
 
 	sessionHandler := handler.NewSessionHandler(sessionUseCase)
@@ -226,16 +239,38 @@ func registerRoutes(r *gin.Engine, dbAgent *sqlx.DB, sessionHandler *handler.Ses
 	r.POST("/run-sse", middleware.GroundingMetadataLogger(dbAgent), runHandler.RunSSE)
 }
 
-func startServer(router *gin.Engine) {
+func startServer(ctx context.Context, router *gin.Engine, shutdownTracing observability.ShutdownFunc) {
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 
-	log.Printf("Starting server on port %s", port)
-	if err := router.Run(":" + port); err != nil {
-		log.Fatal("Error starting server:", err)
+	srv := &http.Server{Addr: ":" + port, Handler: router}
+
+	ctx, stop := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	go func() {
+		log.Printf("Starting server on port %s", port)
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatal("Error starting server:", err)
+		}
+	}()
+
+	<-ctx.Done()
+	stop()
+	log.Println("Shutdown signal recibido, cerrando servicio...")
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		log.Printf("Error cerrando el server HTTP: %v", err)
 	}
+	if err := shutdownTracing(shutdownCtx); err != nil {
+		log.Printf("Error en el shutdown de telemetría: %v", err)
+	}
+	log.Println("Servicio cerrado")
 }
 
 func seedMockUsers(userRepository *m.UserRepository) {
