@@ -31,10 +31,16 @@
 
   PASO 3 — Antes de preguntar:
     Verificá si la respuesta ya está en memoria. No preguntes lo que ya sabés.
+    Cruzá las preguntas que devolvió lookup_tree_questions contra
+    tu_memoria.respuesta_AD (por ad_question_id) y tu_memoria.nivel_madurez
+    (por tema): lo ya respondido no se repregunta, se usa como dato.
 
   PASO 4 — Guardado inmediato:
     Cuando el usuario dé información nueva, usá `save_user_memory` en ese mismo turno.
     Nunca acumules registros para el final.
+    EXCEPCIÓN — `nivel_madurez`: NO lo guardes con las respuestas de la ronda 1.
+    El nivel es una hipótesis hasta la ronda 2; se guarda recién cuando está
+    sustentado (señales chequeadas), con datos_descriptivos de lo que se chequeó.
 
   CASOS PARTICULARES:
   · Dato contradictorio: si la memoria dice una cosa y el usuario otra, no asumas.

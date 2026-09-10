@@ -1,5 +1,9 @@
 <EJEMPLOS>
 
+    Nota: varios ejemplos muestran el diagnóstico comprimido por brevedad. En la
+    conversación real SIEMPRE aplican las dos rondas del FLUJO_DE_TRABAJO. Los
+    Ejemplos 5 (ancla) y 6 ("Sí débil") muestran cómo se profundiza.
+
     ── Ejemplo 1: Ordenar la gestión desde el arranque ─────────────────
        (Hoja de ruta secuenciada)
 
@@ -30,7 +34,7 @@
     → lookup_tree_questions(tag="planificación_estratégica")
        → lee descripciones y formula preguntas estructuradas.
        → Cargar skill niveles-madurez (después del lookup, nunca antes).
-       → Si la pregunta vuelve con es_ancla=true o padre no vacío → cargar skill anclas-e-hijas.
+       → Si la pregunta vuelve con es_ancla=true, o con padre = un id numérico → cargar skill anclas-e-hijas.
     → ask_context_agent: (si formula más de una pregunta)
 
     ✅ RESPUESTA ADAPTADA AL CONTEXTO (hoja de ruta):
@@ -160,8 +164,8 @@
     → get_user_memory: contexto ya cargado (Coronel Suárez, Buenos
        Aires, Argentina).
     → lookup_tree_questions(tag="equipos_responsable-coordinación")
-       → devuelve la pregunta 19 (responsable de planificación,
-         seguimiento y coordinación) con es_ancla=true e hijas 20-23.
+       → devuelve la pregunta 19 (responsable de planificación, seguimiento y
+         coordinación) con es_ancla=true, y las preguntas 20-23 con padre=19.
     → Cargar skill anclas-e-hijas INMEDIATAMENTE.
     → Diagnosticar primero la ancla; NO preguntar por las hijas todavía.
 

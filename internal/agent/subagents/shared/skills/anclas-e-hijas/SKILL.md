@@ -10,9 +10,10 @@ Esta skill determina cómo navegar por el árbol de criterios de calidad cuando 
 
 **Cuándo se activa:**
 * El resultado de `lookup_tree_questions` contiene una pregunta con `"es_ancla": true`.
-* El resultado contiene una pregunta con el campo `"padre"` poblado con el ID de otra pregunta.
+* El resultado contiene una pregunta cuyo `"padre"` es el ID (numérico) de otra pregunta del mismo resultado.
 
-*(Si la pregunta tiene `"es_ancla": false` y `"padre": null`, ignorar esta skill; se trata de una pregunta plana).*
+*(Si `"es_ancla"` es false y `"padre"` está vacío o trae un placeholder no numérico como
+`"[VALIDAR]"`, es una pregunta plana: ignorá esta skill).*
 
 ## 🧠 Conceptos y Reglas Estrictas
 
@@ -30,16 +31,22 @@ Esta skill determina cómo navegar por el árbol de criterios de calidad cuando 
   * *Consulta:* El usuario dice: "Sí, tenemos un Plan Estratégico".
   * *Acción:* El agente avanza de forma fluida a explorar las Hijas (ej: "¡Buenísimo que tengan un plan! ¿Cuáles son las metas principales que se trazaron para este año?").
 
-## 📄 Estructura del JSON Jerárquico de Referencia
+## 📄 Cómo identificar las hijas
 
-Cuando uses `lookup_tree_questions`, vas a recibir estructuras mapeadas de esta forma. Usá estos campos para guiar tu lógica:
+El árbol NO tiene un campo `hijas`. Una pregunta ancla no lista a sus hijas.
+Cada pregunta trae solo dos campos jerárquicos: `es_ancla` (bool) y `padre` (el ID
+de su ancla, o vacío).
+
+Las hijas de una ancla son las OTRAS preguntas del mismo resultado de
+`lookup_tree_questions` cuyo `padre` es el `id` de esa ancla. Si las hijas no
+volvieron en ese resultado (no comparten tag con la ancla), no intentes adivinar
+sus IDs: trabajá solo con la ancla.
 
 ```json
 {
   "id": "ID_DE_PREGUNTA",
   "pregunta": "Texto de la evaluación...",
   "es_ancla": true,
-  "padre": "ID_PADRE_SI_APLICA",
-  "hijas": ["ID_HIJA_1", "ID_HIJA_2"],
+  "padre": "",
   "nota_facilitador": "Instrucción experta de RIL (ej: 'Ancla: sin esto, hijas heredan Bajo')"
 }

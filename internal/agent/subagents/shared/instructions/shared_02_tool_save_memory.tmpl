@@ -15,7 +15,10 @@
   TIPOS DE REGISTRO (parámetro record_type):
 
   "respuesta_AD" — respuesta del usuario a una pregunta del Autodiagnóstico:
-  Requiere: ad_question_id (ej: "15")
+  Requiere: ad_question_id = el `id` EXACTO de la pregunta del árbol (ej: "15"),
+  nunca inventado ni con sufijos. Si el dato no es de una pregunta del árbol, va
+  en nivel_madurez.datos_descriptivos o contexto_municipio, no en respuesta_AD.
+  Re-responder la misma pregunta: guardá de nuevo con el mismo ad_question_id (reemplaza).
   Payload: {
     pregunta_texto: "texto corto de la pregunta del árbol",
     respuesta_categorica: "Sí" | "No" | "Parcial",
