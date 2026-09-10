@@ -14,6 +14,7 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/redis/go-redis/v9"
 	"ril.api-ia/internal/domain/entity"
+	"ril.api-ia/internal/infrastructure/observability"
 )
 
 type TreeCacheManager struct {
@@ -53,9 +54,11 @@ func (m *TreeCacheManager) GetData(ctx context.Context, agentPrefix string) ([]e
 	if err == nil {
 		var preguntas []entity.QuestionTree
 		if err := json.Unmarshal([]byte(val), &preguntas); err == nil {
+			observability.SetActive(ctx, observability.Attrs{"tree.cache.hit": true})
 			return preguntas, nil
 		}
 	}
+	observability.SetActive(ctx, observability.Attrs{"tree.cache.hit": false})
 	log.Printf("Cache miss para preguntas, refrescando cache: %v", err)
 	preguntas, _, _, err := m.refreshCache(ctx, agentPrefix)
 	return preguntas, err
@@ -101,12 +104,17 @@ func (m *TreeCacheManager) GetTags(ctx context.Context, agentPrefix string) ([]s
 	return tags, err
 }
 
-func (m *TreeCacheManager) refreshCache(ctx context.Context, agentPrefix string) ([]entity.QuestionTree, []string, []string, error) {
+func (m *TreeCacheManager) refreshCache(ctx context.Context, agentPrefix string) (_ []entity.QuestionTree, _ []string, _ []string, err error) {
+	ctx, span := observability.Start(ctx, "tree_cache.refresh", observability.Attrs{"tree.agent_prefix": agentPrefix})
+	defer span.End(&err)
+
 	objectName, err := m.repo.GetExcelGCSPath(agentPrefix)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("error obteniendo excel_gcs_path: %w", err)
 	}
+	span.Set(observability.Attrs{"tree.gcs.object": objectName})
 
+	span.Event("gcs.download.start", nil)
 	rc, err := m.gcsClient.Bucket(m.bucketName).Object(objectName).NewReader(ctx)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("error leyendo de GCS: %w", err)
@@ -117,11 +125,19 @@ func (m *TreeCacheManager) refreshCache(ctx context.Context, agentPrefix string)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("error leyendo bytes: %w", err)
 	}
+	span.Event("gcs.download.done", observability.Attrs{"tree.excel.bytes": len(fileBytes)})
 
+	span.Event("excel.parse.start", nil)
 	preguntas, dimensions, tags, err := parseExcelContent(fileBytes)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("error parseando excel: %w", err)
 	}
+	span.Event("excel.parse.done", nil)
+	span.Set(observability.Attrs{
+		"tree.questions":  len(preguntas),
+		"tree.dimensions": len(dimensions),
+		"tree.tags":       len(tags),
+	})
 
 	keyQuestions := fmt.Sprintf("%s:tree:questions", agentPrefix)
 	keyDimensions := fmt.Sprintf("%s:tree:dimensions", agentPrefix)

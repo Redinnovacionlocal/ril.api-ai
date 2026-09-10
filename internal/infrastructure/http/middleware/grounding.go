@@ -3,6 +3,7 @@ package middleware
 import (
 	"encoding/json"
 	"log"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
@@ -19,6 +20,10 @@ type contextKey string
 const GroundingStateKey contextKey = "grounding_state"
 
 func GroundingMetadataLogger(dbAgent *sqlx.DB) gin.HandlerFunc {
+	if os.Getenv("APP_ENV") == "local" {
+		return func(c *gin.Context) { c.Next() }
+	}
+
 	return func(c *gin.Context) {
 		log.Print("start grounding middleware")
 		c.Next()
@@ -33,10 +38,10 @@ func GroundingMetadataLogger(dbAgent *sqlx.DB) gin.HandlerFunc {
 			log.Println(">> ERROR: session_id is not a string")
 			return
 		}
-		
+
 		log.Print("end grounding middleware")
 		defer entity.GroundingCache.Delete(sessionID)
-		
+
 		if val, ok := entity.GroundingCache.Load(sessionID); ok {
 			metadata, ok := val.(*genai.GroundingMetadata)
 			if !ok {
