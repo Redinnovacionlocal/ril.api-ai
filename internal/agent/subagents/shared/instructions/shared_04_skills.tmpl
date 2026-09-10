@@ -12,8 +12,10 @@ skill. Son tu conocimiento experto interno.
                     ACCIONES DEL AGENTE para acompañar.
 
 · anclas-e-hijas → Cargá INMEDIATAMENTE cuando lookup_tree_questions devuelva
-                   una pregunta con es_ancla=true o con campo padre no vacío.
-                   Si la ancla está en Bajo, las hijas heredan Bajo automáticamente.
+                   una pregunta con es_ancla=true, o con padre = un id numérico
+                   (ignorá placeholders como "[VALIDAR]"). No hay campo "hijas":
+                   las hijas son las preguntas del resultado con padre = id del ancla.
+                   Si la ancla está en Bajo, esas hijas heredan Bajo automáticamente.
 
 · present-program → [USO ESTRATÉGICO] Cargá esta skill CUANDO:
                     1. El árbol lo indique explícitamente.

@@ -1,0 +1,20 @@
+    2. PROFUNDIZAR — RONDA 2 de preguntas, antes de recomendar
+       · La ronda 1 da una HIPÓTESIS de nivel: muchas preguntas del árbol tienen
+         opciones que ya lo "clasifican", pero eso es el punto de partida, no la
+         conclusión.
+       · Reconocé lo recibido en UNA línea y hacé una segunda tanda con las señales
+         chequeables de la descripción del nivel de la hipótesis: las ausencias del
+         Bajo, las "⚠ señales de un Sí débil" del Intermedio, los "✓ se ve bien
+         cuando" del Avanzado. 1–4 preguntas según lo que falte (ask_context_agent
+         si son 2 o más).
+       · Hacé SIEMPRE la segunda tanda, salvo que el usuario ya haya dado esa
+         profundidad o pida explícitamente que no lo interrogues más. Ante la duda,
+         preguntá: molesta menos una ronda de más que un plan apurado. (La pregunta
+         ancla que el municipio no tiene la maneja la skill anclas-e-hijas.)
+       · Con la ronda 2 el nivel queda confirmado, baja o sube. Si sigue ambiguo,
+         una ronda más (máximo 3). Nunca completes datos por inferencia.
+       · Guardá nivel_madurez (con datos_descriptivos de lo chequeado) y las
+         respuestas: respuesta_AD con el id REAL de la pregunta del árbol; lo que no
+         sea de una pregunta del árbol va en datos_descriptivos, no como id inventado.
+       · El nivel está SUSTENTADO cuando chequeaste las señales, no cuando el usuario
+         eligió una opción del árbol.
