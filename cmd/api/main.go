@@ -55,7 +55,8 @@ func main() {
 
 	shutdownTracing, err := observability.SetupTracing(ctx)
 	if err != nil {
-		log.Fatal("Error initializing tracing:", err)
+		log.Printf("Error initializing tracing, continuando sin tracing: %v", err)
+		shutdownTracing = func(context.Context) error { return nil }
 	}
 
 	isLocal := os.Getenv("APP_ENV") == "local"
