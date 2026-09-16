@@ -34,6 +34,7 @@ import (
 	"gorm.io/driver/postgres"
 	"ril.api-ia/internal/agent"
 	"ril.api-ia/internal/agent/plugin/agent_active_plugin"
+	"ril.api-ia/internal/agent/plugin/model_armor_plugin"
 	"ril.api-ia/internal/agent/plugin/title_plugin"
 	session2 "ril.api-ia/internal/application/service/session"
 	"ril.api-ia/internal/application/usecase"
@@ -187,6 +188,10 @@ func buildRunner(ctx context.Context, ag internalagent.Agent, sessionService ses
 	memoryService := memory.InMemoryService()
 	titlePlugin, _ := title_plugin.New(ctx, "title_plugin")
 	agentActivePlugin, _ := agent_active_plugin.New(ctx, "agent_active_plugin")
+	modelArmorPlugin, err := model_armor_plugin.New(ctx, "model_armor_plugin")
+	if err != nil {
+		log.Fatal("Error initializing Model Armor plugin:", err)
+	}
 
 	r, err := runner.New(runner.Config{
 		AppName:         os.Getenv("APP_NAME"),
@@ -198,6 +203,7 @@ func buildRunner(ctx context.Context, ag internalagent.Agent, sessionService ses
 			Plugins: []*plugin.Plugin{
 				titlePlugin,
 				agentActivePlugin,
+				modelArmorPlugin,
 			},
 		},
 	})
