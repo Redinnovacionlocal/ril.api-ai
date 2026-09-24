@@ -49,6 +49,7 @@ type AgentConfig struct {
 type PromptData struct {
 	Tags       []string
 	Dimensions []string
+	Variants   []tree_agent.TreeVariant
 }
 
 type LookupTreeArgs struct {
@@ -56,6 +57,7 @@ type LookupTreeArgs struct {
 	ID        string `json:"id,omitempty"`
 	Dimension string `json:"dimension,omitempty"`
 	Tag       string `json:"tag,omitempty"`
+	Variant   string `json:"variant,omitempty"`
 }
 
 type LookupTreeResult struct {
@@ -102,9 +104,15 @@ func NewDomainAgent(ctx context.Context, cfg AgentConfig) (agent.Agent, error) {
 		return nil, fmt.Errorf("error obteniendo tags para %s: %w", cfg.DomainPrefix, err)
 	}
 
+	variants, err := cfg.TreeManager.GetVariants(cfg.DomainPrefix)
+	if err != nil {
+		return nil, fmt.Errorf("error obteniendo variantes de árbol para %s: %w", cfg.DomainPrefix, err)
+	}
+
 	systemInstruction, err := buildSystemInstruction(PromptData{
 		Dimensions: dimensions,
 		Tags:       tags,
+		Variants:   variants,
 	}, cfg.InstructionFiles)
 	if err != nil {
 		return nil, err
@@ -116,7 +124,19 @@ func NewDomainAgent(ctx context.Context, cfg AgentConfig) (agent.Agent, error) {
             Parámetros (usá uno solo): tag (tag exacto del catálogo), dimension (dimensión exacta),
             id (número de pregunta, ej: "1", "34,35,36"), query (texto libre, último recurso).`,
 	}, func(ctx tool.Context, args LookupTreeArgs) (LookupTreeResult, error) {
-		preguntas, err := cfg.TreeManager.Lookup(ctx, args.ID, args.Dimension, args.Tag, args.Query, cfg.DomainPrefix)
+		variantStateKey := fmt.Sprintf("tree_variant:%s", cfg.DomainPrefix)
+		variant := args.Variant
+		if variant == "" {
+			if v, _ := ctx.State().Get(variantStateKey); v != nil {
+				if vs, ok := v.(string); ok {
+					variant = vs
+				}
+			}
+		} else {
+			_ = ctx.State().Set(variantStateKey, variant)
+		}
+
+		preguntas, err := cfg.TreeManager.Lookup(ctx, args.ID, args.Dimension, args.Tag, args.Query, cfg.DomainPrefix, variant)
 		if err != nil {
 			if errors.Is(err, tree_agent.ErrTreeNotConfigured) {
 				return LookupTreeResult{}, fmt.Errorf("el árbol de criterios no está disponible todavía, intentá más tarde")

@@ -23,9 +23,35 @@ func (r *QuestionTreeRepository) GetExcelGCSPath(agentPrefix string) (string, er
 	}
 	var path string
 	err := r.db.Get(&path, `
-        SELECT excel_gcs_path 
-        FROM tree_sub_agent 
+        SELECT excel_gcs_path
+        FROM tree_sub_agent
         WHERE id_tree_sub_agent = $1
     `, subAgentId)
+	return path, err
+}
+
+type TreeVariant struct {
+	VariantKey string `db:"variant_key"`
+	Hint       string `db:"variant_hint"`
+}
+
+func (r *QuestionTreeRepository) GetVariants(agentPrefix string) ([]TreeVariant, error) {
+	var variants []TreeVariant
+	err := r.db.Select(&variants, `
+        SELECT variant_key, coalesce(variant_hint, '') AS variant_hint
+        FROM tree_sub_agent
+        WHERE domain_prefix = $1 AND variant_key IS NOT NULL AND active = true
+        ORDER BY variant_key
+    `, agentPrefix)
+	return variants, err
+}
+
+func (r *QuestionTreeRepository) GetExcelGCSPathForVariant(agentPrefix, variantKey string) (string, error) {
+	var path string
+	err := r.db.Get(&path, `
+        SELECT excel_gcs_path
+        FROM tree_sub_agent
+        WHERE domain_prefix = $1 AND variant_key = $2 AND active = true
+    `, agentPrefix, variantKey)
 	return path, err
 }

@@ -1,6 +1,12 @@
 Payload: {
-  key: "pais|provincia_pais|presupuesto_area|restriccion_presupuestaria|
+  key: "pais|provincia_pais|tipo_gobierno|presupuesto_area|restriccion_presupuestaria|
        prioridad_politica|nombre_responsable_area",
   value: "valor"
 }
+IMPORTANTE — dato dinámico, no fijo para siempre: guardá "pais" y "tipo_gobierno"
+(cuando el país tenga variantes de árbol) siempre con esa MISMA key. Si el usuario
+dice después que es de otro país/gobierno (ej. cambió de municipio consultado),
+volvé a guardar con la misma key: reemplaza el valor anterior, no se acumula.
+No asumas que el país/tipo de gobierno de una conversación previa sigue valiendo
+si el usuario menciona una ciudad distinta — confirmá y sobrescribí.
 </HERRAMIENTA>
