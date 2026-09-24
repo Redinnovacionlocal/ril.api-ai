@@ -42,13 +42,20 @@ func NewTreeCacheManager(client *storage.Client, bucket string, repo *QuestionTr
 	}
 }
 
-func (m *TreeCacheManager) GetData(ctx context.Context, agentPrefix string) ([]entity.QuestionTree, error) {
+func cacheKey(agentPrefix, variant, suffix string) string {
+	if variant == "" {
+		return fmt.Sprintf("%s:tree:%s", agentPrefix, suffix)
+	}
+	return fmt.Sprintf("%s:%s:tree:%s", agentPrefix, variant, suffix)
+}
+
+func (m *TreeCacheManager) GetData(ctx context.Context, agentPrefix, variant string) ([]entity.QuestionTree, error) {
 	if !m.isConfigured() {
 		return nil, ErrTreeNotConfigured
 	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	keyQuestions := fmt.Sprintf("%s:tree:questions", agentPrefix)
+	keyQuestions := cacheKey(agentPrefix, variant, "questions")
 	val, err := m.rdb.Get(ctx, keyQuestions).Result()
 
 	if err == nil {
@@ -60,7 +67,7 @@ func (m *TreeCacheManager) GetData(ctx context.Context, agentPrefix string) ([]e
 	}
 	observability.SetActive(ctx, observability.Attrs{"tree.cache.hit": false})
 	log.Printf("Cache miss para preguntas, refrescando cache: %v", err)
-	preguntas, _, _, err := m.refreshCache(ctx, agentPrefix)
+	preguntas, _, _, err := m.refreshCache(ctx, agentPrefix, variant)
 	return preguntas, err
 }
 
@@ -71,7 +78,7 @@ func (m *TreeCacheManager) GetDimensions(ctx context.Context, agentPrefix string
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	keyDimensions := fmt.Sprintf("%s:tree:dimensions", agentPrefix)
+	keyDimensions := cacheKey(agentPrefix, "", "dimensions")
 	val, err := m.rdb.Get(ctx, keyDimensions).Result()
 	if err == nil {
 		var dims []string
@@ -80,7 +87,7 @@ func (m *TreeCacheManager) GetDimensions(ctx context.Context, agentPrefix string
 		}
 	}
 
-	_, dims, _, err := m.refreshCache(ctx, agentPrefix)
+	_, dims, _, err := m.refreshCache(ctx, agentPrefix, "")
 	return dims, err
 }
 
@@ -91,7 +98,7 @@ func (m *TreeCacheManager) GetTags(ctx context.Context, agentPrefix string) ([]s
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	keyTags := fmt.Sprintf("%s:tree:tags", agentPrefix)
+	keyTags := cacheKey(agentPrefix, "", "tags")
 	val, err := m.rdb.Get(ctx, keyTags).Result()
 	if err == nil {
 		var tags []string
@@ -100,18 +107,38 @@ func (m *TreeCacheManager) GetTags(ctx context.Context, agentPrefix string) ([]s
 		}
 	}
 
-	_, _, tags, err := m.refreshCache(ctx, agentPrefix)
+	_, _, tags, err := m.refreshCache(ctx, agentPrefix, "")
 	return tags, err
 }
 
-func (m *TreeCacheManager) refreshCache(ctx context.Context, agentPrefix string) (_ []entity.QuestionTree, _ []string, _ []string, err error) {
-	ctx, span := observability.Start(ctx, "tree_cache.refresh", observability.Attrs{"tree.agent_prefix": agentPrefix})
+func (m *TreeCacheManager) GetVariants(agentPrefix string) ([]TreeVariant, error) {
+	if !m.isConfigured() {
+		return nil, nil
+	}
+	return m.repo.GetVariants(agentPrefix)
+}
+
+func (m *TreeCacheManager) resolveExcelPath(agentPrefix, variant string) (string, error) {
+	if variant == "" {
+		return m.repo.GetExcelGCSPath(agentPrefix)
+	}
+	path, err := m.repo.GetExcelGCSPathForVariant(agentPrefix, variant)
+	if err != nil || path == "" {
+		log.Printf("variante de árbol %q no encontrada para %s (err=%v), uso árbol default", variant, agentPrefix, err)
+		return m.repo.GetExcelGCSPath(agentPrefix)
+	}
+	return path, nil
+}
+
+func (m *TreeCacheManager) refreshCache(ctx context.Context, agentPrefix, variant string) (_ []entity.QuestionTree, _ []string, _ []string, err error) {
+	ctx, span := observability.Start(ctx, "tree_cache.refresh", observability.Attrs{"tree.agent_prefix": agentPrefix, "tree.variant": variant})
 	defer span.End(&err)
 
-	objectName, err := m.repo.GetExcelGCSPath(agentPrefix)
+	objectName, err := m.resolveExcelPath(agentPrefix, variant)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("error obteniendo excel_gcs_path: %w", err)
 	}
+	log.Printf("Cargando árbol: agente=%s variant=%q bucket=%s excel_gcs_path=%s", agentPrefix, variant, m.bucketName, objectName)
 	span.Set(observability.Attrs{"tree.gcs.object": objectName})
 
 	span.Event("gcs.download.start", nil)
@@ -139,9 +166,9 @@ func (m *TreeCacheManager) refreshCache(ctx context.Context, agentPrefix string)
 		"tree.tags":       len(tags),
 	})
 
-	keyQuestions := fmt.Sprintf("%s:tree:questions", agentPrefix)
-	keyDimensions := fmt.Sprintf("%s:tree:dimensions", agentPrefix)
-	keyTags := fmt.Sprintf("%s:tree:tags", agentPrefix)
+	keyQuestions := cacheKey(agentPrefix, variant, "questions")
+	keyDimensions := cacheKey(agentPrefix, variant, "dimensions")
+	keyTags := cacheKey(agentPrefix, variant, "tags")
 
 	data, _ := json.Marshal(preguntas)
 	m.rdb.Set(ctx, keyQuestions, data, m.ttl)
@@ -156,8 +183,8 @@ func (m *TreeCacheManager) refreshCache(ctx context.Context, agentPrefix string)
 	return preguntas, dimensions, tags, nil
 }
 
-func (m *TreeCacheManager) Lookup(ctx context.Context, id, dimension, tag, query string, agentPrefix string) ([]entity.QuestionTree, error) {
-	data, err := m.GetData(ctx, agentPrefix)
+func (m *TreeCacheManager) Lookup(ctx context.Context, id, dimension, tag, query, agentPrefix, variant string) ([]entity.QuestionTree, error) {
+	data, err := m.GetData(ctx, agentPrefix, variant)
 	if err != nil {
 		return nil, err
 	}

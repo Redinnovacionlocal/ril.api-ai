@@ -22,7 +22,18 @@
 
     · query="texto libre"
     → último recurso si ningún tag ni dimensión encaja.
-    
+
+    {{if .Variants}}
+        · variant="{{(index .Variants 0).VariantKey}}"
+        → sumalo (junto a tag/dimension/id) cuando el gobierno consultado
+        corresponda a una de estas variantes. Si no aplica ninguna, omitilo
+        (usa el árbol general).
+
+        VARIANTES DE ÁRBOL DISPONIBLES:
+        {{range .Variants}}· {{.VariantKey}} — {{.Hint}}
+        {{end}}
+    {{end}}
+
     EJEMPLOS CORRECTOS:
     · Usuario pregunta quién debería liderar la planificación y el seguimiento de la gestión dentro del municipio:
     → lookup_tree_questions(tag="equipos_responsable-coordinación")

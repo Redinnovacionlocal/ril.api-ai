@@ -59,7 +59,7 @@ services:
     networks:
       - go_app
     ports:
-      - '6379:6379'
+      - '6380:6379'
     volumes:
       - redis-data:/data
     command: [ "redis-server", "--save", "60", "1", "--appendonly", "yes" ]
