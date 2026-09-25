@@ -15,6 +15,7 @@
 package adkrest
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -43,20 +44,29 @@ func NewServer(cfg ServerConfig) (*Server, error) {
 	}
 
 	router := mux.NewRouter().StrictSlash(true)
+	router.HandleFunc("/health", healthHandler).Methods(http.MethodGet, http.MethodHead)
 	// TODO: Allow taking a prefix to allow customizing the path
 	// where the ADK REST API will be served.
 	setupRouter(router,
 		routers.NewSessionsAPIRouter(controllers.NewSessionsAPIController(cfg.SessionService)),
-		routers.NewRuntimeAPIRouter(controllers.NewRuntimeAPIController(cfg.SessionService, cfg.MemoryService, cfg.AgentLoader, cfg.ArtifactService, cfg.SSEWriteTimeout, cfg.PluginConfig)),
+		routers.NewRuntimeAPIRouter(controllers.NewRuntimeAPIController(cfg.SessionService, cfg.MemoryService, cfg.AgentLoader, cfg.ArtifactService, cfg.SSEWriteTimeout, cfg.PluginConfig, false)),
 		routers.NewAppsAPIRouter(controllers.NewAppsAPIController(cfg.AgentLoader)),
 		routers.NewDebugAPIRouter(controllers.NewDebugAPIController(cfg.SessionService, cfg.AgentLoader, debugTelemetry)),
 		routers.NewArtifactsAPIRouter(controllers.NewArtifactsAPIController(cfg.ArtifactService)),
+		routers.NewVersionAPIRouter(controllers.NewVersionAPIController()),
+		routers.NewAgentGraphAPIRouter(controllers.NewAgentGraphAPIController(cfg.AgentLoader)),
+		&routers.TestsAPIRouter{},
 		&routers.EvalAPIRouter{},
 	)
 	return &Server{
 		router:         router,
 		telemetryStore: debugTelemetry,
 	}, nil
+}
+
+func healthHandler(w http.ResponseWriter, _ *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 }
 
 // ServerConfig contains parameters for the ADK REST API server.

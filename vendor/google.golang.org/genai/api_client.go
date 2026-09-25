@@ -23,6 +23,7 @@ import (
 	"io"
 	"iter"
 	"log"
+	"math"
 	"net/http"
 	"net/textproto"
 	"net/url"
@@ -38,10 +39,16 @@ const maxChunkSize = 8 * 1024 * 1024 // 8 MB chunk size
 const maxRetryCount = 3
 const initialRetryDelay = time.Second
 const delayMultiplier = 2
+const vertexPrefix = "vertex-genai-modules/"
 
 type apiClient struct {
 	clientConfig *ClientConfig
 }
+
+// InternalAPIClient is an internal type that exposes the apiClient struct.
+// This type is public only for internal purposes and its support is not guaranteed in future
+// versions. External consumers must not use it.
+type InternalAPIClient = apiClient
 
 // sendStreamRequest issues an server streaming API request and returns a map of the response contents.
 func sendStreamRequest[T responseStream[R], R any](ctx context.Context, ac *apiClient, path string, method string, body map[string]any, httpOptions *HTTPOptions, output *responseStream[R]) error {
@@ -71,6 +78,11 @@ func sendStreamRequest[T responseStream[R], R any](ctx context.Context, ac *apiC
 
 	// resp.Body will be closed by the iterator
 	return deserializeStreamResponse(resp, output)
+}
+
+// SendRequest issues an API request and returns a map of the response contents.
+func SendRequest(ctx context.Context, ac *apiClient, path string, method string, body map[string]any, httpOptions *HTTPOptions) (map[string]any, error) {
+	return sendRequest(ctx, ac, path, method, body, httpOptions)
 }
 
 // sendRequest issues an API request and returns a map of the response contents.
@@ -117,6 +129,13 @@ func downloadFile(ctx context.Context, ac *apiClient, path string, httpOptions *
 	return io.ReadAll(resp.Body)
 }
 
+// InternalMapToStruct is an internal function used for converting a map[string]any to a struct.
+// This function is public only for internal purposes and its support is not guaranteed in future
+// versions. External consumers must not use it.
+func InternalMapToStruct[R any](input map[string]any, output *R) error {
+	return mapToStruct(input, output)
+}
+
 func mapToStruct[R any](input map[string]any, output *R) error {
 	b := new(bytes.Buffer)
 	err := json.NewEncoder(b).Encode(input)
@@ -141,7 +160,13 @@ func (ac *apiClient) createAPIURL(suffix, method string, httpOptions *HTTPOption
 	var finalURL *url.URL
 	if ac.clientConfig.Backend == BackendVertexAI {
 		queryVertexBaseModel := method == http.MethodGet && strings.HasPrefix(path, "publishers/google/models")
-		if ac.clientConfig.APIKey == "" && (!strings.HasPrefix(path, "projects/") && !queryVertexBaseModel) {
+		shouldPrepend := ac.clientConfig.APIKey == "" &&
+			ac.clientConfig.Project != "" &&
+			ac.clientConfig.Location != "" &&
+			httpOptions.BaseURLResourceScope != ResourceScopeCollection &&
+			(!strings.HasPrefix(path, "projects/") && !queryVertexBaseModel)
+
+		if shouldPrepend {
 			path = fmt.Sprintf("projects/%s/locations/%s/%s", ac.clientConfig.Project, ac.clientConfig.Location, path)
 		}
 		finalURL = u.JoinPath(httpOptions.APIVersion, path)
@@ -213,6 +238,43 @@ func appendSDKHeaders(headers http.Header) {
 
 	libraryLabel := fmt.Sprintf("google-genai-sdk/%s", version)
 	languageLabel := fmt.Sprintf("gl-go/%s", runtime.Version())
+
+	var vertexLabel string
+	if uaValues := headers.Values("user-agent"); uaValues != nil {
+		var newUserAgents []string
+		for _, ua := range uaValues {
+			var newParts []string
+			parts := strings.Fields(ua)
+			foundVertex := false
+			for _, part := range parts {
+				if strings.HasPrefix(part, vertexPrefix) {
+					if vertexLabel == "" {
+						vertexLabel = part
+					}
+					foundVertex = true
+				} else {
+					newParts = append(newParts, part)
+				}
+			}
+
+			if foundVertex {
+				if len(newParts) > 0 {
+					newUserAgents = append(newUserAgents, strings.Join(newParts, " "))
+				}
+			} else {
+				newUserAgents = append(newUserAgents, ua)
+			}
+		}
+
+		if vertexLabel != "" {
+			headers.Del("user-agent")
+			for _, ua := range newUserAgents {
+				headers.Add("user-agent", ua)
+			}
+			libraryLabel = fmt.Sprintf("%s+%s", libraryLabel, vertexLabel)
+		}
+	}
+
 	versionHeaderValue := fmt.Sprintf("%s %s", libraryLabel, languageLabel)
 
 	if !slices.Contains(headers.Values("user-agent"), versionHeaderValue) {
@@ -258,7 +320,7 @@ func buildRequest(ctx context.Context, ac *apiClient, path string, body map[stri
 	req.Header = patchedHTTPOptions.Headers
 	timeoutSeconds := inferTimeout(ctx, ac, patchedHTTPOptions.Timeout).Seconds()
 	if timeoutSeconds > 0 {
-		req.Header.Set("x-server-timeout", strconv.FormatInt(int64(timeoutSeconds), 10))
+		req.Header.Set("x-server-timeout", strconv.FormatInt(int64(math.Ceil(timeoutSeconds)), 10))
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -587,8 +649,19 @@ func (ac *apiClient) upload(ctx context.Context, r io.Reader, uploadURL string, 
 				return nil, err
 			}
 
+			finalUploadURL := uploadURL
+			if patchedHTTPOptions.BaseURL != "" {
+				parsedBase, errBase := url.Parse(patchedHTTPOptions.BaseURL)
+				parsedUpload, errUpload := url.Parse(uploadURL)
+				if errBase == nil && errUpload == nil {
+					parsedUpload.Scheme = parsedBase.Scheme
+					parsedUpload.Host = parsedBase.Host
+					finalUploadURL = parsedUpload.String()
+				}
+			}
+
 			// TODO(b/427540996): Support timeout.
-			req, err := http.NewRequestWithContext(ctx, http.MethodPost, uploadURL, bytes.NewReader(buffer[:bytesRead]))
+			req, err := http.NewRequestWithContext(ctx, http.MethodPost, finalUploadURL, bytes.NewReader(buffer[:bytesRead]))
 			if err != nil {
 				return nil, fmt.Errorf("Failed to create upload request for chunk at offset %d: %w", offset, err)
 			}
@@ -683,4 +756,8 @@ func (ac *apiClient) uploadToFileSearchStore(ctx context.Context, r io.Reader, u
 		return nil, err
 	}
 	return response, nil
+}
+
+func (ac *apiClient) ClientConfig() ClientConfig {
+	return *ac.clientConfig
 }

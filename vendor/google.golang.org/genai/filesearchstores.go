@@ -1,4 +1,4 @@
-// Copyright 2025 Google LLC
+// Copyright 2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,29 +23,41 @@ import (
 	"iter"
 	"mime"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"reflect"
 	"strconv"
+	"strings"
 )
 
-func createFileSearchStoreConfigToMldev(fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
+func createFileSearchStoreConfigToMldev(ac *InternalAPIClient, fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromDisplayName := getValueByPath(fromObject, []string{"displayName"})
+	fromDisplayName := InternalGetValueByPath(fromObject, []string{"displayName"})
 	if fromDisplayName != nil {
-		setValueByPath(parentObject, []string{"displayName"}, fromDisplayName)
+		InternalSetValueByPath(parentObject, []string{"displayName"}, fromDisplayName)
+	}
+
+	fromEmbeddingModel := InternalGetValueByPath(fromObject, []string{"embeddingModel"})
+	if fromEmbeddingModel != nil {
+		fromEmbeddingModel, err = InternalTModel(ac, fromEmbeddingModel)
+		if err != nil {
+			return nil, err
+		}
+
+		InternalSetValueByPath(parentObject, []string{"embeddingModel"}, fromEmbeddingModel)
 	}
 
 	return toObject, nil
 }
 
-func createFileSearchStoreParametersToMldev(fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
+func createFileSearchStoreParametersToMldev(ac *InternalAPIClient, fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromConfig := getValueByPath(fromObject, []string{"config"})
+	fromConfig := InternalGetValueByPath(fromObject, []string{"config"})
 	if fromConfig != nil {
-		_, err = createFileSearchStoreConfigToMldev(fromConfig.(map[string]any), toObject, rootObject)
+		_, err = createFileSearchStoreConfigToMldev(ac, fromConfig.(map[string]any), toObject, rootObject)
 		if err != nil {
 			return nil, err
 		}
@@ -57,9 +69,9 @@ func createFileSearchStoreParametersToMldev(fromObject map[string]any, parentObj
 func deleteFileSearchStoreConfigToMldev(fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromForce := getValueByPath(fromObject, []string{"force"})
+	fromForce := InternalGetValueByPath(fromObject, []string{"force"})
 	if fromForce != nil {
-		setValueByPath(parentObject, []string{"_query", "force"}, fromForce)
+		InternalSetValueByPath(parentObject, []string{"_query", "force"}, fromForce)
 	}
 
 	return toObject, nil
@@ -68,12 +80,12 @@ func deleteFileSearchStoreConfigToMldev(fromObject map[string]any, parentObject 
 func deleteFileSearchStoreParametersToMldev(fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromName := getValueByPath(fromObject, []string{"name"})
+	fromName := InternalGetValueByPath(fromObject, []string{"name"})
 	if fromName != nil {
-		setValueByPath(toObject, []string{"_url", "name"}, fromName)
+		InternalSetValueByPath(toObject, []string{"_url", "name"}, fromName)
 	}
 
-	fromConfig := getValueByPath(fromObject, []string{"config"})
+	fromConfig := InternalGetValueByPath(fromObject, []string{"config"})
 	if fromConfig != nil {
 		_, err = deleteFileSearchStoreConfigToMldev(fromConfig.(map[string]any), toObject, rootObject)
 		if err != nil {
@@ -87,9 +99,9 @@ func deleteFileSearchStoreParametersToMldev(fromObject map[string]any, parentObj
 func getFileSearchStoreParametersToMldev(fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromName := getValueByPath(fromObject, []string{"name"})
+	fromName := InternalGetValueByPath(fromObject, []string{"name"})
 	if fromName != nil {
-		setValueByPath(toObject, []string{"_url", "name"}, fromName)
+		InternalSetValueByPath(toObject, []string{"_url", "name"}, fromName)
 	}
 
 	return toObject, nil
@@ -98,14 +110,14 @@ func getFileSearchStoreParametersToMldev(fromObject map[string]any, parentObject
 func importFileConfigToMldev(fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromCustomMetadata := getValueByPath(fromObject, []string{"customMetadata"})
+	fromCustomMetadata := InternalGetValueByPath(fromObject, []string{"customMetadata"})
 	if fromCustomMetadata != nil {
-		setValueByPath(parentObject, []string{"customMetadata"}, fromCustomMetadata)
+		InternalSetValueByPath(parentObject, []string{"customMetadata"}, fromCustomMetadata)
 	}
 
-	fromChunkingConfig := getValueByPath(fromObject, []string{"chunkingConfig"})
+	fromChunkingConfig := InternalGetValueByPath(fromObject, []string{"chunkingConfig"})
 	if fromChunkingConfig != nil {
-		setValueByPath(parentObject, []string{"chunkingConfig"}, fromChunkingConfig)
+		InternalSetValueByPath(parentObject, []string{"chunkingConfig"}, fromChunkingConfig)
 	}
 
 	return toObject, nil
@@ -114,34 +126,34 @@ func importFileConfigToMldev(fromObject map[string]any, parentObject map[string]
 func importFileOperationFromMldev(fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromName := getValueByPath(fromObject, []string{"name"})
+	fromName := InternalGetValueByPath(fromObject, []string{"name"})
 	if fromName != nil {
-		setValueByPath(toObject, []string{"name"}, fromName)
+		InternalSetValueByPath(toObject, []string{"name"}, fromName)
 	}
 
-	fromMetadata := getValueByPath(fromObject, []string{"metadata"})
+	fromMetadata := InternalGetValueByPath(fromObject, []string{"metadata"})
 	if fromMetadata != nil {
-		setValueByPath(toObject, []string{"metadata"}, fromMetadata)
+		InternalSetValueByPath(toObject, []string{"metadata"}, fromMetadata)
 	}
 
-	fromDone := getValueByPath(fromObject, []string{"done"})
+	fromDone := InternalGetValueByPath(fromObject, []string{"done"})
 	if fromDone != nil {
-		setValueByPath(toObject, []string{"done"}, fromDone)
+		InternalSetValueByPath(toObject, []string{"done"}, fromDone)
 	}
 
-	fromError := getValueByPath(fromObject, []string{"error"})
+	fromError := InternalGetValueByPath(fromObject, []string{"error"})
 	if fromError != nil {
-		setValueByPath(toObject, []string{"error"}, fromError)
+		InternalSetValueByPath(toObject, []string{"error"}, fromError)
 	}
 
-	fromResponse := getValueByPath(fromObject, []string{"response"})
+	fromResponse := InternalGetValueByPath(fromObject, []string{"response"})
 	if fromResponse != nil {
 		fromResponse, err = importFileResponseFromMldev(fromResponse.(map[string]any), toObject, rootObject)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"response"}, fromResponse)
+		InternalSetValueByPath(toObject, []string{"response"}, fromResponse)
 	}
 
 	return toObject, nil
@@ -150,17 +162,17 @@ func importFileOperationFromMldev(fromObject map[string]any, parentObject map[st
 func importFileParametersToMldev(fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromFileSearchStoreName := getValueByPath(fromObject, []string{"fileSearchStoreName"})
+	fromFileSearchStoreName := InternalGetValueByPath(fromObject, []string{"fileSearchStoreName"})
 	if fromFileSearchStoreName != nil {
-		setValueByPath(toObject, []string{"_url", "file_search_store_name"}, fromFileSearchStoreName)
+		InternalSetValueByPath(toObject, []string{"_url", "file_search_store_name"}, fromFileSearchStoreName)
 	}
 
-	fromFileName := getValueByPath(fromObject, []string{"fileName"})
+	fromFileName := InternalGetValueByPath(fromObject, []string{"fileName"})
 	if fromFileName != nil {
-		setValueByPath(toObject, []string{"fileName"}, fromFileName)
+		InternalSetValueByPath(toObject, []string{"fileName"}, fromFileName)
 	}
 
-	fromConfig := getValueByPath(fromObject, []string{"config"})
+	fromConfig := InternalGetValueByPath(fromObject, []string{"config"})
 	if fromConfig != nil {
 		_, err = importFileConfigToMldev(fromConfig.(map[string]any), toObject, rootObject)
 		if err != nil {
@@ -174,19 +186,19 @@ func importFileParametersToMldev(fromObject map[string]any, parentObject map[str
 func importFileResponseFromMldev(fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromSdkHttpResponse := getValueByPath(fromObject, []string{"sdkHttpResponse"})
+	fromSdkHttpResponse := InternalGetValueByPath(fromObject, []string{"sdkHttpResponse"})
 	if fromSdkHttpResponse != nil {
-		setValueByPath(toObject, []string{"sdkHttpResponse"}, fromSdkHttpResponse)
+		InternalSetValueByPath(toObject, []string{"sdkHttpResponse"}, fromSdkHttpResponse)
 	}
 
-	fromParent := getValueByPath(fromObject, []string{"parent"})
+	fromParent := InternalGetValueByPath(fromObject, []string{"parent"})
 	if fromParent != nil {
-		setValueByPath(toObject, []string{"parent"}, fromParent)
+		InternalSetValueByPath(toObject, []string{"parent"}, fromParent)
 	}
 
-	fromDocumentName := getValueByPath(fromObject, []string{"documentName"})
+	fromDocumentName := InternalGetValueByPath(fromObject, []string{"documentName"})
 	if fromDocumentName != nil {
-		setValueByPath(toObject, []string{"documentName"}, fromDocumentName)
+		InternalSetValueByPath(toObject, []string{"documentName"}, fromDocumentName)
 	}
 
 	return toObject, nil
@@ -195,14 +207,14 @@ func importFileResponseFromMldev(fromObject map[string]any, parentObject map[str
 func listFileSearchStoresConfigToMldev(fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromPageSize := getValueByPath(fromObject, []string{"pageSize"})
+	fromPageSize := InternalGetValueByPath(fromObject, []string{"pageSize"})
 	if fromPageSize != nil {
-		setValueByPath(parentObject, []string{"_query", "pageSize"}, fromPageSize)
+		InternalSetValueByPath(parentObject, []string{"_query", "pageSize"}, fromPageSize)
 	}
 
-	fromPageToken := getValueByPath(fromObject, []string{"pageToken"})
+	fromPageToken := InternalGetValueByPath(fromObject, []string{"pageToken"})
 	if fromPageToken != nil {
-		setValueByPath(parentObject, []string{"_query", "pageToken"}, fromPageToken)
+		InternalSetValueByPath(parentObject, []string{"_query", "pageToken"}, fromPageToken)
 	}
 
 	return toObject, nil
@@ -211,7 +223,7 @@ func listFileSearchStoresConfigToMldev(fromObject map[string]any, parentObject m
 func listFileSearchStoresParametersToMldev(fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromConfig := getValueByPath(fromObject, []string{"config"})
+	fromConfig := InternalGetValueByPath(fromObject, []string{"config"})
 	if fromConfig != nil {
 		_, err = listFileSearchStoresConfigToMldev(fromConfig.(map[string]any), toObject, rootObject)
 		if err != nil {
@@ -225,19 +237,19 @@ func listFileSearchStoresParametersToMldev(fromObject map[string]any, parentObje
 func listFileSearchStoresResponseFromMldev(fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromSdkHttpResponse := getValueByPath(fromObject, []string{"sdkHttpResponse"})
+	fromSdkHttpResponse := InternalGetValueByPath(fromObject, []string{"sdkHttpResponse"})
 	if fromSdkHttpResponse != nil {
-		setValueByPath(toObject, []string{"sdkHttpResponse"}, fromSdkHttpResponse)
+		InternalSetValueByPath(toObject, []string{"sdkHttpResponse"}, fromSdkHttpResponse)
 	}
 
-	fromNextPageToken := getValueByPath(fromObject, []string{"nextPageToken"})
+	fromNextPageToken := InternalGetValueByPath(fromObject, []string{"nextPageToken"})
 	if fromNextPageToken != nil {
-		setValueByPath(toObject, []string{"nextPageToken"}, fromNextPageToken)
+		InternalSetValueByPath(toObject, []string{"nextPageToken"}, fromNextPageToken)
 	}
 
-	fromFileSearchStores := getValueByPath(fromObject, []string{"fileSearchStores"})
+	fromFileSearchStores := InternalGetValueByPath(fromObject, []string{"fileSearchStores"})
 	if fromFileSearchStores != nil {
-		setValueByPath(toObject, []string{"fileSearchStores"}, fromFileSearchStores)
+		InternalSetValueByPath(toObject, []string{"fileSearchStores"}, fromFileSearchStores)
 	}
 
 	return toObject, nil
@@ -246,24 +258,24 @@ func listFileSearchStoresResponseFromMldev(fromObject map[string]any, parentObje
 func uploadToFileSearchStoreConfigToMldev(fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromMimeType := getValueByPath(fromObject, []string{"mimeType"})
+	fromMimeType := InternalGetValueByPath(fromObject, []string{"mimeType"})
 	if fromMimeType != nil {
-		setValueByPath(parentObject, []string{"mimeType"}, fromMimeType)
+		InternalSetValueByPath(parentObject, []string{"mimeType"}, fromMimeType)
 	}
 
-	fromDisplayName := getValueByPath(fromObject, []string{"displayName"})
+	fromDisplayName := InternalGetValueByPath(fromObject, []string{"displayName"})
 	if fromDisplayName != nil {
-		setValueByPath(parentObject, []string{"displayName"}, fromDisplayName)
+		InternalSetValueByPath(parentObject, []string{"displayName"}, fromDisplayName)
 	}
 
-	fromCustomMetadata := getValueByPath(fromObject, []string{"customMetadata"})
+	fromCustomMetadata := InternalGetValueByPath(fromObject, []string{"customMetadata"})
 	if fromCustomMetadata != nil {
-		setValueByPath(parentObject, []string{"customMetadata"}, fromCustomMetadata)
+		InternalSetValueByPath(parentObject, []string{"customMetadata"}, fromCustomMetadata)
 	}
 
-	fromChunkingConfig := getValueByPath(fromObject, []string{"chunkingConfig"})
+	fromChunkingConfig := InternalGetValueByPath(fromObject, []string{"chunkingConfig"})
 	if fromChunkingConfig != nil {
-		setValueByPath(parentObject, []string{"chunkingConfig"}, fromChunkingConfig)
+		InternalSetValueByPath(parentObject, []string{"chunkingConfig"}, fromChunkingConfig)
 	}
 
 	return toObject, nil
@@ -272,12 +284,12 @@ func uploadToFileSearchStoreConfigToMldev(fromObject map[string]any, parentObjec
 func uploadToFileSearchStoreParametersToMldev(fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromFileSearchStoreName := getValueByPath(fromObject, []string{"fileSearchStoreName"})
+	fromFileSearchStoreName := InternalGetValueByPath(fromObject, []string{"fileSearchStoreName"})
 	if fromFileSearchStoreName != nil {
-		setValueByPath(toObject, []string{"_url", "file_search_store_name"}, fromFileSearchStoreName)
+		InternalSetValueByPath(toObject, []string{"_url", "file_search_store_name"}, fromFileSearchStoreName)
 	}
 
-	fromConfig := getValueByPath(fromObject, []string{"config"})
+	fromConfig := InternalGetValueByPath(fromObject, []string{"config"})
 	if fromConfig != nil {
 		_, err = uploadToFileSearchStoreConfigToMldev(fromConfig.(map[string]any), toObject, rootObject)
 		if err != nil {
@@ -291,16 +303,16 @@ func uploadToFileSearchStoreParametersToMldev(fromObject map[string]any, parentO
 func uploadToFileSearchStoreResumableResponseFromMldev(fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromSdkHttpResponse := getValueByPath(fromObject, []string{"sdkHttpResponse"})
+	fromSdkHttpResponse := InternalGetValueByPath(fromObject, []string{"sdkHttpResponse"})
 	if fromSdkHttpResponse != nil {
-		setValueByPath(toObject, []string{"sdkHttpResponse"}, fromSdkHttpResponse)
+		InternalSetValueByPath(toObject, []string{"sdkHttpResponse"}, fromSdkHttpResponse)
 	}
 
 	return toObject, nil
 }
 
 type FileSearchStores struct {
-	apiClient *apiClient
+	apiClient *InternalAPIClient
 	Documents *Documents
 }
 
@@ -308,7 +320,7 @@ func (m FileSearchStores) Create(ctx context.Context, config *CreateFileSearchSt
 	parameterMap := make(map[string]any)
 
 	kwargs := map[string]any{"config": config}
-	deepMarshal(kwargs, &parameterMap)
+	InternalDeepMarshal(kwargs, &parameterMap)
 
 	var httpOptions *HTTPOptions
 	if config == nil || config.HTTPOptions == nil {
@@ -321,36 +333,37 @@ func (m FileSearchStores) Create(ctx context.Context, config *CreateFileSearchSt
 	}
 	var response = new(FileSearchStore)
 	var responseMap map[string]any
-	var toConverter func(map[string]any, map[string]any, map[string]any) (map[string]any, error)
-	if m.apiClient.clientConfig.Backend == BackendVertexAI {
+	var toConverter func(*InternalAPIClient, map[string]any, map[string]any, map[string]any) (map[string]any, error)
+	if m.apiClient.ClientConfig().Backend == BackendVertexAI {
 
-		return nil, fmt.Errorf("method Create is only supported in the Gemini Developer client. You can choose to use Gemini Developer client by setting ClientConfig.Backend to BackendGeminiAPI.")
+		return nil, fmt.Errorf("method Create is only supported in Gemini Developer API mode, not in Gemini Enterprise Agent Platform mode. You can choose to use Gemini Developer client by setting ClientConfig.Backend to BackendGeminiAPI.")
 
 	} else {
 		toConverter = createFileSearchStoreParametersToMldev
 
 	}
 
-	body, err := toConverter(parameterMap, nil, parameterMap)
+	body, err := toConverter(m.apiClient, parameterMap, nil, parameterMap)
 	if err != nil {
 		return nil, err
 	}
+
 	var path string
 	var urlParams map[string]any
 	if _, ok := body["_url"]; ok {
 		urlParams = body["_url"].(map[string]any)
 		delete(body, "_url")
 	}
-	if m.apiClient.clientConfig.Backend == BackendVertexAI {
-		path, err = formatMap("None", urlParams)
+	if m.apiClient.ClientConfig().Backend == BackendVertexAI {
+		path, err = InternalFormatMap("None", urlParams)
 	} else {
-		path, err = formatMap("fileSearchStores", urlParams)
+		path, err = InternalFormatMap("fileSearchStores", urlParams)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("invalid url params: %#v.\n%w", urlParams, err)
 	}
 	if _, ok := body["_query"]; ok {
-		query, err := createURLQuery(body["_query"].(map[string]any))
+		query, err := InternalCreateURLQuery(body["_query"].(map[string]any))
 		if err != nil {
 			return nil, err
 		}
@@ -361,7 +374,7 @@ func (m FileSearchStores) Create(ctx context.Context, config *CreateFileSearchSt
 	if err != nil {
 		return nil, err
 	}
-	err = mapToStruct(responseMap, response)
+	err = InternalMapToStruct(responseMap, response)
 	if err != nil {
 		return nil, err
 	}
@@ -383,7 +396,7 @@ func (m FileSearchStores) Get(ctx context.Context, name string, config *GetFileS
 	parameterMap := make(map[string]any)
 
 	kwargs := map[string]any{"name": name, "config": config}
-	deepMarshal(kwargs, &parameterMap)
+	InternalDeepMarshal(kwargs, &parameterMap)
 
 	var httpOptions *HTTPOptions
 	if config == nil || config.HTTPOptions == nil {
@@ -397,9 +410,9 @@ func (m FileSearchStores) Get(ctx context.Context, name string, config *GetFileS
 	var response = new(FileSearchStore)
 	var responseMap map[string]any
 	var toConverter func(map[string]any, map[string]any, map[string]any) (map[string]any, error)
-	if m.apiClient.clientConfig.Backend == BackendVertexAI {
+	if m.apiClient.ClientConfig().Backend == BackendVertexAI {
 
-		return nil, fmt.Errorf("method Get is only supported in the Gemini Developer client. You can choose to use Gemini Developer client by setting ClientConfig.Backend to BackendGeminiAPI.")
+		return nil, fmt.Errorf("method Get is only supported in Gemini Developer API mode, not in Gemini Enterprise Agent Platform mode. You can choose to use Gemini Developer client by setting ClientConfig.Backend to BackendGeminiAPI.")
 
 	} else {
 		toConverter = getFileSearchStoreParametersToMldev
@@ -410,22 +423,23 @@ func (m FileSearchStores) Get(ctx context.Context, name string, config *GetFileS
 	if err != nil {
 		return nil, err
 	}
+
 	var path string
 	var urlParams map[string]any
 	if _, ok := body["_url"]; ok {
 		urlParams = body["_url"].(map[string]any)
 		delete(body, "_url")
 	}
-	if m.apiClient.clientConfig.Backend == BackendVertexAI {
-		path, err = formatMap("None", urlParams)
+	if m.apiClient.ClientConfig().Backend == BackendVertexAI {
+		path, err = InternalFormatMap("None", urlParams)
 	} else {
-		path, err = formatMap("{name}", urlParams)
+		path, err = InternalFormatMap("{name}", urlParams)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("invalid url params: %#v.\n%w", urlParams, err)
 	}
 	if _, ok := body["_query"]; ok {
-		query, err := createURLQuery(body["_query"].(map[string]any))
+		query, err := InternalCreateURLQuery(body["_query"].(map[string]any))
 		if err != nil {
 			return nil, err
 		}
@@ -436,7 +450,7 @@ func (m FileSearchStores) Get(ctx context.Context, name string, config *GetFileS
 	if err != nil {
 		return nil, err
 	}
-	err = mapToStruct(responseMap, response)
+	err = InternalMapToStruct(responseMap, response)
 	if err != nil {
 		return nil, err
 	}
@@ -458,7 +472,7 @@ func (m FileSearchStores) Delete(ctx context.Context, name string, config *Delet
 	parameterMap := make(map[string]any)
 
 	kwargs := map[string]any{"name": name, "config": config}
-	deepMarshal(kwargs, &parameterMap)
+	InternalDeepMarshal(kwargs, &parameterMap)
 
 	var httpOptions *HTTPOptions
 	if config == nil || config.HTTPOptions == nil {
@@ -470,9 +484,9 @@ func (m FileSearchStores) Delete(ctx context.Context, name string, config *Delet
 		httpOptions.Headers = http.Header{}
 	}
 	var toConverter func(map[string]any, map[string]any, map[string]any) (map[string]any, error)
-	if m.apiClient.clientConfig.Backend == BackendVertexAI {
+	if m.apiClient.ClientConfig().Backend == BackendVertexAI {
 
-		return fmt.Errorf("method Delete is only supported in the Gemini Developer client. You can choose to use Gemini Developer client by setting ClientConfig.Backend to BackendGeminiAPI.")
+		return fmt.Errorf("method Delete is only supported in Gemini Developer API mode, not in Gemini Enterprise Agent Platform mode. You can choose to use Gemini Developer client by setting ClientConfig.Backend to BackendGeminiAPI.")
 
 	} else {
 		toConverter = deleteFileSearchStoreParametersToMldev
@@ -483,22 +497,23 @@ func (m FileSearchStores) Delete(ctx context.Context, name string, config *Delet
 	if err != nil {
 		return err
 	}
+
 	var path string
 	var urlParams map[string]any
 	if _, ok := body["_url"]; ok {
 		urlParams = body["_url"].(map[string]any)
 		delete(body, "_url")
 	}
-	if m.apiClient.clientConfig.Backend == BackendVertexAI {
-		path, err = formatMap("None", urlParams)
+	if m.apiClient.ClientConfig().Backend == BackendVertexAI {
+		path, err = InternalFormatMap("None", urlParams)
 	} else {
-		path, err = formatMap("{name}", urlParams)
+		path, err = InternalFormatMap("{name}", urlParams)
 	}
 	if err != nil {
 		return fmt.Errorf("invalid url params: %#v.\n%w", urlParams, err)
 	}
 	if _, ok := body["_query"]; ok {
-		query, err := createURLQuery(body["_query"].(map[string]any))
+		query, err := InternalCreateURLQuery(body["_query"].(map[string]any))
 		if err != nil {
 			return err
 		}
@@ -517,7 +532,7 @@ func (m FileSearchStores) list(ctx context.Context, config *ListFileSearchStores
 	parameterMap := make(map[string]any)
 
 	kwargs := map[string]any{"config": config}
-	deepMarshal(kwargs, &parameterMap)
+	InternalDeepMarshal(kwargs, &parameterMap)
 
 	var httpOptions *HTTPOptions
 	if config == nil || config.HTTPOptions == nil {
@@ -532,9 +547,9 @@ func (m FileSearchStores) list(ctx context.Context, config *ListFileSearchStores
 	var responseMap map[string]any
 	var fromConverter func(map[string]any, map[string]any, map[string]any) (map[string]any, error)
 	var toConverter func(map[string]any, map[string]any, map[string]any) (map[string]any, error)
-	if m.apiClient.clientConfig.Backend == BackendVertexAI {
+	if m.apiClient.ClientConfig().Backend == BackendVertexAI {
 
-		return nil, fmt.Errorf("method List is only supported in the Gemini Developer client. You can choose to use Gemini Developer client by setting ClientConfig.Backend to BackendGeminiAPI.")
+		return nil, fmt.Errorf("method List is only supported in Gemini Developer API mode, not in Gemini Enterprise Agent Platform mode. You can choose to use Gemini Developer client by setting ClientConfig.Backend to BackendGeminiAPI.")
 
 	} else {
 		toConverter = listFileSearchStoresParametersToMldev
@@ -545,22 +560,23 @@ func (m FileSearchStores) list(ctx context.Context, config *ListFileSearchStores
 	if err != nil {
 		return nil, err
 	}
+
 	var path string
 	var urlParams map[string]any
 	if _, ok := body["_url"]; ok {
 		urlParams = body["_url"].(map[string]any)
 		delete(body, "_url")
 	}
-	if m.apiClient.clientConfig.Backend == BackendVertexAI {
-		path, err = formatMap("None", urlParams)
+	if m.apiClient.ClientConfig().Backend == BackendVertexAI {
+		path, err = InternalFormatMap("None", urlParams)
 	} else {
-		path, err = formatMap("fileSearchStores", urlParams)
+		path, err = InternalFormatMap("fileSearchStores", urlParams)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("invalid url params: %#v.\n%w", urlParams, err)
 	}
 	if _, ok := body["_query"]; ok {
-		query, err := createURLQuery(body["_query"].(map[string]any))
+		query, err := InternalCreateURLQuery(body["_query"].(map[string]any))
 		if err != nil {
 			return nil, err
 		}
@@ -577,7 +593,7 @@ func (m FileSearchStores) list(ctx context.Context, config *ListFileSearchStores
 	if err != nil {
 		return nil, err
 	}
-	err = mapToStruct(responseMap, response)
+	err = InternalMapToStruct(responseMap, response)
 	if err != nil {
 		return nil, err
 	}
@@ -599,7 +615,7 @@ func (m FileSearchStores) uploadToFileSearchStore(ctx context.Context, fileSearc
 	parameterMap := make(map[string]any)
 
 	kwargs := map[string]any{"fileSearchStoreName": fileSearchStoreName, "config": config}
-	deepMarshal(kwargs, &parameterMap)
+	InternalDeepMarshal(kwargs, &parameterMap)
 
 	var httpOptions *HTTPOptions
 	if config == nil || config.HTTPOptions == nil {
@@ -614,9 +630,9 @@ func (m FileSearchStores) uploadToFileSearchStore(ctx context.Context, fileSearc
 	var responseMap map[string]any
 	var fromConverter func(map[string]any, map[string]any, map[string]any) (map[string]any, error)
 	var toConverter func(map[string]any, map[string]any, map[string]any) (map[string]any, error)
-	if m.apiClient.clientConfig.Backend == BackendVertexAI {
+	if m.apiClient.ClientConfig().Backend == BackendVertexAI {
 
-		return nil, fmt.Errorf("method UploadToFileSearchStore is only supported in the Gemini Developer client. You can choose to use Gemini Developer client by setting ClientConfig.Backend to BackendGeminiAPI.")
+		return nil, fmt.Errorf("method UploadToFileSearchStore is only supported in Gemini Developer API mode, not in Gemini Enterprise Agent Platform mode. You can choose to use Gemini Developer client by setting ClientConfig.Backend to BackendGeminiAPI.")
 
 	} else {
 		toConverter = uploadToFileSearchStoreParametersToMldev
@@ -627,22 +643,23 @@ func (m FileSearchStores) uploadToFileSearchStore(ctx context.Context, fileSearc
 	if err != nil {
 		return nil, err
 	}
+
 	var path string
 	var urlParams map[string]any
 	if _, ok := body["_url"]; ok {
 		urlParams = body["_url"].(map[string]any)
 		delete(body, "_url")
 	}
-	if m.apiClient.clientConfig.Backend == BackendVertexAI {
-		path, err = formatMap("None", urlParams)
+	if m.apiClient.ClientConfig().Backend == BackendVertexAI {
+		path, err = InternalFormatMap("None", urlParams)
 	} else {
-		path, err = formatMap("upload/v1beta/{file_search_store_name}:uploadToFileSearchStore", urlParams)
+		path, err = InternalFormatMap("upload/v1beta/{file_search_store_name}:uploadToFileSearchStore", urlParams)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("invalid url params: %#v.\n%w", urlParams, err)
 	}
 	if _, ok := body["_query"]; ok {
-		query, err := createURLQuery(body["_query"].(map[string]any))
+		query, err := InternalCreateURLQuery(body["_query"].(map[string]any))
 		if err != nil {
 			return nil, err
 		}
@@ -659,7 +676,7 @@ func (m FileSearchStores) uploadToFileSearchStore(ctx context.Context, fileSearc
 	if err != nil {
 		return nil, err
 	}
-	err = mapToStruct(responseMap, response)
+	err = InternalMapToStruct(responseMap, response)
 	if err != nil {
 		return nil, err
 	}
@@ -671,7 +688,7 @@ func (m FileSearchStores) ImportFile(ctx context.Context, fileSearchStoreName st
 	parameterMap := make(map[string]any)
 
 	kwargs := map[string]any{"fileSearchStoreName": fileSearchStoreName, "fileName": fileName, "config": config}
-	deepMarshal(kwargs, &parameterMap)
+	InternalDeepMarshal(kwargs, &parameterMap)
 
 	var httpOptions *HTTPOptions
 	if config == nil || config.HTTPOptions == nil {
@@ -686,9 +703,9 @@ func (m FileSearchStores) ImportFile(ctx context.Context, fileSearchStoreName st
 	var responseMap map[string]any
 	var fromConverter func(map[string]any, map[string]any, map[string]any) (map[string]any, error)
 	var toConverter func(map[string]any, map[string]any, map[string]any) (map[string]any, error)
-	if m.apiClient.clientConfig.Backend == BackendVertexAI {
+	if m.apiClient.ClientConfig().Backend == BackendVertexAI {
 
-		return nil, fmt.Errorf("method ImportFile is only supported in the Gemini Developer client. You can choose to use Gemini Developer client by setting ClientConfig.Backend to BackendGeminiAPI.")
+		return nil, fmt.Errorf("method ImportFile is only supported in Gemini Developer API mode, not in Gemini Enterprise Agent Platform mode. You can choose to use Gemini Developer client by setting ClientConfig.Backend to BackendGeminiAPI.")
 
 	} else {
 		toConverter = importFileParametersToMldev
@@ -699,22 +716,23 @@ func (m FileSearchStores) ImportFile(ctx context.Context, fileSearchStoreName st
 	if err != nil {
 		return nil, err
 	}
+
 	var path string
 	var urlParams map[string]any
 	if _, ok := body["_url"]; ok {
 		urlParams = body["_url"].(map[string]any)
 		delete(body, "_url")
 	}
-	if m.apiClient.clientConfig.Backend == BackendVertexAI {
-		path, err = formatMap("None", urlParams)
+	if m.apiClient.ClientConfig().Backend == BackendVertexAI {
+		path, err = InternalFormatMap("None", urlParams)
 	} else {
-		path, err = formatMap("{file_search_store_name}:importFile", urlParams)
+		path, err = InternalFormatMap("{file_search_store_name}:importFile", urlParams)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("invalid url params: %#v.\n%w", urlParams, err)
 	}
 	if _, ok := body["_query"]; ok {
-		query, err := createURLQuery(body["_query"].(map[string]any))
+		query, err := InternalCreateURLQuery(body["_query"].(map[string]any))
 		if err != nil {
 			return nil, err
 		}
@@ -731,7 +749,7 @@ func (m FileSearchStores) ImportFile(ctx context.Context, fileSearchStoreName st
 	if err != nil {
 		return nil, err
 	}
-	err = mapToStruct(responseMap, response)
+	err = InternalMapToStruct(responseMap, response)
 	if err != nil {
 		return nil, err
 	}
@@ -753,7 +771,7 @@ func (m FileSearchStores) ImportFile(ctx context.Context, fileSearchStoreName st
 func (m FileSearchStores) List(ctx context.Context, config *ListFileSearchStoresConfig) (Page[FileSearchStore], error) {
 	listFunc := func(ctx context.Context, config map[string]any) ([]*FileSearchStore, string, *HTTPResponse, error) {
 		var c ListFileSearchStoresConfig
-		if err := mapToStruct(config, &c); err != nil {
+		if err := InternalMapToStruct(config, &c); err != nil {
 			return nil, "", nil, err
 		}
 		resp, err := m.list(ctx, &c)
@@ -763,7 +781,7 @@ func (m FileSearchStores) List(ctx context.Context, config *ListFileSearchStores
 		return resp.FileSearchStores, resp.NextPageToken, resp.SDKHTTPResponse, nil
 	}
 	c := make(map[string]any)
-	deepMarshal(config, &c)
+	InternalDeepMarshal(config, &c)
 	return newPage(ctx, "fileSearchStores", c, listFunc)
 }
 
@@ -776,7 +794,7 @@ func (m FileSearchStores) List(ctx context.Context, config *ListFileSearchStores
 func (m FileSearchStores) All(ctx context.Context) iter.Seq2[*FileSearchStore, error] {
 	listFunc := func(ctx context.Context, config map[string]any) ([]*FileSearchStore, string, *HTTPResponse, error) {
 		var c ListFileSearchStoresConfig
-		if err := mapToStruct(config, &c); err != nil {
+		if err := InternalMapToStruct(config, &c); err != nil {
 			return nil, "", nil, err
 		}
 		resp, err := m.list(ctx, &c)
@@ -874,4 +892,36 @@ func (m FileSearchStores) UploadToFileSearchStoreFromPath(ctx context.Context, p
 	copiedCfg.HTTPOptions.Headers.Add("X-Goog-Upload-File-Name", fileName)
 
 	return m.UploadToFileSearchStore(ctx, osf, FileSearchStoreName, &copiedCfg)
+}
+
+// DownloadMedia downloads media using a Media ID or URI.
+func (m FileSearchStores) DownloadMedia(ctx context.Context, uri string, config *DownloadMediaConfig) ([]byte, error) {
+	if m.apiClient.clientConfig.Backend == BackendVertexAI {
+		return nil, fmt.Errorf("method DownloadMedia is only supported in the Gemini Developer client. You can choose to use Gemini Developer client by setting ClientConfig.Backend to BackendGeminiAPI.")
+	}
+
+	u, err := url.Parse(uri)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse uri: %w", err)
+	}
+	path := u.Path
+	if strings.HasPrefix(path, "/") {
+		path = strings.TrimPrefix(path, "/")
+	}
+
+	if !strings.Contains(path, "/media/") {
+		return nil, fmt.Errorf("invalid uri format: %s, expected to contain /media/", uri)
+	}
+
+	q := u.Query()
+	q.Set("alt", "media")
+	path = fmt.Sprintf("%s?%s", path, q.Encode())
+
+	var configHTTPOptions *HTTPOptions
+	if config != nil {
+		configHTTPOptions = config.HTTPOptions
+	}
+	httpOptions := mergeHTTPOptions(m.apiClient.clientConfig, configHTTPOptions)
+
+	return downloadFile(ctx, m.apiClient, path, httpOptions)
 }

@@ -17,10 +17,10 @@ package context
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"google.golang.org/genai"
 
 	"google.golang.org/adk/agent"
+	"google.golang.org/adk/platform"
 	"google.golang.org/adk/session"
 )
 
@@ -32,15 +32,16 @@ type InvocationContextParams struct {
 	Branch string
 	Agent  agent.Agent
 
-	UserContent   *genai.Content
-	RunConfig     *agent.RunConfig
-	EndInvocation bool
-	InvocationID  string
+	UserContent                 *genai.Content
+	RunConfig                   *agent.RunConfig
+	EndInvocation               bool
+	InvocationID                string
+	LiveSessionResumptionHandle string
 }
 
 func NewInvocationContext(ctx context.Context, params InvocationContextParams) agent.InvocationContext {
 	if params.InvocationID == "" {
-		params.InvocationID = "e-" + uuid.NewString()
+		params.InvocationID = "e-" + platform.NewUUID(ctx)
 	}
 	return &InvocationContext{
 		Context: ctx,
@@ -92,6 +93,18 @@ func (c *InvocationContext) EndInvocation() {
 
 func (c *InvocationContext) Ended() bool {
 	return c.params.EndInvocation
+}
+
+// LiveSessionResumptionHandle returns the active live session's resumption handle.
+// This handle is used to reconnect and resume a bidirectional streaming session with the model.
+func (c *InvocationContext) LiveSessionResumptionHandle() string {
+	return c.params.LiveSessionResumptionHandle
+}
+
+// SetLiveSessionResumptionHandle stores the latest resumption handle received from the model.
+// This allows subsequent reconnection attempts in the live loop to resume the same session state.
+func (c *InvocationContext) SetLiveSessionResumptionHandle(handle string) {
+	c.params.LiveSessionResumptionHandle = handle
 }
 
 func (c *InvocationContext) WithContext(ctx context.Context) agent.InvocationContext {
