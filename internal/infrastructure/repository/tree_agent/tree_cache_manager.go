@@ -10,12 +10,25 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode"
 
 	"cloud.google.com/go/storage"
 	"github.com/redis/go-redis/v9"
+	"golang.org/x/text/runes"
+	"golang.org/x/text/transform"
+	"golang.org/x/text/unicode/norm"
 	"ril.api-ia/internal/domain/entity"
 	"ril.api-ia/internal/infrastructure/observability"
 )
+
+func normalizeForMatch(s string) string {
+	t := transform.Chain(norm.NFD, runes.Remove(runes.In(unicode.Mn)), norm.NFC)
+	result, _, err := transform.String(t, strings.ToLower(s))
+	if err != nil {
+		return strings.ToLower(s)
+	}
+	return result
+}
 
 type TreeCacheManager struct {
 	mu         sync.Mutex
@@ -190,7 +203,7 @@ func (m *TreeCacheManager) Lookup(ctx context.Context, id, dimension, tag, query
 	}
 
 	var results []entity.QuestionTree
-	q := strings.ToLower(query)
+	q := normalizeForMatch(query)
 
 	for _, p := range data {
 		if id != "" {
@@ -206,13 +219,14 @@ func (m *TreeCacheManager) Lookup(ctx context.Context, id, dimension, tag, query
 				continue
 			}
 		}
-		if dimension != "" && !strings.Contains(strings.ToLower(p.Dimension), strings.ToLower(dimension)) {
+		if dimension != "" && !strings.Contains(normalizeForMatch(p.Dimension), normalizeForMatch(dimension)) {
 			continue
 		}
 		if tag != "" {
 			found := false
+			normalizedTag := normalizeForMatch(tag)
 			for _, t := range p.TagsRAG {
-				if strings.EqualFold(t, tag) {
+				if normalizeForMatch(t) == normalizedTag {
 					found = true
 					break
 				}
@@ -224,12 +238,12 @@ func (m *TreeCacheManager) Lookup(ctx context.Context, id, dimension, tag, query
 		if q != "" {
 			matched := false
 			for _, t := range p.TagsRAG {
-				if strings.EqualFold(t, q) {
+				if normalizeForMatch(t) == q {
 					matched = true
 					break
 				}
 			}
-			if !matched && strings.Contains(strings.ToLower(p.Dimension), strings.ToLower(q)) {
+			if !matched && strings.Contains(normalizeForMatch(p.Dimension), q) {
 				matched = true
 			}
 			if !matched {

@@ -35,6 +35,7 @@ import (
 	"ril.api-ia/internal/agent"
 	"ril.api-ia/internal/agent/plugin/agent_active_plugin"
 	"ril.api-ia/internal/agent/plugin/model_armor_plugin"
+	"ril.api-ia/internal/agent/plugin/thought_signature_plugin"
 	"ril.api-ia/internal/agent/plugin/title_plugin"
 	session2 "ril.api-ia/internal/application/service/session"
 	"ril.api-ia/internal/application/usecase"
@@ -192,6 +193,10 @@ func buildRunner(ctx context.Context, ag internalagent.Agent, sessionService ses
 	if err != nil {
 		log.Fatal("Error initializing Model Armor plugin:", err)
 	}
+	thoughtSignaturePlugin, err := thought_signature_plugin.New("thought_signature_plugin")
+	if err != nil {
+		log.Fatal("Error initializing thought signature plugin:", err)
+	}
 
 	r, err := runner.New(runner.Config{
 		AppName:         os.Getenv("APP_NAME"),
@@ -204,6 +209,7 @@ func buildRunner(ctx context.Context, ag internalagent.Agent, sessionService ses
 				titlePlugin,
 				agentActivePlugin,
 				modelArmorPlugin,
+				thoughtSignaturePlugin,
 			},
 		},
 	})
