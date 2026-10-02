@@ -131,6 +131,32 @@ func NewSaveMemoryTool() (tool.Tool, error) {
 				}
 			}
 
+			if record.RecordType == "respuesta_AD" && record.AdQuestionId != nil && *record.AdQuestionId != "" {
+				result, err := db.ExecContext(ctx,
+					`UPDATE public.user_security_memory
+						SET payload = $1,
+							updated_at = $2
+					  WHERE user_id        = $3
+						AND record_type    = 'respuesta_AD'
+						AND source_agent   = $4
+						AND ad_question_id = $5`,
+					payloadJSON,
+					now,
+					ctx.UserID(),
+					ctx.AgentName(),
+					*record.AdQuestionId,
+				)
+				if err != nil {
+					return nil, fmt.Errorf("failed to update respuesta_AD question %s: %w", *record.AdQuestionId, err)
+				}
+
+				rows, _ := result.RowsAffected()
+				if rows > 0 {
+					upserted++
+					continue
+				}
+			}
+
 			_, err = db.ExecContext(ctx,
 				`INSERT INTO public.user_security_memory
 				   (id, user_id, quality_status, team_id, session_id, record_type, ad_question_id, payload, source_agent, created_at, updated_at)

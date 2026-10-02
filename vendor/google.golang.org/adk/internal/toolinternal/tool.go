@@ -16,8 +16,11 @@
 package toolinternal
 
 import (
+	"iter"
+
 	"google.golang.org/genai"
 
+	"google.golang.org/adk/agent"
 	"google.golang.org/adk/model"
 	"google.golang.org/adk/tool"
 )
@@ -25,9 +28,29 @@ import (
 type FunctionTool interface {
 	tool.Tool
 	Declaration() *genai.FunctionDeclaration
-	Run(ctx tool.Context, args any) (result map[string]any, err error)
+	Run(ctx agent.ToolContext, args any) (result map[string]any, err error)
+}
+
+type StreamingFunctionTool interface {
+	tool.Tool
+	Declaration() *genai.FunctionDeclaration
+	RunStream(ctx agent.ToolContext, args any) iter.Seq2[string, error]
 }
 
 type RequestProcessor interface {
-	ProcessRequest(ctx tool.Context, req *model.LLMRequest) error
+	ProcessRequest(ctx agent.ToolContext, req *model.LLMRequest) error
+}
+
+// SkipSummarizationResultDisplayer is implemented by tools whose result
+// should still be shown to the user as text when SkipSummarization causes
+// the agent loop to end on their function response event.
+//
+// SkipSummarization is set for two opposite reasons: agenttool sets it
+// because the sub-agent already produced the final answer, which is meant to
+// be seen; other tools (UI/widget tools, pending-confirmation flows) set it
+// to suppress an internal acknowledgement that was never meant to be shown.
+// Only tools that implement this interface, with DisplayResultOnSkipSummarization
+// returning true, get their result surfaced as a visible text part.
+type SkipSummarizationResultDisplayer interface {
+	DisplayResultOnSkipSummarization() bool
 }

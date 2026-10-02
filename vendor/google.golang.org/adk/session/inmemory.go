@@ -25,11 +25,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/google/uuid"
 	"rsc.io/omap"
 	"rsc.io/ordered"
 
 	"google.golang.org/adk/internal/sessionutils"
+	"google.golang.org/adk/platform"
 )
 
 type stateMap map[string]any
@@ -50,7 +50,7 @@ func (s *inMemoryService) Create(ctx context.Context, req *CreateRequest) (*Crea
 
 	sessionID := req.SessionID
 	if sessionID == "" {
-		sessionID = uuid.NewString()
+		sessionID = platform.NewUUID(ctx)
 	}
 
 	key := id{
@@ -74,7 +74,7 @@ func (s *inMemoryService) Create(ctx context.Context, req *CreateRequest) (*Crea
 	val := &session{
 		id:        key,
 		state:     state,
-		updatedAt: time.Now(),
+		updatedAt: platform.Now(ctx),
 	}
 
 	s.sessions.Set(encodedKey, val)
@@ -109,7 +109,7 @@ func (s *inMemoryService) Get(ctx context.Context, req *GetRequest) (*GetRespons
 
 	res, ok := s.sessions.Get(id.Encode())
 	if !ok {
-		return nil, fmt.Errorf("session %+v not found", req.SessionID)
+		return nil, fmt.Errorf("%w: %q", ErrNotFound, req.SessionID)
 	}
 
 	copiedSession := copySessionWithoutStateAndEvents(res)
@@ -215,7 +215,7 @@ func (s *inMemoryService) AppendEvent(ctx context.Context, curSession Session, e
 
 	stored_session, ok := s.sessions.Get(sess.id.Encode())
 	if !ok {
-		return fmt.Errorf("session not found, cannot apply event")
+		return fmt.Errorf("%w: %q, cannot apply event", ErrNotFound, sess.id.sessionID)
 	}
 
 	// update the in-memory session
@@ -439,10 +439,16 @@ func trimTempDeltaState(event *Event) *Event {
 		}
 	}
 
-	// Replace the old map with the newly filtered one.
-	event.Actions.StateDelta = filteredStateDelta
+	// If no keys were filtered out, return the original event without copying.
+	if len(filteredStateDelta) == len(event.Actions.StateDelta) {
+		return event
+	}
 
-	return event
+	// Create a copy of the event to avoid mutating the original.
+	eventCopy := *event
+	eventCopy.Actions.StateDelta = filteredStateDelta
+
+	return &eventCopy
 }
 
 // updateSessionState updates the session state based on the event state delta.

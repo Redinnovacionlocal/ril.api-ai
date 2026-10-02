@@ -3,9 +3,13 @@ package main
 import (
 	"context"
 	cryptoRand "crypto/rand"
+	"errors"
 	"log"
 	"math/rand"
+	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"cloud.google.com/go/storage"
@@ -30,6 +34,8 @@ import (
 	"gorm.io/driver/postgres"
 	"ril.api-ia/internal/agent"
 	"ril.api-ia/internal/agent/plugin/agent_active_plugin"
+	"ril.api-ia/internal/agent/plugin/model_armor_plugin"
+	"ril.api-ia/internal/agent/plugin/thought_signature_plugin"
 	"ril.api-ia/internal/agent/plugin/title_plugin"
 	session2 "ril.api-ia/internal/application/service/session"
 	"ril.api-ia/internal/application/usecase"
@@ -37,6 +43,7 @@ import (
 	"ril.api-ia/internal/domain/repository"
 	"ril.api-ia/internal/infrastructure/http/handler"
 	"ril.api-ia/internal/infrastructure/http/middleware"
+	"ril.api-ia/internal/infrastructure/observability"
 	m "ril.api-ia/internal/infrastructure/repository/memory"
 	"ril.api-ia/internal/infrastructure/repository/sql"
 	"ril.api-ia/internal/infrastructure/repository/tree_agent"
@@ -45,6 +52,14 @@ import (
 func main() {
 	ctx := context.Background()
 	_ = godotenv.Overload()
+
+	observability.SetupLogging()
+
+	shutdownTracing, err := observability.SetupTracing(ctx)
+	if err != nil {
+		log.Printf("Error initializing tracing, continuando sin tracing: %v", err)
+		shutdownTracing = func(context.Context) error { return nil }
+	}
 
 	isLocal := os.Getenv("APP_ENV") == "local"
 
@@ -87,7 +102,7 @@ func main() {
 
 	// HTTP Server and routes
 	router := setupRouter(ctx, dbAgent, sessionUseCase, userUseCase, eventFeedbackUseCase, transcribeUseCase, runners)
-	startServer(router)
+	startServer(ctx, router, shutdownTracing)
 }
 
 func initializeSessionService(isLocal bool) session2.Service {
@@ -174,6 +189,14 @@ func buildRunner(ctx context.Context, ag internalagent.Agent, sessionService ses
 	memoryService := memory.InMemoryService()
 	titlePlugin, _ := title_plugin.New(ctx, "title_plugin")
 	agentActivePlugin, _ := agent_active_plugin.New(ctx, "agent_active_plugin")
+	modelArmorPlugin, err := model_armor_plugin.New(ctx, "model_armor_plugin")
+	if err != nil {
+		log.Fatal("Error initializing Model Armor plugin:", err)
+	}
+	thoughtSignaturePlugin, err := thought_signature_plugin.New("thought_signature_plugin")
+	if err != nil {
+		log.Fatal("Error initializing thought signature plugin:", err)
+	}
 
 	r, err := runner.New(runner.Config{
 		AppName:         os.Getenv("APP_NAME"),
@@ -185,6 +208,8 @@ func buildRunner(ctx context.Context, ag internalagent.Agent, sessionService ses
 			Plugins: []*plugin.Plugin{
 				titlePlugin,
 				agentActivePlugin,
+				modelArmorPlugin,
+				thoughtSignaturePlugin,
 			},
 		},
 	})
@@ -200,6 +225,7 @@ func setupRouter(ctx context.Context, dbAgent *sqlx.DB, sessionUseCase *usecase.
 	configCors.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Accept", "Authorization", "x-agent"}
 	configCors.AllowAllOrigins = true
 	r.Use(cors.New(configCors))
+	r.Use(middleware.Tracing())
 	r.Use(middleware.AuthMiddleware(*userUseCase))
 
 	sessionHandler := handler.NewSessionHandler(sessionUseCase)
@@ -226,16 +252,38 @@ func registerRoutes(r *gin.Engine, dbAgent *sqlx.DB, sessionHandler *handler.Ses
 	r.POST("/run-sse", middleware.GroundingMetadataLogger(dbAgent), runHandler.RunSSE)
 }
 
-func startServer(router *gin.Engine) {
+func startServer(ctx context.Context, router *gin.Engine, shutdownTracing observability.ShutdownFunc) {
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 
-	log.Printf("Starting server on port %s", port)
-	if err := router.Run(":" + port); err != nil {
-		log.Fatal("Error starting server:", err)
+	srv := &http.Server{Addr: ":" + port, Handler: router}
+
+	ctx, stop := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	go func() {
+		log.Printf("Starting server on port %s", port)
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatal("Error starting server:", err)
+		}
+	}()
+
+	<-ctx.Done()
+	stop()
+	log.Println("Shutdown signal recibido, cerrando servicio...")
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		log.Printf("Error cerrando el server HTTP: %v", err)
 	}
+	if err := shutdownTracing(shutdownCtx); err != nil {
+		log.Printf("Error en el shutdown de telemetría: %v", err)
+	}
+	log.Println("Servicio cerrado")
 }
 
 func seedMockUsers(userRepository *m.UserRepository) {

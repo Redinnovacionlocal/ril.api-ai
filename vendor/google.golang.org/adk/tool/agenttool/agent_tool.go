@@ -27,6 +27,7 @@ import (
 	"google.golang.org/adk/agent"
 	"google.golang.org/adk/artifact"
 	"google.golang.org/adk/internal/llminternal"
+	"google.golang.org/adk/internal/toolinternal"
 	"google.golang.org/adk/internal/toolinternal/toolutils"
 	"google.golang.org/adk/internal/utils"
 	"google.golang.org/adk/memory"
@@ -35,6 +36,8 @@ import (
 	"google.golang.org/adk/session"
 	"google.golang.org/adk/tool"
 )
+
+var _ toolinternal.SkipSummarizationResultDisplayer = (*agentTool)(nil)
 
 // agentTool implements a tool that allows an agent to call another agent.
 type agentTool struct {
@@ -79,6 +82,14 @@ func (t *agentTool) IsLongRunning() bool {
 	return false
 }
 
+// DisplayResultOnSkipSummarization implements
+// toolinternal.SkipSummarizationResultDisplayer. When SkipSummarization is
+// set, the sub-agent's result is the final answer, not an internal
+// acknowledgement, so it should still be shown to the user.
+func (t *agentTool) DisplayResultOnSkipSummarization() bool {
+	return true
+}
+
 // Declaration returns the function declaration for the wrapped agent.
 // It generates a function declaration based on the agent's input schema.
 // If the agent does not have an input schema, a default schema with a
@@ -118,7 +129,7 @@ func (t *agentTool) Declaration() *genai.FunctionDeclaration {
 // Run executes the wrapped agent with the provided arguments.
 // It creates a new session for the sub-agent, runs the agent, and returns
 // the final result.
-func (t *agentTool) Run(toolCtx tool.Context, args any) (map[string]any, error) {
+func (t *agentTool) Run(toolCtx agent.ToolContext, args any) (map[string]any, error) {
 	margs, ok := args.(map[string]any)
 	if !ok {
 		return nil, fmt.Errorf("agentTool expects map[string]any arguments, got %T", args)
@@ -222,7 +233,7 @@ func (t *agentTool) Run(toolCtx tool.Context, args any) (map[string]any, error) 
 	lastContent := lastEvent.LLMResponse.Content
 	var textParts []string
 	for _, part := range lastContent.Parts {
-		if part != nil && part.Text != "" {
+		if part != nil && part.Text != "" && !part.Thought {
 			textParts = append(textParts, part.Text)
 		}
 	}
@@ -251,6 +262,6 @@ func (t *agentTool) Run(toolCtx tool.Context, args any) (map[string]any, error) 
 }
 
 // ProcessRequest adds the agent tool's function declaration to the LLM request.
-func (t *agentTool) ProcessRequest(ctx tool.Context, req *model.LLMRequest) error {
+func (t *agentTool) ProcessRequest(ctx agent.ToolContext, req *model.LLMRequest) error {
 	return toolutils.PackTool(req, t)
 }

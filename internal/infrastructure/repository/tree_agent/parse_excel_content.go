@@ -44,7 +44,10 @@ func parseExcelContent(fileBytes []byte) ([]entity.QuestionTree, []string, []str
 		tagsRaw := getCell(15)
 		var tagsRag []string
 		if tagsRaw != "" {
-			tagsCleaned := strings.ReplaceAll(tagsRaw, "·", ",")
+			tagsCleaned := strings.NewReplacer(
+				"·", ",",
+				"|", ",",
+			).Replace(tagsRaw)
 			for _, t := range strings.Split(tagsCleaned, ",") {
 				t = strings.TrimSpace(t)
 				if t != "" {

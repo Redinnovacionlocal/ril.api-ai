@@ -3,10 +3,12 @@ package subagents
 import (
 	"context"
 	"log"
+	"strings"
 
 	"google.golang.org/adk/tool"
 	"google.golang.org/adk/tool/functiontool"
 	"google.golang.org/genai"
+	"ril.api-ia/internal/infrastructure/observability"
 )
 
 const SystemInstruction = "Actúa como un motor de recuperación de información (RAG) especializado en RIL. Tu función es proveer datos crudos y verificados a otro agente de IA.\n\n" +
@@ -98,26 +100,93 @@ func NewRagProxyTool(ctx context.Context, client *genai.Client, modelName string
 		Name:        "consultar_bases_conocimiento_ril",
 		Description: "Herramienta OBLIGATORIA para buscar información en las bases de datos internas de RIL (casos inspirarme, webinarios, cursos de academia, comunidad). Pásale la consulta del usuario y te devolverá la información verificada.",
 	}, functiontool.Func[RagInput, RagOutput](func(ctx tool.Context, input RagInput) (RagOutput, error) {
-		resp, err := client.Models.GenerateContent(ctx, modelName, genai.Text(input.Query), &genai.GenerateContentConfig{
+		spanCtx, span := observability.Start(ctx, "rag_proxy.generate_content", observability.Attrs{
+			"gen_ai.request.model":      modelName,
+			"rag.query.length":          len(input.Query),
+			"rag.datastores.configured": len(ragTools),
+		})
+		defer span.End()
+
+		resp, err := client.Models.GenerateContent(spanCtx, modelName, genai.Text(input.Query), &genai.GenerateContentConfig{
 			SystemInstruction: genai.NewContentFromText(SystemInstruction, "system"),
 			Tools:             ragTools,
 		})
 		if err != nil {
+			span.Fail(err)
 			log.Printf("Error crítico en RAG Subagent Proxy: %v", err)
 			return RagOutput{Text: "Error al consultar las bases de conocimiento de RIL. Por favor, intenta de nuevo."}, nil
 		}
+
+		if resp.UsageMetadata != nil {
+			span.Set(observability.Attrs{
+				"gen_ai.usage.input_tokens":  int(resp.UsageMetadata.PromptTokenCount),
+				"gen_ai.usage.output_tokens": int(resp.UsageMetadata.CandidatesTokenCount),
+				"gen_ai.usage.total_tokens":  int(resp.UsageMetadata.TotalTokenCount),
+			})
+		}
+
 		if len(resp.Candidates) > 0 {
 			candidate := resp.Candidates[0]
 
-			if candidate.GroundingMetadata != nil && saveMetadataFunc != nil {
-				saveMetadataFunc(ctx, candidate.GroundingMetadata)
+			if candidate.GroundingMetadata != nil {
+				gm := candidate.GroundingMetadata
+				span.Set(observability.Attrs{
+					"rag.grounding.chunks":     len(gm.GroundingChunks),
+					"rag.grounding.datastores": groundingDatastores(gm),
+				})
+
+				if saveMetadataFunc != nil {
+					saveMetadataFunc(ctx, gm)
+				}
 			}
 
 			if candidate.Content != nil && len(candidate.Content.Parts) > 0 {
+				span.Set(observability.Attrs{"rag.info_located": true})
 				return RagOutput{Text: candidate.Content.Parts[0].Text}, nil
 			}
 		}
 
+		span.Set(observability.Attrs{"rag.info_located": false})
 		return RagOutput{Text: "INFORMACIÓN NO LOCALIZADA"}, nil
 	}))
+}
+
+func groundingDatastores(gm *genai.GroundingMetadata) []string {
+	seen := make(map[string]struct{})
+	var out []string
+	add := func(v string) {
+		if v == "" {
+			return
+		}
+		if _, ok := seen[v]; ok {
+			return
+		}
+		seen[v] = struct{}{}
+		out = append(out, v)
+	}
+	for _, c := range gm.GroundingChunks {
+		if c == nil {
+			continue
+		}
+		if c.RetrievedContext != nil {
+			add(datastoreFromDocumentName(c.RetrievedContext.DocumentName))
+		}
+		if c.Web != nil {
+			add(c.Web.Domain)
+		}
+	}
+	return out
+}
+
+func datastoreFromDocumentName(documentName string) string {
+	const marker = "/dataStores/"
+	i := strings.Index(documentName, marker)
+	if i < 0 {
+		return documentName
+	}
+	rest := documentName[i+len(marker):]
+	if j := strings.IndexByte(rest, '/'); j >= 0 {
+		return rest[:j]
+	}
+	return rest
 }

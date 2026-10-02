@@ -3,8 +3,9 @@ FROM golang:1.25-alpine
 WORKDIR /app
 
 # Instalar git y air
+# air fijado: la ultima serie que soporta Go 1.25 (la base). @latest ya exige Go 1.26.
 RUN apk add --no-cache git bash && \
-    go install github.com/air-verse/air@latest
+    go install github.com/air-verse/air@v1.66.0
 
 COPY go.mod go.sum ./
 RUN go mod download

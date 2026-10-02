@@ -37,6 +37,7 @@ import (
 
 // ReplayAPIClient is a client that reads responses from a replay session file.
 type replayAPIClient struct {
+	AssertRequest           bool
 	ReplayFile              *replayFile
 	ReplaysDirectory        string
 	currentInteractionIndex int
@@ -51,6 +52,7 @@ func newReplayAPIClient(t *testing.T) *replayAPIClient {
 	// GOOGLE_GENAI_REPLAYS_DIRECTORY.
 	replaysDirectory := os.Getenv("GOOGLE_GENAI_REPLAYS_DIRECTORY")
 	rac := &replayAPIClient{
+		AssertRequest:           true,
 		ReplayFile:              nil,
 		ReplaysDirectory:        replaysDirectory,
 		currentInteractionIndex: 0,
@@ -61,6 +63,14 @@ func newReplayAPIClient(t *testing.T) *replayAPIClient {
 		rac.server.Close()
 	})
 	return rac
+}
+
+// InternalReplayAPIClient is a client that reads responses from a replay session file.
+type InternalReplayAPIClient = replayAPIClient
+
+// NewInternalReplayAPIClient creates a new InternalReplayAPIClient from a replay session file.
+func NewInternalReplayAPIClient(t *testing.T) *InternalReplayAPIClient {
+	return newReplayAPIClient(t)
 }
 
 // GetBaseURL returns the URL of the mocked HTTP server.
@@ -102,11 +112,22 @@ func (rac *replayAPIClient) ServeHTTP(w http.ResponseWriter, req *http.Request) 
 	}
 	interaction := rac.ReplayFile.Interactions[rac.currentInteractionIndex]
 
-	rac.assertRequest(req, interaction.Request)
+	if rac.AssertRequest {
+		rac.assertRequest(req, interaction.Request)
+	}
 	rac.currentInteractionIndex++
 
 	// Set Content-Type header
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	for k, v := range interaction.Response.Headers {
+		// Skip transport-level headers that don't apply to the mock server's
+		// uncompressed response body.
+		lk := strings.ToLower(k)
+		if lk == "content-encoding" || lk == "transfer-encoding" || lk == "content-length" {
+			continue
+		}
+		w.Header().Set(k, v)
+	}
 
 	var bodySegments []string
 	for i := 0; i < len(interaction.Response.BodySegments); i++ {
@@ -152,6 +173,12 @@ func readFileForReplayTest[T any](path string, output *T, omitempty bool) error 
 	return nil
 }
 
+// InternalReadFileForReplayTest reads a replay file into a struct.
+// If omitempty is true, empty values are omitted from the struct.
+func InternalReadFileForReplayTest[T any](path string, output *T, omitempty bool) error {
+	return readFileForReplayTest[T](path, output, omitempty)
+}
+
 // In testing server, host and scheme is empty.
 func processReplayURL(url string) string {
 	url = strings.ReplaceAll(url, "{MLDEV_URL_PREFIX}/", "")
@@ -190,28 +217,16 @@ func redactRequestBody(body map[string]any) map[string]any {
 }
 
 func redactVersionNumbers(versionString string) string {
-	re := regexp.MustCompile(`(v|go)?\d+\.\d+(\.\d+)?`)
-	res := re.ReplaceAllString(versionString, "{VERSION_NUMBER}")
+	glGoRe := regexp.MustCompile(`(gl-go/)[^\s]+(?:.*)`)
+	versionString = glGoRe.ReplaceAllString(versionString, "${1}{VERSION_NUMBER}")
 
-	placeholder := "{VERSION_NUMBER}"
-	firstIndex := strings.Index(res, placeholder)
-	if firstIndex == -1 {
-		return res
-	}
+	vertexRe := regexp.MustCompile(`(vertex-genai-modules/)[^\s+]+`)
+	versionString = vertexRe.ReplaceAllString(versionString, "${1}{VERSION_NUMBER}")
 
-	searchStart := firstIndex + len(placeholder)
-	if searchStart >= len(res) {
-		return res
-	}
+	genaiRe := regexp.MustCompile(`(google-genai-sdk/)[^\s+]+`)
+	versionString = genaiRe.ReplaceAllString(versionString, "${1}{VERSION_NUMBER}")
 
-	secondIndex := strings.Index(res[searchStart:], placeholder)
-	if secondIndex != -1 {
-		realSecondIndex := searchStart + secondIndex
-		endOfPlaceholder := realSecondIndex + len(placeholder)
-		return res[:endOfPlaceholder]
-	}
-
-	return res
+	return versionString
 }
 
 func redactLanguageLabel(languageLabel string) string {
@@ -357,6 +372,8 @@ func convertKeysToCamelCase(v any, parentKey string) any {
 			camelCaseKey := toCamelCase(key)
 			if parentKey == "response" && key == "body_segments" {
 				newMap[camelCaseKey] = value
+			} else if parentKey == "tool_response" && key == "response" {
+				newMap[camelCaseKey] = value
 			} else {
 				newMap[camelCaseKey] = convertKeysToCamelCase(value, key)
 			}
@@ -421,16 +438,28 @@ func sanitizeHeadersForComparison(item map[string]any) {
 
 	// TODO(b/441125206): Support reading response headers for replay tests.
 	ignoreHeaders := map[string]bool{
-		"content-encoding":             true,
-		"server":                       true,
-		"server-timing":                true,
-		"transfer-encoding":            true,
-		"vary":                         true,
-		"x-xss-protection":             true,
-		"x-frame-options":              true,
-		"x-content-type-options":       true,
-		"x-vertex-ai-llm-request-type": true,
-		"date":                         true,
+		"access-control-allow-origin": true,
+		"content-encoding":            true,
+		"date":                        true,
+		"internal-input-tokens":       true,
+		"internal-output-tokens":      true,
+		"server":                      true,
+		"server-timing":               true,
+		"transfer-encoding":           true,
+		"vary":                        true,
+		"x-compute-characters":        true,
+		"x-compute-time":              true,
+		"x-compute-tokens":            true,
+		"x-compute-type":              true,
+		"x-content-type-options":      true,
+		"x-frame-options":             true,
+		"x-inference-time":            true,
+		"x-queue-time":                true,
+		"x-tokenization-time":         true,
+		"x-total-time":                true,
+		"x-vertex-ai-internal-prediction-backend": true,
+		"x-vertex-ai-llm-request-type":            true,
+		"x-xss-protection":                        true,
 	}
 
 	processedHeaders := make(map[string][]string)
@@ -503,4 +532,14 @@ var base64StringComparator = func(x, y string) bool {
 		return x == y
 	}
 	return bytes.Equal(xb, yb)
+}
+
+// GetTest returns the testing.T instance for the replay test.
+func (rac *replayAPIClient) GetTest() *testing.T {
+	return rac.t
+}
+
+// GetTestServer returns the httptest.Server instance for the replay test.
+func (rac *replayAPIClient) GetTestServer() *httptest.Server {
+	return rac.server
 }

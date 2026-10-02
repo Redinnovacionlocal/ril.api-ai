@@ -25,6 +25,7 @@ import (
 	"google.golang.org/genai"
 	"ril.api-ia/internal/agent"
 	"ril.api-ia/internal/agent/plugin/agent_active_plugin"
+	"ril.api-ia/internal/agent/plugin/model_armor_plugin"
 	"ril.api-ia/internal/agent/plugin/title_plugin"
 	"ril.api-ia/internal/agent/subagents/educationagent"
 	"ril.api-ia/internal/agent/subagents/girsuagent"
@@ -99,6 +100,10 @@ func main() {
 	artifactService, _ := gcsartifact.NewService(ctx, os.Getenv("ARTIFACT_BUCKET_NAME"))
 	titlePlugin, _ := title_plugin.New(ctx, "title_plugin")
 	agentActivePlugin, _ := agent_active_plugin.New(ctx, "agent_active_plugin")
+	modelArmorPlugin, err := model_armor_plugin.New(ctx, "model_armor_plugin")
+	if err != nil {
+		log.Fatal("Error initializing Model Armor plugin:", err)
+	}
 	config := &launcher.Config{
 		ArtifactService: artifactService,
 		AgentLoader:     loader,
@@ -106,6 +111,7 @@ func main() {
 			Plugins: []*plugin.Plugin{
 				titlePlugin,
 				agentActivePlugin,
+				modelArmorPlugin,
 			},
 		},
 	}

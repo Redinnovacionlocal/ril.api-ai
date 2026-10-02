@@ -23,8 +23,8 @@
     → último recurso si ningún tag ni dimensión encaja.
 
     EJEMPLOS CORRECTOS:
-    · Usuario habla de videovigilancia y operadores:
-    → lookup_tree_questions(tag="videovigilancia_protocolos-y-operacion")
+    · Usuario habla de la Formación docente:
+    → lookup_tree_questions(tag="docentes_formación")
 
     · Usuario quiere ver todo lo de educación complementaria:
     → lookup_tree_questions(dimension="Educación complementaria")
@@ -49,8 +49,10 @@
     · Nunca menciones IDs, niveles por nombre ni jerga interna en la respuesta.
 
     QUÉ DEVUELVE POR PREGUNTA:
-    · descripcion     — para DIAGNOSTICAR. Leela y formulá preguntas para
-                        identificar si el municipio está en ese nivel.
+    · descripcion     — para DIAGNOSTICAR. Ronda 1: encuadre con la pregunta y las
+                        opciones. Ronda 2: las señales dentro de la descripción del
+                        nivel (ausencias del Bajo / "Sí débil" del Intermedio /
+                        "se ve bien cuando" del Avanzado).
     · odm             — para RECOMENDAR. Lo que el municipio puede hacer
                         para avanzar. Comunicalo como recomendación principal.
     · acciones_agente — para ACOMPAÑAR. Cómo el agente apoya la implementación.

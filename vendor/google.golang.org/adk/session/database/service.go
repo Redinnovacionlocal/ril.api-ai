@@ -22,9 +22,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 
+	"google.golang.org/adk/platform"
 	"google.golang.org/adk/session"
 )
 
@@ -75,7 +75,7 @@ func (s *databaseService) Create(ctx context.Context, req *session.CreateRequest
 
 	sessionID := req.SessionID
 	if sessionID == "" {
-		sessionID = uuid.NewString()
+		sessionID = platform.NewUUID(ctx)
 	}
 
 	stateMap := req.State
@@ -87,9 +87,9 @@ func (s *databaseService) Create(ctx context.Context, req *session.CreateRequest
 		userID:    req.UserID,
 		sessionID: sessionID,
 		state:     stateMap,
-		updatedAt: time.Now(),
+		updatedAt: platform.Now(ctx),
 	}
-	createdSession, err := createStorageSession(val)
+	createdSession, err := createStorageSession(ctx, val)
 	if err != nil {
 		return nil, err
 	}
@@ -109,12 +109,16 @@ func (s *databaseService) Create(ctx context.Context, req *session.CreateRequest
 		// apply state delta
 		if len(appDelta) > 0 {
 			maps.Copy(storageApp.State, appDelta)
+			// Maintain UpdateTime explicitly: an unset time.Time serializes to
+			// a zero datetime that MySQL rejects under strict mode.
+			storageApp.UpdateTime = createdSession.UpdateTime
 			if err := tx.Save(&storageApp).Error; err != nil {
 				return fmt.Errorf("failed to save app state: %w", err)
 			}
 		}
 		if len(userDelta) > 0 {
 			maps.Copy(storageUser.State, userDelta)
+			storageUser.UpdateTime = createdSession.UpdateTime
 			if err := tx.Save(&storageUser).Error; err != nil {
 				return fmt.Errorf("failed to save user state: %w", err)
 			}
@@ -155,7 +159,9 @@ func (s *databaseService) Get(ctx context.Context, req *session.GetRequest) (*se
 		}).
 		First(&foundSession).Error
 	if err != nil {
-		// For any error including ErrRecordNotFound, return it as a system error.
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("%w: %q: %w", session.ErrNotFound, sessionID, err)
+		}
 		return nil, fmt.Errorf("database error while fetching session: %w", err)
 	}
 
@@ -355,16 +361,16 @@ func (s *databaseService) AppendEvent(ctx context.Context, curSession session.Se
 
 // applyEvent fetches the session, validates it, applies state changes from an
 // event, and saves the event atomically.
-func (s *databaseService) applyEvent(ctx context.Context, session *localSession, event *session.Event) error {
+func (s *databaseService) applyEvent(ctx context.Context, sess *localSession, event *session.Event) error {
 	// Wrap database operations in a single transaction.
 	err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// Fetch the session object from storage.
 		var storageSess storageSession
-		err := tx.Where(&storageSession{AppName: session.AppName(), UserID: session.UserID(), ID: session.ID()}).
+		err := tx.Where(&storageSession{AppName: sess.AppName(), UserID: sess.UserID(), ID: sess.ID()}).
 			First(&storageSess).Error
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return fmt.Errorf("session not found, cannot apply event")
+				return fmt.Errorf("%w: %q, cannot apply event: %w", session.ErrNotFound, sess.ID(), err)
 			}
 			return fmt.Errorf("failed to get session: %w", err)
 		}
@@ -372,21 +378,21 @@ func (s *databaseService) applyEvent(ctx context.Context, session *localSession,
 		// Ensure the session object is not stale.
 		// We use UnixMicro() for microsecond-level precision, matching the Python code.
 		storageUpdateTime := storageSess.UpdateTime.UnixMicro()
-		sessionUpdateTime := session.updatedAt.UnixMicro()
+		sessionUpdateTime := sess.updatedAt.UnixMicro()
 		if storageUpdateTime > sessionUpdateTime {
 			return fmt.Errorf(
 				"stale session error: last update time from request (%s) is older than in database (%s)",
-				time.Unix(0, sessionUpdateTime).Format(time.RFC3339Nano),
-				time.Unix(0, storageUpdateTime).Format(time.RFC3339Nano),
+				time.UnixMicro(sessionUpdateTime).Format(time.RFC3339Nano),
+				time.UnixMicro(storageUpdateTime).Format(time.RFC3339Nano),
 			)
 		}
 
 		// Fetch App and User states.
-		storageApp, err := fetchStorageAppState(tx, session.AppName())
+		storageApp, err := fetchStorageAppState(tx, sess.AppName())
 		if err != nil {
 			return err
 		}
-		storageUser, err := fetchStorageUserState(tx, session.AppName(), session.UserID())
+		storageUser, err := fetchStorageUserState(tx, sess.AppName(), sess.UserID())
 		if err != nil {
 			return err
 		}
@@ -397,12 +403,16 @@ func (s *databaseService) applyEvent(ctx context.Context, session *localSession,
 		// GORM's .Save() method will correctly perform an INSERT or UPDATE.
 		if len(appDelta) > 0 {
 			maps.Copy(storageApp.State, appDelta)
+			// Maintain UpdateTime explicitly (see Create): an unset time.Time
+			// serializes to a zero datetime that MySQL rejects under strict mode.
+			storageApp.UpdateTime = event.Timestamp
 			if err := tx.Save(&storageApp).Error; err != nil {
 				return fmt.Errorf("failed to save app state: %w", err)
 			}
 		}
 		if len(userDelta) > 0 {
 			maps.Copy(storageUser.State, userDelta)
+			storageUser.UpdateTime = event.Timestamp
 			if err := tx.Save(&storageUser).Error; err != nil {
 				return fmt.Errorf("failed to save user state: %w", err)
 			}
@@ -413,7 +423,7 @@ func (s *databaseService) applyEvent(ctx context.Context, session *localSession,
 		}
 
 		// Create the new event record in the database.
-		storageEv, err := createStorageEvent(session, event)
+		storageEv, err := createStorageEvent(sess, event)
 		if err != nil {
 			return fmt.Errorf("failed to map event to storage model: %w", err)
 		}
@@ -427,7 +437,7 @@ func (s *databaseService) applyEvent(ctx context.Context, session *localSession,
 			return fmt.Errorf("failed to save session state: %w", err)
 		}
 
-		session.updatedAt = storageSess.UpdateTime
+		sess.updatedAt = storageSess.UpdateTime
 
 		return nil // Returning nil commits the transaction.
 	})

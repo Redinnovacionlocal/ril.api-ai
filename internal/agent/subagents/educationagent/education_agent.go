@@ -23,7 +23,6 @@ var skillsFiles embed.FS
 
 func NewEducationAgent(m model.LLM, treeManager *tree_agent.TreeCacheManager) (agent.Agent, error) {
 	ctx := context.Background()
-
 	saveUserMemory, err := tools.NewSaveMemoryTool()
 	if err != nil {
 		return nil, fmt.Errorf("creating save_user_memory tool: %w", err)

@@ -254,8 +254,10 @@ type Config struct {
 	InputSchema *genai.Schema
 	// The output schema when agent replies.
 	//
-	// NOTE: when this is set, agent can only reply and cannot use any tools,
-	// such as function tools, RAGs, agent transfer, etc.
+	// When OutputSchema is set, the framework transparently injects a
+	// set_model_response tool so the model can still invoke other tools
+	// (function tools, RAG, agent transfer, etc.) while producing structured
+	// output. See internal/llminternal/outputschema_processor.go for details.
 	OutputSchema *genai.Schema
 
 	// Callbacks are executed in the order they are provided.
@@ -310,7 +312,7 @@ type OnModelErrorCallback func(ctx agent.CallbackContext, llmRequest *model.LLMR
 //
 // To modify tool arguments and still run the tool,
 // update args in place and return (nil, nil).
-type BeforeToolCallback func(ctx tool.Context, tool tool.Tool, args map[string]any) (map[string]any, error)
+type BeforeToolCallback func(ctx agent.ToolContext, tool tool.Tool, args map[string]any) (map[string]any, error)
 
 // AfterToolCallback is a function type executed after a tool's Run method has completed,
 // regardless of whether the tool returned a result or an error.
@@ -319,13 +321,13 @@ type BeforeToolCallback func(ctx tool.Context, tool tool.Tool, args map[string]a
 // If a callback returns a non-nil result or an error:
 //   - execution of remaining callbacks stops
 //   - the returned result and/or error is used as the final tool output
-type AfterToolCallback func(ctx tool.Context, tool tool.Tool, args, result map[string]any, err error) (map[string]any, error)
+type AfterToolCallback func(ctx agent.ToolContext, tool tool.Tool, args, result map[string]any, err error) (map[string]any, error)
 
 // OnToolErrorCallback that is called when receiving an error response from tool execution.
 //
 // If it returns non-nil LLMResponse or error, the actual model response/error
 // is replaced with the returned response/error.
-type OnToolErrorCallback func(ctx tool.Context, tool tool.Tool, args map[string]any, err error) (map[string]any, error)
+type OnToolErrorCallback func(ctx agent.ToolContext, tool tool.Tool, args map[string]any, err error) (map[string]any, error)
 
 // IncludeContents controls what parts of prior conversation history is received by llmagent.
 type IncludeContents string
@@ -393,6 +395,49 @@ func (a *llmAgent) run(ctx agent.InvocationContext) iter.Seq2[*session.Event, er
 	}
 }
 
+func (a *llmAgent) RunLive(ctx agent.InvocationContext) (agent.LiveSession, iter.Seq2[*session.Event, error], error) {
+	ctx = icontext.NewInvocationContext(ctx, icontext.InvocationContextParams{
+		Artifacts:    ctx.Artifacts(),
+		Memory:       ctx.Memory(),
+		Session:      ctx.Session(),
+		Branch:       ctx.Branch(),
+		Agent:        a,
+		UserContent:  ctx.UserContent(),
+		RunConfig:    ctx.RunConfig(),
+		InvocationID: ctx.InvocationID(),
+	})
+
+	f := &llminternal.Flow{
+		Model:                 a.model,
+		RequestProcessors:     llminternal.DefaultRequestProcessors,
+		ResponseProcessors:    llminternal.DefaultResponseProcessors,
+		BeforeModelCallbacks:  a.beforeModelCallbacks,
+		AfterModelCallbacks:   a.afterModelCallbacks,
+		OnModelErrorCallbacks: a.onModelErrorCallbacks,
+		BeforeToolCallbacks:   a.beforeToolCallbacks,
+		AfterToolCallbacks:    a.afterToolCallbacks,
+		OnToolErrorCallbacks:  a.onToolErrorCallbacks,
+	}
+
+	sess, innerIter, err := f.RunLive(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	wrappedIter := func(yield func(*session.Event, error) bool) {
+		for ev, err := range innerIter {
+			if err == nil {
+				a.maybeSaveOutputToState(ev)
+			}
+			if !yield(ev, err) {
+				return
+			}
+		}
+	}
+
+	return sess, wrappedIter, nil
+}
+
 // maybeSaveOutputToState saves the model output to state if needed. skip if the event
 // was authored by some other agent (e.g. current agent transferred to another agent)
 func (a *llmAgent) maybeSaveOutputToState(event *session.Event) {
@@ -403,12 +448,17 @@ func (a *llmAgent) maybeSaveOutputToState(event *session.Event) {
 		// TODO: log "Skipping output save for agent %s: event authored by %s"
 		return
 	}
-	if a.OutputKey != "" && !event.Partial && event.Content != nil && len(event.Content.Parts) > 0 {
+	if a.OutputKey != "" && event.IsFinalResponse() && event.Content != nil && len(event.Content.Parts) > 0 {
 		var sb strings.Builder
+		hasTextPart := false
 		for _, part := range event.Content.Parts {
 			if part.Text != "" && !part.Thought {
+				hasTextPart = true
 				sb.WriteString(part.Text)
 			}
+		}
+		if !hasTextPart {
+			return
 		}
 		result := sb.String()
 

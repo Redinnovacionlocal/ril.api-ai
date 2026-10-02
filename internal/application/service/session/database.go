@@ -7,6 +7,7 @@ import (
 
 	"google.golang.org/adk/session"
 	"gorm.io/gorm"
+	"ril.api-ia/internal/infrastructure/observability"
 )
 
 type Service interface {
@@ -46,6 +47,15 @@ func NewMyDatabaseService(base session.Service, dialector gorm.Dialector, opts .
 		Service: base,
 		db:      db,
 	}
+}
+
+func (s *MyDatabaseService) AppendEvent(ctx context.Context, curSession session.Session, event *session.Event) (err error) {
+	ctx, span := observability.Start(ctx, "session.append_event", observability.Attrs{
+		"session.app_name": curSession.AppName(),
+	})
+	defer span.End(&err)
+
+	return s.Service.AppendEvent(ctx, curSession, event)
 }
 
 func (s *MyDatabaseService) UpdateTitle(ctx context.Context, req *UpdateTitleRequest) error {
