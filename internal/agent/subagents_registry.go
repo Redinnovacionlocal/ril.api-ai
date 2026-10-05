@@ -12,6 +12,7 @@ import (
 
 	"ril.api-ia/internal/agent/subagents/educationagent"
 	"ril.api-ia/internal/agent/subagents/girsuagent"
+	"ril.api-ia/internal/agent/subagents/primerainfanciaagent"
 	"ril.api-ia/internal/agent/subagents/professionalizationagent"
 	"ril.api-ia/internal/agent/subagents/securityagent"
 	"ril.api-ia/internal/infrastructure/repository/tree_agent"
@@ -31,6 +32,7 @@ var domainAgentSpecs = []DomainAgentSpec{
 	{"security_agent", "Seguridad", "seguridad pública", securityagent.NewSecurityAgent},
 	{"professionalization_agent", "Profesionalización", "profesionalización del municipio", professionalizationagent.NewProfessionalizationAgent},
 	{"education_agent", "Educación", "educación", educationagent.NewEducationAgent},
+	{"primera_infancia_agent", "Primera Infancia", "primera infancia y desarrollo infantil temprano", primerainfanciaagent.NewPrimeraInfanciaAgent},
 }
 
 func EnabledDomainAgentSpecs() []DomainAgentSpec {

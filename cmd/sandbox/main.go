@@ -29,6 +29,7 @@ import (
 	"ril.api-ia/internal/agent/plugin/title_plugin"
 	"ril.api-ia/internal/agent/subagents/educationagent"
 	"ril.api-ia/internal/agent/subagents/girsuagent"
+	"ril.api-ia/internal/agent/subagents/primerainfanciaagent"
 	"ril.api-ia/internal/agent/subagents/professionalizationagent"
 	"ril.api-ia/internal/agent/subagents/securityagent"
 	"ril.api-ia/internal/infrastructure/repository/tree_agent"
@@ -96,7 +97,11 @@ func main() {
 	if err != nil {
 		log.Fatal("Error initializing EducationAgent:", err)
 	}
-	loader, _ := a2.NewMultiLoader(coordinatorAgent, securityAgent, girsuAgent, professionalizationAgent, educationAgent)
+	primeraInfanciaAgent, err := primerainfanciaagent.NewPrimeraInfanciaAgent(model3, treeManager)
+	if err != nil {
+		log.Fatal("Error initializing PrimeraInfanciaAgent:", err)
+	}
+	loader, _ := a2.NewMultiLoader(coordinatorAgent, securityAgent, girsuAgent, professionalizationAgent, educationAgent, primeraInfanciaAgent)
 	artifactService, _ := gcsartifact.NewService(ctx, os.Getenv("ARTIFACT_BUCKET_NAME"))
 	titlePlugin, _ := title_plugin.New(ctx, "title_plugin")
 	agentActivePlugin, _ := agent_active_plugin.New(ctx, "agent_active_plugin")
