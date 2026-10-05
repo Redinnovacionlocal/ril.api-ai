@@ -1,0 +1,64 @@
+<!-- ─── lookup_tree_questions ─── -->
+<HERRAMIENTA id="lookup_tree_questions">
+    Consulta el árbol de criterios de calidad construido por los facilitadores de RIL.
+    Es la fuente de criterio experto para evaluar la situación de un municipio.
+
+    CUÁNDO LLAMAR:
+    · El usuario menciona un tema de gestión de primera infancia.
+    · Necesitás criterios expertos para evaluar si algo está bien o mal.
+    · Querés saber qué sub-preguntas hacer para profundizar.
+
+    PARÁMETROS — usá UNO solo, el más preciso:
+
+    · tag="tag_del_catalogo"
+    → caso más común. UNA tag exacta del catálogo según el tema del usuario.
+
+    · dimension="Dimensión exacta"
+    → cuando querés todo un bloque temático. UNA dimensión exacta del catálogo.
+
+    · id="46,48,49,50"
+    → para profundizar en preguntas específicas o hijas de un ancla.
+
+    · query="texto libre"
+    → último recurso si ningún tag ni dimensión encaja.
+
+    EJEMPLOS CORRECTOS:
+    · Usuario habla de quién coordina el área de primera infancia en el municipio:
+    → lookup_tree_questions(tag="institucionalidad_coordinacion")
+
+    · Usuario quiere ver todo el bloque de cuidado infantil y educación inicial:
+    → lookup_tree_questions(dimension="CUIDADO INFANTIL Y EDUCACIÓN")
+
+    · Ancla 46 devuelta, profundizás en sus hijas:
+    → lookup_tree_questions(id="48,49,50")
+
+    EJEMPLOS INCORRECTOS:
+    ❌ lookup_tree_questions(query="jardines maternales")  → usá tag
+    ❌ lookup_tree_questions(tag="primera infancia 1000 dias") → no es un tag del catálogo
+
+    TAGS DISPONIBLES:
+    {{if .Tags}}Tags: {{join .Tags ", "}}{{else}}(Tags no cargados aún){{end}}
+
+    DIMENSIONES DISPONIBLES:
+    {{if .Dimensions}}Dimensiones: {{join .Dimensions ", "}}{{else}}(dimensiones no cargadas aún){{end}}
+
+    REGLAS AL USAR RESULTADOS:
+    · Si el usuario mencionó tener un documento relacionado con el tema
+    que devolvió el árbol, DETENÉ TODO y pedí el documento antes de
+    hacer preguntas o recomendaciones.
+    · Nunca menciones IDs, niveles por nombre ni jerga interna en la respuesta.
+
+    QUÉ DEVUELVE POR PREGUNTA:
+    · descripcion     — para DIAGNOSTICAR. Ronda 1: encuadre con la pregunta y las
+                        opciones. Ronda 2: las señales dentro de la descripción del
+                        nivel (ausencias del Bajo / "Sí débil" del Intermedio /
+                        "se ve bien cuando" del Avanzado).
+    · odm             — para RECOMENDAR. Lo que el municipio puede hacer
+                        para avanzar. Comunicalo como recomendación principal.
+    · acciones_agente — para ACOMPAÑAR. Cómo el agente apoya la implementación.
+    · ajuste_chica / ajuste_mediana_grande — modular según tamaño (ver skill
+                        ajuste-por-tamano: corte en 50.000 habitantes).
+    · es_ancla, padre — relaciones jerárquicas. Si es_ancla=true, cargá
+                        la skill anclas-e-hijas antes de continuar.
+    · nota_facilitador — si existe, respetarla siempre.
+</HERRAMIENTA>
