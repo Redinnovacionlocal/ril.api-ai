@@ -25,6 +25,7 @@ import (
 	"google.golang.org/genai"
 	"ril.api-ia/internal/agent"
 	"ril.api-ia/internal/agent/plugin/agent_active_plugin"
+	"ril.api-ia/internal/agent/plugin/guardrails_plugin"
 	"ril.api-ia/internal/agent/plugin/model_armor_plugin"
 	"ril.api-ia/internal/agent/plugin/title_plugin"
 	"ril.api-ia/internal/agent/subagents/educationagent"
@@ -32,12 +33,14 @@ import (
 	"ril.api-ia/internal/agent/subagents/primerainfanciaagent"
 	"ril.api-ia/internal/agent/subagents/professionalizationagent"
 	"ril.api-ia/internal/agent/subagents/securityagent"
+	"ril.api-ia/internal/infrastructure/observability"
 	"ril.api-ia/internal/infrastructure/repository/tree_agent"
 )
 
 func main() {
 	ctx := context.Background()
 	_ = godotenv.Overload()
+	observability.SetupLogging()
 	toolboxClient, err := tbadk.NewToolboxClient(os.Getenv("TOOLBOX_CLIENT_URL"))
 	if err != nil {
 		log.Fatal("Error initializing Toolbox client:", err)
@@ -109,6 +112,10 @@ func main() {
 	if err != nil {
 		log.Fatal("Error initializing Model Armor plugin:", err)
 	}
+	guardrailsPlugin, err := guardrails_plugin.New(ctx, "guardrails_plugin")
+	if err != nil {
+		log.Fatal("Error initializing guardrails plugin:", err)
+	}
 	config := &launcher.Config{
 		ArtifactService: artifactService,
 		AgentLoader:     loader,
@@ -117,6 +124,7 @@ func main() {
 				titlePlugin,
 				agentActivePlugin,
 				modelArmorPlugin,
+				guardrailsPlugin,
 			},
 		},
 	}
