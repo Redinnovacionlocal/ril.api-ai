@@ -34,6 +34,7 @@ import (
 	"gorm.io/driver/postgres"
 	"ril.api-ia/internal/agent"
 	"ril.api-ia/internal/agent/plugin/agent_active_plugin"
+	"ril.api-ia/internal/agent/plugin/guardrails_plugin"
 	"ril.api-ia/internal/agent/plugin/model_armor_plugin"
 	"ril.api-ia/internal/agent/plugin/thought_signature_plugin"
 	"ril.api-ia/internal/agent/plugin/title_plugin"
@@ -197,6 +198,10 @@ func buildRunner(ctx context.Context, ag internalagent.Agent, sessionService ses
 	if err != nil {
 		log.Fatal("Error initializing thought signature plugin:", err)
 	}
+	guardrailsPlugin, err := guardrails_plugin.New(ctx, "guardrails_plugin")
+	if err != nil {
+		log.Fatal("Error initializing guardrails plugin:", err)
+	}
 
 	r, err := runner.New(runner.Config{
 		AppName:         os.Getenv("APP_NAME"),
@@ -210,6 +215,7 @@ func buildRunner(ctx context.Context, ag internalagent.Agent, sessionService ses
 				agentActivePlugin,
 				modelArmorPlugin,
 				thoughtSignaturePlugin,
+				guardrailsPlugin,
 			},
 		},
 	})
