@@ -16,6 +16,9 @@ type Violation struct {
 	Detail string
 	// Instruction is sent to the rewrite model.
 	Instruction string
+	// Fragments limits the rewrite to these exact pieces of the response.
+	// Empty means the whole response.
+	Fragments []string
 	// OnKeep runs when the rewrite model keeps the response because the user
 	// explicitly asked for it. Optional.
 	OnKeep func()

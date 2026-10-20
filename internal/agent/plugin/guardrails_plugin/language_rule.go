@@ -16,8 +16,9 @@ import (
 const userLanguageStateKey = "guardrails_user_lang"
 
 const (
-	minWords      = 3
-	minConfidence = 0.7
+	minWords          = 3
+	minParagraphWords = 5
+	minConfidence     = 0.7
 )
 
 var (
@@ -70,33 +71,78 @@ func (r *languageRule) Name() string {
 	return "language"
 }
 
+// Check accepts the conversation language (stored in the session) or the
+// current message language. A single message does not change the conversation
+// language: it changes only when the response follows the message.
 func (r *languageRule) Check(in Input) *Violation {
 	msgLang, msgConf := r.detect(in.UserText)
-	storedLang := r.storedLanguage(in.State)
-	userLang := msgLang
-	if userLang == lingua.Unknown {
-		userLang = storedLang
-	} else if userLang != storedLang {
-		r.storeLanguage(in.State, userLang)
+	convLang := r.storedLanguage(in.State)
+	if convLang == lingua.Unknown && msgLang != lingua.Unknown {
+		convLang = msgLang
+		r.storeLanguage(in.State, convLang)
 	}
 	respLang, respConf := r.detect(in.ResponseText)
+	foreign := r.foreignParagraphs(in.ResponseText, convLang, msgLang)
 
 	slog.Debug("guardrails: language check",
 		"message_lang", isoCode(msgLang), "message_confidence", msgConf,
-		"stored_lang", isoCode(storedLang), "user_lang", isoCode(userLang),
-		"response_lang", isoCode(respLang), "response_confidence", respConf)
+		"conversation_lang", isoCode(convLang),
+		"response_lang", isoCode(respLang), "response_confidence", respConf,
+		"foreign_paragraphs", len(foreign))
 
-	if userLang == lingua.Unknown || respLang == lingua.Unknown || respLang == userLang {
+	if convLang == lingua.Unknown {
 		return nil
 	}
-	return &Violation{
-		Rule:   r.Name(),
-		Detail: fmt.Sprintf("user=%s response=%s", isoCode(userLang), isoCode(respLang)),
-		Instruction: fmt.Sprintf(
-			"La respuesta está en %s pero el usuario escribe en %s: hay que traducirla completa a %s.",
-			respLang, userLang, userLang),
-		OnKeep: func() { r.storeLanguage(in.State, respLang) },
+	expected := func(l lingua.Language) bool { return l == convLang || l == msgLang }
+
+	if respLang != lingua.Unknown && !expected(respLang) {
+		return &Violation{
+			Rule:   r.Name(),
+			Detail: fmt.Sprintf("conversation=%s message=%s response=%s", isoCode(convLang), isoCode(msgLang), isoCode(respLang)),
+			Instruction: fmt.Sprintf(
+				"La respuesta está en %s pero la conversación es en %s: hay que traducirla completa a %s.",
+				respLang, convLang, convLang),
+			OnKeep: func() { r.storeLanguage(in.State, respLang) },
+		}
 	}
+	if len(foreign) > 0 {
+		return &Violation{
+			Rule:   r.Name(),
+			Detail: fmt.Sprintf("conversation=%s response=%s paragraphs=%d", isoCode(convLang), isoCode(respLang), len(foreign)),
+			Instruction: fmt.Sprintf(
+				"Hay fragmentos en inglés pero la conversación es en %s.", convLang),
+			Fragments: foreign,
+		}
+	}
+	if respLang == msgLang && msgLang != convLang {
+		r.storeLanguage(in.State, msgLang)
+	}
+	return nil
+}
+
+// foreignParagraphs returns the lines in English when the conversation is
+// not, usually leaked reasoning: Gemini reasons in English. Other languages
+// are not checked per line because lingua mixes up Spanish and Portuguese in
+// short texts. Code blocks and short lines are skipped.
+func (r *languageRule) foreignParagraphs(text string, convLang, msgLang lingua.Language) []string {
+	if convLang == lingua.Unknown || convLang == lingua.English || msgLang == lingua.English {
+		return nil
+	}
+	var foreign []string
+	inCode := false
+	for _, line := range strings.Split(text, "\n") {
+		if strings.HasPrefix(strings.TrimSpace(line), "```") {
+			inCode = !inCode
+			continue
+		}
+		if inCode || len(strings.Fields(line)) < minParagraphWords {
+			continue
+		}
+		if lang, _ := r.detect(line); lang == lingua.English {
+			foreign = append(foreign, line)
+		}
+	}
+	return foreign
 }
 
 func (r *languageRule) storedLanguage(state session.State) lingua.Language {
