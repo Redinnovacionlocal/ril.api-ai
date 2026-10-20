@@ -2,6 +2,7 @@ package guardrails_plugin
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -44,6 +45,34 @@ Paso 2: si no, corregí los problemas detectados:
 <respuesta>
 %s
 </respuesta>`
+
+const fragmentsPrompt = `Sos un corrector de respuestas de un asistente. Algunos fragmentos de la respuesta tienen problemas.
+
+Mensaje del usuario:
+<mensaje_usuario>
+%s
+</mensaje_usuario>
+
+Problemas detectados:
+%s
+Paso 1: leé el mensaje del usuario. Si pide explícitamente algo que justifica los fragmentos tal como están (por ejemplo, responder en otro idioma o traducir un texto), devolvé keep en true.
+
+Paso 2: si no, devolvé keep en false y cada fragmento corregido, en el mismo orden:
+- Si el fragmento es razonamiento interno del asistente, devolvé un texto vacío para eliminarlo. Es razonamiento todo lo que el asistente se dice a sí mismo y no le diría al usuario: su plan, cómo va a armar la respuesta, el análisis del pedido, qué herramienta va a usar o qué información obtuvo, o cuando habla del usuario en tercera persona. Por ejemplo: "Let's synthesize an example for the user", "Now let's structure the response", "Great! We have retrieved documents from the RAG", "Wait, let's check the tool specifications".
+- Si es contenido para el usuario, corregilo manteniendo el formato markdown, las URLs, el código y los nombres propios.
+- Si una parte del fragmento es razonamiento y otra es contenido, eliminá solo el razonamiento.
+
+Fragmentos:
+%s`
+
+var fragmentsSchema = &genai.Schema{
+	Type: genai.TypeObject,
+	Properties: map[string]*genai.Schema{
+		"keep":      {Type: genai.TypeBoolean},
+		"fragments": {Type: genai.TypeArray, Items: &genai.Schema{Type: genai.TypeString}},
+	},
+	Required: []string{"keep", "fragments"},
+}
 
 var errKept = errors.New("user explicitly asked for this response")
 
@@ -112,12 +141,12 @@ func (g *guardrailsPlugin) afterModel(ctx agent.CallbackContext, resp *model.LLM
 	if respErr != nil || resp == nil || resp.Partial || resp.Content == nil {
 		return nil, nil
 	}
-	responseText, ok := finalText(resp.Content)
+	text, hasToolCall, ok := responseText(resp.Content)
 	if !ok {
 		return nil, nil
 	}
 
-	in := Input{UserText: contentText(ctx.UserContent()), ResponseText: responseText, State: ctx.State()}
+	in := Input{UserText: contentText(ctx.UserContent()), ResponseText: text, State: ctx.State()}
 	violations := g.check(in)
 	if len(violations) == 0 {
 		return nil, nil
@@ -130,7 +159,15 @@ func (g *guardrailsPlugin) afterModel(ctx agent.CallbackContext, resp *model.LLM
 	}
 	for _, v := range violations {
 		slog.WarnContext(ctx, "guardrails: rule failed",
-			append([]any{"guardrails.rule", v.Rule, "guardrails.detail", v.Detail}, logAttrs...)...)
+			append([]any{"guardrails.rule", v.Rule, "guardrails.detail", v.Detail, "guardrails.tool_call", hasToolCall}, logAttrs...)...)
+	}
+
+	// Text next to a tool call is filler before the tool runs: drop it instead
+	// of delaying the tool with a rewrite.
+	if hasToolCall {
+		slog.InfoContext(ctx, "guardrails: text removed from tool call",
+			append([]any{"guardrails.rules", ruleNames(violations)}, logAttrs...)...)
+		return replaceText(resp, ""), nil
 	}
 
 	start := time.Now()
@@ -179,7 +216,13 @@ func (g *guardrailsPlugin) correct(ctx context.Context, in Input, violations []*
 
 	text := in.ResponseText
 	for attempt := 1; attempt <= maxRetries; attempt++ {
-		fixed, err := g.rewrite(ctx, in.UserText, text, violations)
+		var fixed string
+		var err error
+		if fragments := allFragments(violations); fragments != nil {
+			fixed, err = g.rewriteFragments(ctx, in.UserText, text, fragments, violations)
+		} else {
+			fixed, err = g.rewrite(ctx, in.UserText, text, violations)
+		}
 		if errors.Is(err, errKept) {
 			return "", attempt, err
 		}
@@ -198,14 +241,9 @@ func (g *guardrailsPlugin) correct(ctx context.Context, in Input, violations []*
 }
 
 func (g *guardrailsPlugin) rewrite(ctx context.Context, userText, text string, violations []*Violation) (string, error) {
-	var instructions strings.Builder
-	for _, v := range violations {
-		fmt.Fprintf(&instructions, "- %s\n", v.Instruction)
-	}
-
 	temperature := float32(0)
 	result, err := g.client.Models.GenerateContent(ctx, rewriteModel,
-		genai.Text(fmt.Sprintf(rewritePrompt, userText, instructions.String(), text)),
+		genai.Text(fmt.Sprintf(rewritePrompt, userText, instructions(violations), text)),
 		&genai.GenerateContentConfig{Temperature: &temperature},
 	)
 	if err != nil {
@@ -222,21 +260,98 @@ func (g *guardrailsPlugin) rewrite(ctx context.Context, userText, text string, v
 	return out, nil
 }
 
-func finalText(content *genai.Content) (string, bool) {
+// rewriteFragments rewrites only the given fragments and puts them back in
+// place, so long responses stay untouched and fast to fix.
+func (g *guardrailsPlugin) rewriteFragments(ctx context.Context, userText, text string, fragments []string, violations []*Violation) (string, error) {
+	var list strings.Builder
+	for i, f := range fragments {
+		fmt.Fprintf(&list, "<fragmento id=\"%d\">\n%s\n</fragmento>\n", i+1, f)
+	}
+
+	temperature := float32(0)
+	result, err := g.client.Models.GenerateContent(ctx, rewriteModel,
+		genai.Text(fmt.Sprintf(fragmentsPrompt, userText, instructions(violations), list.String())),
+		&genai.GenerateContentConfig{
+			Temperature:      &temperature,
+			ResponseMIMEType: "application/json",
+			ResponseSchema:   fragmentsSchema,
+		},
+	)
+	if err != nil {
+		return "", err
+	}
+	var out struct {
+		Keep      bool     `json:"keep"`
+		Fragments []string `json:"fragments"`
+	}
+	if err := json.Unmarshal([]byte(result.Text()), &out); err != nil {
+		return "", fmt.Errorf("invalid rewrite model response: %w", err)
+	}
+	if out.Keep {
+		return "", errKept
+	}
+	if len(out.Fragments) != len(fragments) {
+		return "", fmt.Errorf("rewrite model returned %d fragments, want %d", len(out.Fragments), len(fragments))
+	}
+
+	for i, f := range fragments {
+		fixed := strings.TrimSpace(out.Fragments[i])
+		if fixed == "" {
+			text = strings.Replace(text, f+"\n", "", 1)
+			text = strings.Replace(text, f, "", 1)
+			continue
+		}
+		text = strings.Replace(text, f, fixed, 1)
+	}
+	text = strings.TrimSpace(text)
+	if text == "" {
+		return "", errors.New("response is empty after removing fragments")
+	}
+	return text, nil
+}
+
+// allFragments returns the fragments to rewrite, or nil when any violation
+// needs the whole response rewritten.
+func allFragments(violations []*Violation) []string {
+	var fragments []string
+	for _, v := range violations {
+		if len(v.Fragments) == 0 {
+			return nil
+		}
+		fragments = append(fragments, v.Fragments...)
+	}
+	return fragments
+}
+
+func instructions(violations []*Violation) string {
 	var sb strings.Builder
+	for _, v := range violations {
+		fmt.Fprintf(&sb, "- %s\n", v.Instruction)
+	}
+	return sb.String()
+}
+
+// responseText returns the visible text of a model response and whether it
+// also calls a tool.
+func responseText(content *genai.Content) (string, bool, bool) {
+	var sb strings.Builder
+	hasToolCall := false
 	for _, p := range content.Parts {
 		if p == nil {
 			continue
 		}
-		if p.FunctionCall != nil || p.FunctionResponse != nil {
-			return "", false
+		if p.FunctionResponse != nil {
+			return "", false, false
+		}
+		if p.FunctionCall != nil {
+			hasToolCall = true
 		}
 		if !p.Thought {
 			sb.WriteString(p.Text)
 		}
 	}
 	text := sb.String()
-	return text, strings.TrimSpace(text) != ""
+	return text, hasToolCall, strings.TrimSpace(text) != ""
 }
 
 func contentText(content *genai.Content) string {
@@ -252,17 +367,34 @@ func contentText(content *genai.Content) string {
 	return sb.String()
 }
 
+// replaceText puts text in the first text part and drops the others. An empty
+// text drops them all; their thought signature moves to the tool call so
+// Gemini still accepts the history.
 func replaceText(resp *model.LLMResponse, text string) *model.LLMResponse {
 	parts := make([]*genai.Part, 0, len(resp.Content.Parts))
+	var signature []byte
 	replaced := false
 	for _, p := range resp.Content.Parts {
 		if p == nil || p.Thought || p.Text == "" {
 			parts = append(parts, p)
 			continue
 		}
-		if !replaced {
+		if signature == nil {
+			signature = p.ThoughtSignature
+		}
+		if !replaced && text != "" {
 			parts = append(parts, &genai.Part{Text: text, ThoughtSignature: p.ThoughtSignature})
 			replaced = true
+		}
+	}
+	if text == "" && signature != nil {
+		for i, p := range parts {
+			if p != nil && p.FunctionCall != nil && p.ThoughtSignature == nil {
+				moved := *p
+				moved.ThoughtSignature = signature
+				parts[i] = &moved
+				break
+			}
 		}
 	}
 
