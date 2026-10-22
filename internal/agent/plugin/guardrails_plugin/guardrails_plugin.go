@@ -26,6 +26,8 @@ const (
 
 const keepSentinel = "SIN_CAMBIOS"
 
+const spanishRegister = `Si escribís en español, usá voseo rioplatense (vos tenés, podés, querés), salvo que el usuario use tú o usted.`
+
 const rewritePrompt = `Sos un corrector de respuestas de un asistente.
 
 Mensaje del usuario:
@@ -41,6 +43,7 @@ Paso 2: si no, corregí los problemas detectados:
 - Mantené exactamente la misma información, estructura y formato markdown (títulos, listas, tablas, links).
 - No agregues ni quites contenido, ni sumes comentarios o explicaciones sobre la corrección.
 - No modifiques URLs, código ni nombres propios.
+- ` + spanishRegister + `
 - Devolvé únicamente la respuesta corregida, sin las etiquetas <respuesta>.
 
 <respuesta>
@@ -62,6 +65,7 @@ Paso 2: si no, devolvé keep en false y cada fragmento corregido, en el mismo or
 - Si el fragmento es razonamiento interno del asistente, devolvé un texto vacío para eliminarlo. Es razonamiento todo lo que el asistente se dice a sí mismo y no le diría al usuario: su plan, cómo va a armar la respuesta, el análisis del pedido, qué herramienta va a usar o qué información obtuvo, o cuando habla del usuario en tercera persona. Por ejemplo: "Let's synthesize an example for the user", "Now let's structure the response", "Great! We have retrieved documents from the RAG", "Wait, let's check the tool specifications".
 - Si es contenido para el usuario, corregilo manteniendo el formato markdown, las URLs, el código y los nombres propios.
 - Si una parte del fragmento es razonamiento y otra es contenido, eliminá solo el razonamiento.
+- ` + spanishRegister + `
 
 Fragmentos:
 %s`
