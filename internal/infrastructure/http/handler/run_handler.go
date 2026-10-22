@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 
@@ -42,11 +43,17 @@ func (rh *RunHandler) RunSSE(c *gin.Context) {
 	user := c.MustGet("user").(*entity.User)
 	err := c.ShouldBindJSON(&runSseRequest)
 	if err != nil {
+		slog.WarnContext(c.Request.Context(), "run-sse: invalid request", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	s, err := rh.GetSession(runSseRequest.SessionId, user)
 	if err != nil {
+		var sessionID string
+		if runSseRequest.SessionId != nil {
+			sessionID = *runSseRequest.SessionId
+		}
+		slog.WarnContext(c.Request.Context(), "run-sse: session error", "session_id", sessionID, "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -70,6 +77,8 @@ func (rh *RunHandler) RunSSE(c *gin.Context) {
 		agent.RunConfig{StreamingMode: agent.StreamingModeSSE})
 	for event, err := range resp {
 		if err != nil {
+			slog.ErrorContext(c.Request.Context(), "run-sse: agent error",
+				"session_id", s.ID(), "agent", agentKey, "error", err)
 			fmt.Fprintf(c.Writer, "data: %s\n\n", err.Error())
 			c.Writer.Flush()
 			return
