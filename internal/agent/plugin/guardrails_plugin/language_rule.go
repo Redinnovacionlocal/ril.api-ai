@@ -106,13 +106,7 @@ func (r *languageRule) Check(in Input) *Violation {
 		}
 	}
 	if len(foreign) > 0 {
-		return &Violation{
-			Rule:   r.Name(),
-			Detail: fmt.Sprintf("conversation=%s response=%s paragraphs=%d", isoCode(convLang), isoCode(respLang), len(foreign)),
-			Instruction: fmt.Sprintf(
-				"Hay fragmentos en inglés pero la conversación es en %s.", convLang),
-			Fragments: foreign,
-		}
+		return r.foreignViolation(convLang, foreign)
 	}
 	if respLang == msgLang && msgLang != convLang {
 		r.storeLanguage(in.State, msgLang)
@@ -120,12 +114,38 @@ func (r *languageRule) Check(in Input) *Violation {
 	return nil
 }
 
+// LineChecker flags English lines while the response is streamed.
+func (r *languageRule) LineChecker(in Input) func(line string) *Violation {
+	msgLang, _ := r.detect(in.UserText)
+	convLang := r.storedLanguage(in.State)
+	if convLang == lingua.Unknown {
+		convLang = msgLang
+	}
+	if !r.checksLines(convLang, msgLang) {
+		return nil
+	}
+	return func(line string) *Violation {
+		if !r.isEnglishLine(line) {
+			return nil
+		}
+		return r.foreignViolation(convLang, []string{line})
+	}
+}
+
+func (r *languageRule) foreignViolation(convLang lingua.Language, lines []string) *Violation {
+	return &Violation{
+		Rule:        r.Name(),
+		Detail:      fmt.Sprintf("conversation=%s paragraphs=%d", isoCode(convLang), len(lines)),
+		Instruction: fmt.Sprintf("Hay fragmentos en inglés pero la conversación es en %s.", convLang),
+		Fragments:   lines,
+	}
+}
+
 // foreignParagraphs returns the lines in English when the conversation is
-// not, usually leaked reasoning: Gemini reasons in English. Other languages
-// are not checked per line because lingua mixes up Spanish and Portuguese in
-// short texts. Code blocks and short lines are skipped.
+// not, usually leaked reasoning: Gemini reasons in English. Code blocks are
+// skipped.
 func (r *languageRule) foreignParagraphs(text string, convLang, msgLang lingua.Language) []string {
-	if convLang == lingua.Unknown || convLang == lingua.English || msgLang == lingua.English {
+	if !r.checksLines(convLang, msgLang) {
 		return nil
 	}
 	var foreign []string
@@ -135,14 +155,25 @@ func (r *languageRule) foreignParagraphs(text string, convLang, msgLang lingua.L
 			inCode = !inCode
 			continue
 		}
-		if inCode || len(strings.Fields(line)) < minParagraphWords {
-			continue
-		}
-		if lang, _ := r.detect(line); lang == lingua.English {
+		if !inCode && r.isEnglishLine(line) {
 			foreign = append(foreign, line)
 		}
 	}
 	return foreign
+}
+
+func (r *languageRule) checksLines(convLang, msgLang lingua.Language) bool {
+	return convLang != lingua.Unknown && convLang != lingua.English && msgLang != lingua.English
+}
+
+// isEnglishLine checks only for English because lingua mixes up Spanish and
+// Portuguese in short texts. Short lines are skipped.
+func (r *languageRule) isEnglishLine(line string) bool {
+	if len(strings.Fields(line)) < minParagraphWords {
+		return false
+	}
+	lang, _ := r.detect(line)
+	return lang == lingua.English
 }
 
 func (r *languageRule) storedLanguage(state session.State) lingua.Language {

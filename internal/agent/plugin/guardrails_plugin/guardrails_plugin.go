@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"sync"
 	"time"
 
 	"google.golang.org/adk/agent"
@@ -79,6 +80,8 @@ var errKept = errors.New("user explicitly asked for this response")
 type guardrailsPlugin struct {
 	client *genai.Client
 	rules  []Rule
+	// streams holds the *lineStream of each response being streamed.
+	streams sync.Map
 }
 
 // GUARDRAILS_ENABLED         (default: true)
@@ -138,7 +141,18 @@ func enabledRules(disabled string) ([]Rule, error) {
 }
 
 func (g *guardrailsPlugin) afterModel(ctx agent.CallbackContext, resp *model.LLMResponse, respErr error) (*model.LLMResponse, error) {
-	if respErr != nil || resp == nil || resp.Partial || resp.Content == nil {
+	key := streamKey(ctx)
+	if respErr != nil || resp == nil {
+		g.streams.Delete(key)
+		return nil, nil
+	}
+	if resp.Partial {
+		return g.afterPartial(ctx, key, resp), nil
+	}
+	if s, ok := g.streams.LoadAndDelete(key); ok {
+		return g.afterStream(ctx, s.(*lineStream), resp), nil
+	}
+	if resp.Content == nil {
 		return nil, nil
 	}
 	text, hasToolCall, ok := responseText(resp.Content)
@@ -152,27 +166,23 @@ func (g *guardrailsPlugin) afterModel(ctx agent.CallbackContext, resp *model.LLM
 		return nil, nil
 	}
 
-	logAttrs := []any{
-		"agent", ctx.AgentName(),
-		"invocation_id", ctx.InvocationID(),
-		"session_id", ctx.SessionID(),
-	}
+	attrs := logAttrs(ctx)
 	for _, v := range violations {
 		slog.WarnContext(ctx, "guardrails: rule failed",
-			append([]any{"guardrails.rule", v.Rule, "guardrails.detail", v.Detail, "guardrails.tool_call", hasToolCall}, logAttrs...)...)
+			append([]any{"guardrails.rule", v.Rule, "guardrails.detail", v.Detail, "guardrails.tool_call", hasToolCall}, attrs...)...)
 	}
 
 	// Text next to a tool call is filler before the tool runs: drop it instead
 	// of delaying the tool with a rewrite.
 	if hasToolCall {
 		slog.InfoContext(ctx, "guardrails: text removed from tool call",
-			append([]any{"guardrails.rules", ruleNames(violations)}, logAttrs...)...)
+			append([]any{"guardrails.rules", ruleNames(violations)}, attrs...)...)
 		return replaceText(resp, ""), nil
 	}
 
 	start := time.Now()
 	fixed, attempts, err := g.correct(ctx, in, violations)
-	logAttrs = append(logAttrs,
+	attrs = append(attrs,
 		"guardrails.rules", ruleNames(violations),
 		"guardrails.attempts", attempts,
 		"guardrails.duration_ms", time.Since(start).Milliseconds())
@@ -182,16 +192,16 @@ func (g *guardrailsPlugin) afterModel(ctx agent.CallbackContext, resp *model.LLM
 				v.OnKeep()
 			}
 		}
-		slog.InfoContext(ctx, "guardrails: response kept at user request", logAttrs...)
+		slog.InfoContext(ctx, "guardrails: response kept at user request", attrs...)
 		return nil, nil
 	}
 	if err != nil {
 		slog.WarnContext(ctx, "guardrails: fallback to original response",
-			append([]any{"guardrails.reason", err.Error()}, logAttrs...)...)
+			append([]any{"guardrails.reason", err.Error()}, attrs...)...)
 		return nil, nil
 	}
 
-	slog.InfoContext(ctx, "guardrails: response corrected", logAttrs...)
+	slog.InfoContext(ctx, "guardrails: response corrected", attrs...)
 	return replaceText(resp, fixed), nil
 }
 
@@ -263,6 +273,29 @@ func (g *guardrailsPlugin) rewrite(ctx context.Context, userText, text string, v
 // rewriteFragments rewrites only the given fragments and puts them back in
 // place, so long responses stay untouched and fast to fix.
 func (g *guardrailsPlugin) rewriteFragments(ctx context.Context, userText, text string, fragments []string, violations []*Violation) (string, error) {
+	fixedFragments, err := g.fixFragments(ctx, userText, fragments, violations)
+	if err != nil {
+		return "", err
+	}
+	for i, f := range fragments {
+		fixed := fixedFragments[i]
+		if fixed == "" {
+			text = strings.Replace(text, f+"\n", "", 1)
+			text = strings.Replace(text, f, "", 1)
+			continue
+		}
+		text = strings.Replace(text, f, fixed, 1)
+	}
+	text = strings.TrimSpace(text)
+	if text == "" {
+		return "", errors.New("response is empty after removing fragments")
+	}
+	return text, nil
+}
+
+// fixFragments returns each fragment corrected, in order. An empty fragment
+// means it must be removed.
+func (g *guardrailsPlugin) fixFragments(ctx context.Context, userText string, fragments []string, violations []*Violation) ([]string, error) {
 	var list strings.Builder
 	for i, f := range fragments {
 		fmt.Fprintf(&list, "<fragmento id=\"%d\">\n%s\n</fragmento>\n", i+1, f)
@@ -278,36 +311,25 @@ func (g *guardrailsPlugin) rewriteFragments(ctx context.Context, userText, text 
 		},
 	)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	var out struct {
 		Keep      bool     `json:"keep"`
 		Fragments []string `json:"fragments"`
 	}
 	if err := json.Unmarshal([]byte(result.Text()), &out); err != nil {
-		return "", fmt.Errorf("invalid rewrite model response: %w", err)
+		return nil, fmt.Errorf("invalid rewrite model response: %w", err)
 	}
 	if out.Keep {
-		return "", errKept
+		return nil, errKept
 	}
 	if len(out.Fragments) != len(fragments) {
-		return "", fmt.Errorf("rewrite model returned %d fragments, want %d", len(out.Fragments), len(fragments))
+		return nil, fmt.Errorf("rewrite model returned %d fragments, want %d", len(out.Fragments), len(fragments))
 	}
-
-	for i, f := range fragments {
-		fixed := strings.TrimSpace(out.Fragments[i])
-		if fixed == "" {
-			text = strings.Replace(text, f+"\n", "", 1)
-			text = strings.Replace(text, f, "", 1)
-			continue
-		}
-		text = strings.Replace(text, f, fixed, 1)
+	for i := range out.Fragments {
+		out.Fragments[i] = strings.TrimSpace(out.Fragments[i])
 	}
-	text = strings.TrimSpace(text)
-	if text == "" {
-		return "", errors.New("response is empty after removing fragments")
-	}
-	return text, nil
+	return out.Fragments, nil
 }
 
 // allFragments returns the fragments to rewrite, or nil when any violation
