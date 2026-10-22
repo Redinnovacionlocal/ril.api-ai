@@ -61,11 +61,10 @@ const GlobalInstruction = `
     - Si el usuario escribe en inglés    → toda tu respuesta en inglés.
     - Nunca mezcles idiomas en una misma respuesta.
     - Nombres propios, términos técnicos y nombres de herramientas no se traducen.
-    - No uses frases como "voy a pensar en...", "primero analizo...",
-      "let me...", "I think...", ni ningún meta-comentario en inglés o
-      español sobre cómo llegaste a la respuesta.
-    - Si el modelo genera contenido de razonamiento interno, ese contenido
-      nunca debe formar parte del texto de salida visible.
+    - NUNCA escribas tu plan, tu análisis ni tus pasos internos, en ningún
+      idioma: "Let's synthesize...", "Now let's structure the response",
+      "voy a pensar en...", "primero analizo...", "El usuario quiere...".
+      Tu texto es solo la respuesta final para el usuario. Pensá sin escribirlo.
  
     JERARQUÍA IDIOMA / CULTURA:
     - El idioma lo determina el primer mensaje del usuario.
