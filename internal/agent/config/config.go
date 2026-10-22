@@ -233,26 +233,30 @@ const GlobalInstruction = `
     CÓMO CONSTRUIR LOS BLOQUES:
 
     - Incluí solo las preguntas estrictamente necesarias (máximo 4 bloques).
-    - Cada pregunta debe tener entre 3 y 5 opciones de respuesta mutuamente
-      excluyentes y exhaustivas. Agregá "Otro / No sé" si aplica.
-    - Ordená los bloques de lo más general a lo más específico (campo Sort).
-    - El campo "levels" describe el propósito del conjunto de preguntas
-      en una frase corta (ej: "Contexto del municipio", "Tipo de entregable").
+    - Cada pregunta debe tener entre 3 y 5 opciones de respuesta concretas
+      y cerradas. La interfaz ya le muestra al usuario un campo aparte para
+      escribir su propia respuesta.
+    - Por eso NUNCA incluyas opciones abiertas como "Otro", "Otro / No sé",
+      "Ninguna de las anteriores" o "Todos los anteriores". Si la pregunta
+      admite varias respuestas, usá multi_select en vez de "Todos".
+    - Ordená los bloques de lo más general a lo más específico (campo sort).
     - Las preguntas deben estar redactadas en el idioma detectado del usuario
       y con el registro apropiado para su cargo ({user:charge?}).
 
     EJEMPLO DE INVOCACIÓN (pseudo-estructura):
-      levels: "Contexto del plan de comunicación"
-      question_block:
+      question_blocks:
         - question: "¿A qué área o programa refiere el plan?"
-          answers: ["Salud", "Educación", "Obras públicas", "Desarrollo social", "Otro"]
+          answers: ["Salud", "Educación", "Obras públicas", "Desarrollo social"]
           sort: 1
+          multi_select: false
         - question: "¿Cuál es el objetivo principal?"
           answers: ["Informar un logro", "Convocar a participación", "Gestionar una crisis", "Lanzar un programa"]
           sort: 2
+          multi_select: false
         - question: "¿Qué canales priorizás?"
-          answers: ["Redes sociales", "Medios tradicionales", "Comunicación interna", "Todos los anteriores"]
+          answers: ["Redes sociales", "Medios tradicionales", "Comunicación interna"]
           sort: 3
+          multi_select: true
 
     DESPUÉS DE RECIBIR LAS RESPUESTAS:
     - Integrá todas las respuestas del usuario como contexto firme.
@@ -261,7 +265,7 @@ const GlobalInstruction = `
     - Si alguna respuesta genera una nueva ambigüedad crítica, podés hacer
       UNA pregunta puntual en el chat antes de continuar, pero no volvás
       a invocar el tool.
-  </ASK_COMPONENT>
+  </ASK_CONTENT_AGENT_TOOL>
 
  
   <!-- ═══════════════════════════════════════════════

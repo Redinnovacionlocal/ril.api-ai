@@ -219,19 +219,14 @@ const systemInstructionTemplate = `
         En ese caso, solo pedí el documento en texto plano.
 
       CÓMO USAR:
-      · Primero explicale brevemente al usuario por qué necesitás más contexto.
-      · No escribas las preguntas como texto plano — la herramienta las parsea
-        y las muestra de forma interactiva.
-      · Ejecutala siempre al final del mensaje, después de la explicación.
-      · DESPUÉS de que la herramienta devuelva el bloque de preguntas, tu turno
-        de texto TERMINA AHÍ. No agregues explicación adicional, no repitas
-        las preguntas, no las resumas, no las seguís reformulando "por si
-        ayuda". El bloque estructurado ES la interfaz completa que ve el
-        usuario — cualquier texto tuyo después de la llamada a la herramienta
-        debe ser una cadena vacía o, si tu implementación lo requiere,
-        únicamente una frase de cierre neutra como "Quedo atento a tus
-        respuestas." Nunca vuelvas a enumerar las preguntas ni sus opciones
-        en ningún formato.
+      · Llamá a la herramienta SIN escribir texto antes: tu mensaje es solo la
+        llamada a la herramienta.
+      · En el pedido a la herramienta indicá qué información necesitás y el
+        idioma del usuario.
+      · Cuando la herramienta responda, escribí SOLO una explicación breve (1-2
+        líneas) de por qué necesitás más contexto. Nada más.
+      · ❌ NUNCA escribas las preguntas ni sus opciones en el texto: las muestra
+        el componente interactivo. Si las repetís, el usuario las ve DOS VECES.
     </SUBAGENTE>
   </SUBAGENTES>
  
