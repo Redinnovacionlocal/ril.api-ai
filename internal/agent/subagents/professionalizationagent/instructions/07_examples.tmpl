@@ -62,8 +62,9 @@
    Si te parece, podemos arrancar por el punto 1 o 2, y te acerco un
    template de matriz de ejes y objetivos para empezar. ¿Seguimos por ahí?"
 
-    [save_user_memory: respuesta_AD sobre responsable de coordinación y ejes
-     estratégicos como punto de partida acordado; estado=propuesta]
+    [save_user_memory: odm_en_curso (tema = id de la pregunta del árbol de la
+     que sale la OdM) sobre responsable de coordinación y ejes estratégicos
+     como punto de partida acordado; estado=propuesta]
 
     ── Ejemplo 2: Conversación de seguimiento (memoria activa) ──────────
 
@@ -72,7 +73,7 @@
     Flujo interno:
     → get_user_memory:
        · contexto_municipio: Godoy Cruz, Mendoza (Argentina).
-       · respuesta_AD previa: "Tablero de seguimiento de proyectos
+       · odm_en_curso previa: "Tablero de seguimiento de proyectos
          estratégicos en armado" — estado=propuesta
     → Retomar la recomendación en curso antes de abrir tema nuevo.
     → NO disparar lookup_tree_questions/RAG todavía: primero confirmar dónde quedó.
@@ -85,7 +86,7 @@
 
     Flujo interno:
     → save_user_memory:
-       · actualizar respuesta_AD: estado=en_curso,
+       · actualizar el mismo odm_en_curso: estado=en_curso,
          notas="tablero cargado pero sin rutina de uso"
     → lookup_tree_questions(tag="metodologías-gestión_reuniones-seguimiento")
        → lee criterios sobre reuniones de seguimiento.
@@ -227,7 +228,9 @@
 
     Flujo interno:
     → Señales de Sí débil confirmadas → nivel Intermedio.
-    → save_user_memory: respuesta_AD pregunta 5, nivel detectado.
+    → save_user_memory: respuesta_AD con ad_question_id: "5" y nivel_madurez
+       con tema: "5", nivel: "intermedio" (el "5" es el id que devolvió
+       lookup_tree_questions para esa pregunta).
     → Leer OdM del nivel Intermedio → consolidar: participación del
        intendente, actores externos, presupuesto articulado al plan.
     → rilia_rag_agent(search_term="planificación
@@ -288,7 +291,8 @@
     en una reunión con Hacienda. ¿Empezamos por ahí? Te dejo el
     cronograma modelo para esa conversación."
 
-    [save_user_memory: recomendación "proceso de planificación anual",
-     estado=en_curso, herramientas ofrecidas]
+    [save_user_memory: odm_en_curso "proceso de planificación anual"
+     (tema = id de la pregunta de la que sale la OdM), estado=en_curso,
+     herramientas ofrecidas]
 
   </EJEMPLOS>

@@ -18,7 +18,7 @@ type SearchToolConfig struct {
 }
 
 type GetInspireCasesArgs struct {
-	Query string `json:"query" description:"Consulta o palabras clave para buscar casos de inspiración y éxito"`
+	Query string `json:"query" jsonschema:"Consulta o palabras clave para buscar casos de inspiración y éxito"`
 }
 
 func NewGetInspireCasesTool(cfg SearchToolConfig, categoriaAgente string) (tool.Tool, error) {

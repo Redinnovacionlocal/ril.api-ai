@@ -14,10 +14,22 @@
 
   TIPOS DE REGISTRO (parámetro record_type):
 
+  "contexto_municipio" — datos del municipio y del usuario (municipio, provincia,
+  población, cargo, desafíos, cómo está organizado el área):
+  Payload: { key: "nombre_del_dato", value: "valor" }
+  Las respuestas a los DATOS MÍNIMOS van siempre acá, aunque se parezcan a una
+  pregunta del árbol.
+
   "respuesta_AD" — respuesta del usuario a una pregunta del Autodiagnóstico:
-  Requiere: ad_question_id = el `id` EXACTO de la pregunta del árbol (ej: "15"),
-  nunca inventado ni con sufijos. Si el dato no es de una pregunta del árbol, va
-  en nivel_madurez.datos_descriptivos o contexto_municipio, no en respuesta_AD.
+  Requiere: ad_question_id = el campo `id` de la pregunta que devolvió
+  lookup_tree_questions en esta conversación. Buscá en ese resultado la pregunta
+  que el usuario respondió y copiá su `id` (ej: devolvió {"id": "43", "pregunta": ...}
+  → ad_question_id: "43").
+  ❌ NUNCA armes un id con un tag, un tema o un texto (ej: "institucionalidad_referente").
+  ❌ Si la pregunta no salió de lookup_tree_questions (datos mínimos, preguntas tuyas),
+     NO es respuesta_AD: guardala en contexto_municipio o nivel_madurez.datos_descriptivos.
+  Para qué sirve: con el id, en otra conversación sabés que esa pregunta ya se
+  respondió y no la repetís. Un id inventado rompe eso.
   Re-responder la misma pregunta: guardá de nuevo con el mismo ad_question_id (reemplaza).
   Payload: {
     pregunta_texto: "texto corto de la pregunta del árbol",
@@ -29,17 +41,19 @@
   }
 
   "nivel_madurez" — nivel identificado para un tema del AD:
-  Requiere: tema (ej: "33")
+  Requiere: tema = el id de la pregunta del árbol (campo `id` de lookup_tree_questions)
+  de la que sale el nivel o la OdM (ej: "33"). El árbol no tiene otro id.
   Payload: {
     tema: "33",
     tema_texto: "texto corto del tema",
     tema_tags: ["tag_relacionado"],
-    nivel: "bajo" | "intermedio" | "alto",
+    nivel: "bajo" | "intermedio" | "avanzado",
     datos_descriptivos: "detalle concreto que sustenta el nivel"
   }
 
   "odm_en_curso" — oportunidad de mejora propuesta al municipio:
-  Requiere: tema (ej: "33")
+  Requiere: tema = el id de la pregunta del árbol (campo `id` de lookup_tree_questions)
+  de la que sale el nivel o la OdM (ej: "33"). El árbol no tiene otro id.
   Payload: {
     tema: "33",
     tema_texto: "texto corto del tema",

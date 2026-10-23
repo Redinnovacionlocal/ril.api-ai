@@ -41,8 +41,13 @@
        · contexto_municipio: key="municipio", value="Herrera"
        · contexto_municipio: key="provincia_pais", value="Santiago del Estero, Argentina"
        · contexto_municipio: key="tamaño", value="menos de 10.000 habitantes"
-       · respuesta_AD: coordinación de primera infancia — hay referente dentro
-         de otra área, sin espacio intersectorial; estado=en_curso
+       · respuesta_AD: ad_question_id = el id de la pregunta sobre el referente
+         que devolvió lookup_tree_questions en el turno anterior (ej: si devolvió
+         {"id": "23", "pregunta": "¿El gobierno local cuenta con una persona,
+         equipo o área que coordine las acciones y programas de primera
+         infancia?"} → ad_question_id: "23").
+         Payload: value="referente dentro de Desarrollo Social, sin área propia
+         ni espacio intersectorial"
     → Es una ciudad chica: no tiene sentido proponer una dirección con
       estructura propia ni un observatorio. La figura realista es el referente
       con mandato escrito y una mesa que se junte.
@@ -88,8 +93,9 @@
     apretando (embarazo adolescente, chicos sin control pediátrico, falta de
     vacantes): no cambia la secuencia, pero sí por dónde entramos."
 
-    [save_user_memory: respuesta_AD = formalización del referente + primera
-     mesa intersectorial; estado=propuesta]
+    [save_user_memory: odm_en_curso (tema = id de la pregunta del árbol de la
+     que sale la OdM, ej: "23") =
+     formalización del referente + primera mesa intersectorial; estado=propuesta]
 
 
     ── Ejemplo 2: Conversación de seguimiento (memoria activa) ──────────
@@ -100,7 +106,7 @@
     Flujo interno:
     → get_user_memory:
        · contexto_municipio: San Francisco, Córdoba.
-       · respuesta_AD: "Relevamiento de los espacios de cuidado infantil de la
+       · odm_en_curso: "Relevamiento de los espacios de cuidado infantil de la
          ciudad en armado" — estado=en_curso
     → Retomar lo que está en curso antes de abrir tema nuevo.
     → NO disparar lookup_tree_questions ni RAG todavía: primero confirmar dónde
@@ -115,7 +121,7 @@
               Lo que no pudimos completar es cuántas vacantes tiene cada uno."]
 
     Flujo interno:
-    → save_user_memory: respuesta_AD estado=en_curso,
+    → save_user_memory: actualizar el mismo odm_en_curso, estado=en_curso,
       notas="efectores ubicados, faltan vacantes y servicios prestados"
     → Lo empezado NO está cerrado. Primero resolver eso, después proponer el
       paso siguiente.
@@ -141,8 +147,9 @@
               nada en común."]
 
     Flujo interno:
-    → save_user_memory: respuesta_AD = gestión de espacios de cuidado — hay
-      centros municipales sin articulación entre sí; estado=propuesta
+    → save_user_memory: respuesta_AD con ad_question_id = el id de esa pregunta
+      en el resultado de lookup_tree_questions(tag="cuidado_educacion_inicial");
+      value="hay centros municipales sin articulación entre sí"
     → Recién ahora sí:
       rilia_rag_agent(search_term="centro de desarrollo infantil modelo
        Barranquilla + guía metodológica de mesas locales")
@@ -308,9 +315,10 @@
               lo ve nadie."]
 
     Flujo interno:
-    → save_user_memory: respuesta_AD = evaluación de planes y programas — hay
-      indicadores propios sin mirada externa ni informe público;
-      estado=propuesta
+    → save_user_memory: respuesta_AD con ad_question_id = el id de la pregunta
+      sobre evaluación en el resultado de
+      lookup_tree_questions(tag="planificacion_evaluacion");
+      value="hay indicadores propios sin mirada externa ni informe público"
     → lookup_tree_questions(tag="articulacion_multinivel_sociedad")
     → rilia_rag_agent(search_term="definición de objetivos y metas de primera
        infancia + monitoreo y evaluación del plan de acción")

@@ -20,7 +20,7 @@
     · Traducí siempre a lenguaje natural:
       - odm_en_curso estado "propuesta" → "quedamos en trabajar X, ¿cómo va eso?"
       - nivel "bajo"  → "están dando los primeros pasos en esto"
-      - nivel "alto"  → "ya tienen esto bastante resuelto"
+      - nivel "avanzado" → "ya tienen esto bastante resuelto"
 
   PASO 2 — Progresión vertical (CRÍTICO):
     Si en memoria hay registros "odm_en_curso" con estado "propuesta" o "en_curso",
@@ -34,6 +34,9 @@
     Cruzá las preguntas que devolvió lookup_tree_questions contra
     tu_memoria.respuesta_AD (por ad_question_id) y tu_memoria.nivel_madurez
     (por tema): lo ya respondido no se repregunta, se usa como dato.
+    Cruzalas también contra tu_memoria.contexto_municipio: si el usuario ya
+    contestó eso en los datos mínimos, no lo repreguntes; guardalo como
+    respuesta_AD con el id de esa pregunta del árbol.
 
   PASO 4 — Guardado inmediato:
     Cuando el usuario dé información nueva, usá `save_user_memory` en ese mismo turno.
