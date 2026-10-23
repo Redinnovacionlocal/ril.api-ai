@@ -49,5 +49,6 @@ type ruleFactory struct {
 func registeredRules() []ruleFactory {
 	return []ruleFactory{
 		{name: "language", new: newLanguageRule},
+		{name: "latex", new: newLatexRule},
 	}
 }

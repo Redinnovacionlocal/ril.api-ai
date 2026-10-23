@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"path/filepath"
+	"strings"
 
 	"github.com/gomutex/godocx"
 	"github.com/gomutex/godocx/docx"
@@ -16,7 +18,7 @@ import (
 
 type GenerateDocumentsArgs struct {
 	Blocks   []Block `json:"blocks" jsonschema:"CRÍTICO: lista de bloques de contenido estructurado. Separá TODO el contenido en bloques con tipo. PROHIBIDO en cualquier campo de texto: '#', '##', '**', '*', '-', '>', backticks o CUALQUIER otra sintaxis markdown, porque rompe el documento. Tipos de bloque y reglas: (1) 'h1','h2','h3' = títulos de sección, campo text obligatorio, solo texto plano. (2) 'paragraph' = texto del cuerpo, campo text obligatorio, solo texto plano. (3) 'bullet' = UN ítem de viñeta por bloque, campo text obligatorio, solo texto plano, sin prefijo '-' ni '*'. (4) 'divider' = separador horizontal, sin campo text. (5) 'table' = datos estructurados, requiere los arrays headers y rows, sin campo text. Ejemplo CORRECTO: [{\"type\":\"h1\",\"text\":\"Informe anual\"},{\"type\":\"paragraph\",\"text\":\"Este informe resume los resultados del primer trimestre.\"},{\"type\":\"bullet\",\"text\":\"La cobertura aumentó un 12 por ciento\"},{\"type\":\"table\",\"headers\":[\"Barrio\",\"Familias\"],\"rows\":[[\"Centro\",\"120\"],[\"Norte\",\"98\"]]}]. Ejemplo INCORRECTO: [{\"type\":\"paragraph\",\"text\":\"## Título\\n**negrita** y - viñeta\"}]. IDIOMA: escribí el documento en el idioma del usuario, con su ortografía completa. Conservá tildes, eñes y caracteres especiales (á, ñ, ã, ç, ü): el sistema soporta UTF-8."`
-	MimeType string  `json:"mime_type" jsonschema:"Tipo MIME del documento. Valores permitidos: 'application/pdf', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/csv', 'text/plain', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'"`
+	MimeType string  `json:"mime_type" jsonschema:"Tipo MIME del documento. Valores permitidos, escritos exactamente así: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' (Word), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' (Excel), 'application/pdf', 'text/csv'"`
 	FileName string  `json:"file_name" jsonschema:"Nombre del archivo con extensión, por ejemplo 'informe.pdf' o 'datos.xlsx'"`
 }
 
@@ -377,6 +379,40 @@ func (r *DocxRenderer) Bytes() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+const (
+	mimePDF  = "application/pdf"
+	mimeXLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+	mimeCSV  = "text/csv"
+	mimeDOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+)
+
+var supportedMimeTypes = []string{mimeDOCX, mimeXLSX, mimePDF, mimeCSV}
+
+var mimeAliases = map[string]string{
+	"pdf": mimePDF, "xlsx": mimeXLSX, "excel": mimeXLSX, "csv": mimeCSV, "docx": mimeDOCX, "word": mimeDOCX,
+}
+
+// normalizeMimeType fixes common model mistakes: "application_pdf", "pdf",
+// or no type at all, in which case the file extension decides.
+func normalizeMimeType(mime, fileName string) string {
+	m := strings.ToLower(strings.TrimSpace(mime))
+	if !strings.Contains(m, "/") {
+		m = strings.Replace(m, "_", "/", 1)
+	}
+	for _, s := range supportedMimeTypes {
+		if m == s {
+			return m
+		}
+	}
+	if alias, ok := mimeAliases[strings.TrimPrefix(m, "application/")]; ok {
+		return alias
+	}
+	if alias, ok := mimeAliases[strings.TrimPrefix(strings.ToLower(filepath.Ext(fileName)), ".")]; ok {
+		return alias
+	}
+	return mime
+}
+
 func renderBlocks(blocks []Block, r Render) ([]byte, error) {
 	for _, block := range blocks {
 		switch block.Type {
@@ -411,11 +447,13 @@ func GenerateDocumentsToolFunc(tctx tool.Context, args GenerateDocumentsArgs) (G
 			return NewDocxRenderer()
 		},
 	}
+	args.MimeType = normalizeMimeType(args.MimeType, args.FileName)
 	factory, ok := renderers[args.MimeType]
 	if !ok {
 		return GenerateDocumentResponse{
 			StatusCode: 500,
-			Message:    fmt.Sprintf("Unsupported MIME type: %s", args.MimeType),
+			Message: fmt.Sprintf("Unsupported MIME type: %s. Use exactly one of: %s",
+				args.MimeType, strings.Join(supportedMimeTypes, ", ")),
 		}, nil
 	}
 	data, err := renderBlocks(args.Blocks, factory())

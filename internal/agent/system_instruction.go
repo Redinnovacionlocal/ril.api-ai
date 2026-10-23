@@ -222,7 +222,10 @@ const systemInstructionTemplate = `
       · Escribí UNA explicación breve (1-2 líneas) de por qué necesitás más
         contexto y llamá a la herramienta al final de ese mismo mensaje.
       · En el pedido a la herramienta indicá qué información necesitás y el
-        idioma del usuario.
+        idioma del usuario. Marcá "(admite varias)" en cada pregunta cuyas
+        opciones no sean excluyentes.
+      · No preguntes lo que el usuario ya contó en la conversación o está en
+        la memoria.
       · Cuando la herramienta responda, NO escribas otra explicación: la que ya
         escribiste alcanza. Solo si llamaste a la herramienta sin texto,
         escribí ahí esa explicación breve. El usuario tiene que ver UNA sola.

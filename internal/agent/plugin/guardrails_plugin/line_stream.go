@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"google.golang.org/adk/agent"
 	"google.golang.org/adk/model"
@@ -111,6 +112,11 @@ func (g *guardrailsPlugin) feed(ctx agent.CallbackContext, s *lineStream, text s
 		s.buf = s.buf[i+1:]
 	}
 	if last {
+		// The model sometimes stops mid-sentence to call a tool ("...el municipio.\n\nCon ").
+		if s.buf != "" && s.hasToolCall && !endsSentence(s.buf) {
+			slog.InfoContext(ctx, "guardrails: unfinished sentence removed before tool call", logAttrs(ctx)...)
+			s.buf = ""
+		}
 		if s.buf != "" {
 			out.WriteString(g.feedLine(ctx, s, s.buf))
 			s.buf = ""
@@ -203,6 +209,11 @@ func (g *guardrailsPlugin) fixLines(ctx context.Context, userText string, fragme
 		span.Fail(err)
 	}
 	return fixed, err
+}
+
+func endsSentence(text string) bool {
+	last, _ := utf8.DecodeLastRuneInString(strings.TrimSpace(text))
+	return last == utf8.RuneError || strings.ContainsRune(".:!?)»\"*…", last)
 }
 
 func logAttrs(ctx agent.CallbackContext) []any {

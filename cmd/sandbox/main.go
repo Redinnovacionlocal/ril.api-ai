@@ -25,10 +25,10 @@ import (
 	"google.golang.org/genai"
 	"ril.api-ia/internal/agent"
 	"ril.api-ia/internal/agent/plugin/agent_active_plugin"
-	"ril.api-ia/internal/agent/plugin/ask_context_plugin"
 	"ril.api-ia/internal/agent/plugin/guardrails_plugin"
 	"ril.api-ia/internal/agent/plugin/model_armor_plugin"
 	"ril.api-ia/internal/agent/plugin/title_plugin"
+	"ril.api-ia/internal/agent/plugin/tool_text_plugin"
 	"ril.api-ia/internal/agent/subagents/educationagent"
 	"ril.api-ia/internal/agent/subagents/girsuagent"
 	"ril.api-ia/internal/agent/subagents/primerainfanciaagent"
@@ -113,9 +113,9 @@ func main() {
 	if err != nil {
 		log.Fatal("Error initializing Model Armor plugin:", err)
 	}
-	askContextPlugin, err := ask_context_plugin.New("ask_context_plugin")
+	toolTextPlugin, err := tool_text_plugin.New("tool_text_plugin")
 	if err != nil {
-		log.Fatal("Error initializing ask_context plugin:", err)
+		log.Fatal("Error initializing tool_text plugin:", err)
 	}
 	guardrailsPlugin, err := guardrails_plugin.New(ctx, "guardrails_plugin")
 	if err != nil {
@@ -129,7 +129,7 @@ func main() {
 				titlePlugin,
 				agentActivePlugin,
 				modelArmorPlugin,
-				askContextPlugin,
+				toolTextPlugin,
 				guardrailsPlugin,
 			},
 		},

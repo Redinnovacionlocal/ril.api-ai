@@ -34,11 +34,11 @@ import (
 	"gorm.io/driver/postgres"
 	"ril.api-ia/internal/agent"
 	"ril.api-ia/internal/agent/plugin/agent_active_plugin"
-	"ril.api-ia/internal/agent/plugin/ask_context_plugin"
 	"ril.api-ia/internal/agent/plugin/guardrails_plugin"
 	"ril.api-ia/internal/agent/plugin/model_armor_plugin"
 	"ril.api-ia/internal/agent/plugin/thought_signature_plugin"
 	"ril.api-ia/internal/agent/plugin/title_plugin"
+	"ril.api-ia/internal/agent/plugin/tool_text_plugin"
 	session2 "ril.api-ia/internal/application/service/session"
 	"ril.api-ia/internal/application/usecase"
 	"ril.api-ia/internal/domain/entity"
@@ -199,9 +199,9 @@ func buildRunner(ctx context.Context, ag internalagent.Agent, sessionService ses
 	if err != nil {
 		log.Fatal("Error initializing thought signature plugin:", err)
 	}
-	askContextPlugin, err := ask_context_plugin.New("ask_context_plugin")
+	toolTextPlugin, err := tool_text_plugin.New("tool_text_plugin")
 	if err != nil {
-		log.Fatal("Error initializing ask_context plugin:", err)
+		log.Fatal("Error initializing tool_text plugin:", err)
 	}
 	guardrailsPlugin, err := guardrails_plugin.New(ctx, "guardrails_plugin")
 	if err != nil {
@@ -220,7 +220,7 @@ func buildRunner(ctx context.Context, ag internalagent.Agent, sessionService ses
 				agentActivePlugin,
 				modelArmorPlugin,
 				thoughtSignaturePlugin,
-				askContextPlugin,
+				toolTextPlugin,
 				guardrailsPlugin,
 			},
 		},

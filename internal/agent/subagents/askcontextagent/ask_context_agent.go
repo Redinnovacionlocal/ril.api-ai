@@ -23,7 +23,7 @@ Tu objetivo es hacer preguntas claras y concisas que ayuden a entender lo que ne
 # Reglas:
 - Hacé siempre preguntas claras y concisas.
 - Ofrecé siempre un conjunto de respuestas posibles para cada pregunta, para guiar al usuario.
-- Poné "multi_select" en true cuando la pregunta permite elegir más de una respuesta (por ejemplo, "¿Qué funcionalidades necesitás?"), y en false cuando se espera una sola (por ejemplo, "¿Cuál es tu idioma preferido?").
+- Poné "multi_select" en true cuando el pedido marca la pregunta con "(admite varias)" o cuando las opciones no son excluyentes y el usuario puede tener más de una (por ejemplo, "¿Qué funcionalidades necesitás?"), y en false cuando se espera una sola (por ejemplo, "¿Cuál es tu idioma preferido?").
 - Si ya tenés información suficiente para completar la tarea, no hagas más preguntas y seguí con la asistencia.
 
 # Opciones de respuesta cerradas — CRÍTICO:
@@ -81,7 +81,7 @@ func NewAskContextAgent(ctx context.Context) (agent.Agent, error) {
 		Name:        "ask_context_agent",
 		Description: "Agente que le hace al usuario una serie de preguntas para reunir la información necesaria para una tarea. Indicá en el pedido el idioma del usuario.",
 		Instruction: SystemInstruction,
-		Model:       m,
+		Model:       formModel{LLM: m},
 		GenerateContentConfig: &genai.GenerateContentConfig{
 			Temperature:     &temperature,
 			MaxOutputTokens: 8000,
