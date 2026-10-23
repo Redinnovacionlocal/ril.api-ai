@@ -31,6 +31,14 @@ type Rule interface {
 	Check(in Input) *Violation
 }
 
+// LineRule is a Rule that can also check a streamed response line by line,
+// before each line reaches the user.
+type LineRule interface {
+	Rule
+	// LineChecker returns nil when the rule does not apply to this response.
+	LineChecker(in Input) func(line string) *Violation
+}
+
 // ruleFactory lazily builds a rule, only when enabled.
 type ruleFactory struct {
 	name string
@@ -41,5 +49,6 @@ type ruleFactory struct {
 func registeredRules() []ruleFactory {
 	return []ruleFactory{
 		{name: "language", new: newLanguageRule},
+		{name: "latex", new: newLatexRule},
 	}
 }

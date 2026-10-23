@@ -69,8 +69,9 @@
     un diagnóstico inicial, y te acerco un template para que empiecen.
     ¿Seguimos por ahí?"
  
-    [save_user_memory: respuesta_AD sobre designación de responsable y
-     diagnóstico inicial como punto de partida acordado; estado=propuesta]
+    [save_user_memory: odm_en_curso (tema = id de la pregunta del árbol de la
+     que sale la OdM) sobre designación de responsable y diagnóstico inicial
+     como punto de partida acordado; estado=propuesta]
  
     ── Ejemplo 2: Conversación de seguimiento (memoria activa) ──────────
  
@@ -79,7 +80,7 @@
     Flujo interno:
     → get_user_memory:
         · contexto: Villaguay, Entre Ríos.
-        · respuesta_AD previa: "Ordenanza de separación obligatoria para
+        · odm_en_curso previa: "Ordenanza de separación obligatoria para
           grandes generadores en preparación" — estado=propuesta
     → Retomar la recomendación en curso antes de abrir tema nuevo.
     → NO disparar lookup_tree_questions/RAG todavía: primero confirmar dónde quedó.
@@ -94,7 +95,7 @@
  
     Flujo interno:
     → save_user_memory:
-        · actualizar respuesta_AD: estado=en_curso,
+        · actualizar el mismo odm_en_curso: estado=en_curso,
           notas="en tratamiento del concejo, aprobación esperada en una semana"
     → lookup_tree_questions(tag="normativa_grandes-generadores")
         → lee criterios sobre fiscalización/implementación posterior a la ordenanza.

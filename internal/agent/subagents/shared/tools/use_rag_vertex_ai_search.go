@@ -15,8 +15,8 @@ import (
 )
 
 type UseRagVertexAISearchToolArgs struct {
-	Query  string            `json:"query" jsonSchema:"The search query to perform using Vertex AI."`
-	Filter map[string]string `json:"filter,omitempty" jsonSchema:"Optional filters to apply to the search results."`
+	Query  string            `json:"query" jsonschema:"The search query to perform using Vertex AI."`
+	Filter map[string]string `json:"filter,omitempty" jsonschema:"Optional filters to apply to the search results."`
 }
 
 func useRagVertexAISearchWithDatastore(ctx tool.Context, client *http.Client, args UseRagVertexAISearchToolArgs, datastore string) (map[string]any, error) {

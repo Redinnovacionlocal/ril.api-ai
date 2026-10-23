@@ -43,8 +43,11 @@
        · contexto_municipio: key="municipio", value="Villa María"
        · contexto_municipio: key="provincia_pais", value="Córdoba, Argentina"
        · contexto_municipio: key="tamaño", value="más de 50.000 habitantes"
-       · respuesta_AD: área de educación — hay referente designado de hecho,
-         sin acto formal; estado=en_curso
+       · respuesta_AD: ad_question_id = el id de la pregunta sobre el
+         nombramiento que devolvió lookup_tree_questions(tag="organización_area-educativa")
+         en el turno anterior (ej: si devolvió {"id": "N", "pregunta": ...} →
+         ad_question_id: "N"). Payload: value="referente designado de hecho,
+         sin acto formal"
    → Cargar skill ajuste-por-tamaño: municipio mediano/grande.
    → Consultar el árbol para evaluar el punto de partida informado.
    → Identificar el nivel de madurez correspondiente utilizando las descripciones
@@ -96,8 +99,9 @@
     puntual del intendente): no cambia la secuencia, pero sí por dónde
     entramos."
 
-    [save_user_memory: respuesta_AD = formalización del área + relevamiento
-     inicial de escuelas; estado=propuesta]
+    [save_user_memory: odm_en_curso (tema = id de la pregunta del árbol de la
+     que sale la OdM) = formalización del área + relevamiento inicial de
+     escuelas; estado=propuesta]
 
 
     ── Ejemplo 2: Conversación de seguimiento (memoria activa) ──────────
@@ -108,7 +112,7 @@
     Flujo interno:
     → get_user_memory:
        · contexto_municipio: San Francisco, Córdoba.
-       · respuesta_AD: "Base de datos de contactos de directivos de las
+       · odm_en_curso: "Base de datos de contactos de directivos de las
          escuelas en armado" — estado=en_curso
     → Retomar lo que está en curso antes de abrir tema nuevo.
     → NO disparar lookup_tree_questions ni RAG todavía: primero confirmar
@@ -122,7 +126,7 @@
               inicial privado."]
 
     Flujo interno:
-    → save_user_memory: respuesta_AD estado=en_curso,
+    → save_user_memory: actualizar el mismo odm_en_curso, estado=en_curso,
       notas="base cargada salvo nivel inicial privado"
     → Lo empezado NO está cerrado. Primero resolver eso, después proponer el
       paso siguiente.
@@ -147,8 +151,9 @@
               un cuaderno."]
 
     Flujo interno:
-    → save_user_memory: respuesta_AD = registro de visitas a escuelas —
-      visitas reactivas con registro manual; estado=propuesta
+    → save_user_memory: respuesta_AD con ad_question_id = el id de esa pregunta
+      en el resultado de lookup_tree_questions(tag="información_registro-visitas");
+      value="visitas reactivas con registro manual"
     → Recién ahora sí:
       rilia_educacion_rag_agent(search_term="formulario de registro de visitas a
        establecimientos educativos")
@@ -309,12 +314,11 @@
               hay, cada uno va por su lado."]
 
     Flujo interno:
-   → save_user_memory:
-      respuesta_AD = articulación entre áreas municipales —
-      no hay instancia formal; estado=propuesta.
-
    → lookup_tree_questions(tag="articulación_areas-municipio")
       → identificar el nivel correspondiente.
+   → save_user_memory: respuesta_AD con ad_question_id = el id de la pregunta
+      sobre articulación en ese resultado; value="no hay instancia formal entre
+      áreas municipales"
 
    → Leer la OdM y las acciones del agente para ese nivel.
    → rilia_educacion_rag_agent(
@@ -414,7 +418,9 @@
     Flujo interno:
     → Las respuestas caen en las ausencias del nivel Bajo: el "parcial" es de
       tapa. Nivel = Bajo (con una base para construir), no Intermedio.
-    → save_user_memory: nivel_madurez + respuesta_AD (id real de la pregunta).
+    → save_user_memory: nivel_madurez (tema = id de la pregunta) + respuesta_AD
+      (ad_question_id = id de la pregunta), los dos con el id que devolvió
+      lookup_tree_questions.
     → Recién ahora la OdM, priorizada por lo que falta.
 
     ✅ CORRECTO (diagnóstico + hoja de ruta):

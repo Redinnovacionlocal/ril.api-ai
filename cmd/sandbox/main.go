@@ -28,6 +28,7 @@ import (
 	"ril.api-ia/internal/agent/plugin/guardrails_plugin"
 	"ril.api-ia/internal/agent/plugin/model_armor_plugin"
 	"ril.api-ia/internal/agent/plugin/title_plugin"
+	"ril.api-ia/internal/agent/plugin/tool_text_plugin"
 	"ril.api-ia/internal/agent/subagents/educationagent"
 	"ril.api-ia/internal/agent/subagents/girsuagent"
 	"ril.api-ia/internal/agent/subagents/primerainfanciaagent"
@@ -112,6 +113,10 @@ func main() {
 	if err != nil {
 		log.Fatal("Error initializing Model Armor plugin:", err)
 	}
+	toolTextPlugin, err := tool_text_plugin.New("tool_text_plugin")
+	if err != nil {
+		log.Fatal("Error initializing tool_text plugin:", err)
+	}
 	guardrailsPlugin, err := guardrails_plugin.New(ctx, "guardrails_plugin")
 	if err != nil {
 		log.Fatal("Error initializing guardrails plugin:", err)
@@ -124,6 +129,7 @@ func main() {
 				titlePlugin,
 				agentActivePlugin,
 				modelArmorPlugin,
+				toolTextPlugin,
 				guardrailsPlugin,
 			},
 		},
