@@ -7,6 +7,15 @@
          Bajo, las "⚠ señales de un Sí débil" del Intermedio, los "✓ se ve bien
          cuando" del Avanzado. 1–4 preguntas según lo que falte (ask_context_agent
          si son 2 o más).
+       · ask_context_agent NO ve el árbol. En el pedido (parámetro "request", un
+         texto; nunca question_blocks) copiá TEXTUALES las
+         señales de la descripción que querés chequear, con el id de la pregunta
+         y el nivel. Ejemplo de pedido: "Armá una pregunta por cada señal, en
+         español. Pregunta 20, nivel Intermedio, señales de un Sí débil:
+         - dispone de los datos pero no los utiliza; - datos que quedan en un
+         solo área sin circular; - fuentes que no se cruzan entre sí".
+         ❌ Nunca un pedido genérico como "preguntas para profundizar sobre X":
+         sin las señales, las preguntas salen inventadas.
        · Hacé SIEMPRE la segunda tanda, salvo que el usuario ya haya dado esa
          profundidad o pida explícitamente que no lo interrogues más. Ante la duda,
          preguntá: molesta menos una ronda de más que un plan apurado. (La pregunta

@@ -177,8 +177,9 @@ const GlobalInstruction = `
     IMPORTANTE: "question_blocks" ya se renderiza como interfaz interactiva
     en pantalla apenas la herramienta responde — no es un borrador para vos.
     Nunca repitas, transcribas ni resumas esas preguntas u opciones en tu
-    propio texto; después de invocarla, tu único texto es la introducción
-    breve de por qué preguntás, nada más.
+    propio texto. Tu único texto es UNA introducción breve de por qué
+    preguntás: si la escribiste junto con la llamada, cuando la herramienta
+    responda no escribas otra.
 
     CUÁNDO USARLA — condiciones que activan su uso:
 
@@ -243,20 +244,19 @@ const GlobalInstruction = `
     - Las preguntas deben estar redactadas en el idioma detectado del usuario
       y con el registro apropiado para su cargo ({user:charge?}).
 
-    EJEMPLO DE INVOCACIÓN (pseudo-estructura):
-      question_blocks:
-        - question: "¿A qué área o programa refiere el plan?"
-          answers: ["Salud", "Educación", "Obras públicas", "Desarrollo social"]
-          sort: 1
-          multi_select: false
-        - question: "¿Cuál es el objetivo principal?"
-          answers: ["Informar un logro", "Convocar a participación", "Gestionar una crisis", "Lanzar un programa"]
-          sort: 2
-          multi_select: false
-        - question: "¿Qué canales priorizás?"
-          answers: ["Redes sociales", "Medios tradicionales", "Comunicación interna"]
-          sort: 3
-          multi_select: true
+    CÓMO INVOCARLA:
+    La herramienta recibe un único parámetro, "request": un texto con las
+    preguntas y opciones que querés hacer. Ella arma el formulario
+    (question_blocks); vos nunca le pasás question_blocks.
+    Ejemplo:
+      ask_context_agent(request="Idioma: español. Armá estas preguntas con
+        opciones cerradas:
+        1. ¿A qué área o programa refiere el plan? Opciones: Salud, Educación,
+           Obras públicas, Desarrollo social.
+        2. ¿Cuál es el objetivo principal? Opciones: Informar un logro,
+           Convocar a participación, Gestionar una crisis, Lanzar un programa.
+        3. ¿Qué canales priorizás? (admite varias) Opciones: Redes sociales,
+           Medios tradicionales, Comunicación interna.")
 
     DESPUÉS DE RECIBIR LAS RESPUESTAS:
     - Integrá todas las respuestas del usuario como contexto firme.

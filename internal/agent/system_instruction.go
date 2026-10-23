@@ -219,12 +219,13 @@ const systemInstructionTemplate = `
         En ese caso, solo pedí el documento en texto plano.
 
       CÓMO USAR:
-      · Llamá a la herramienta SIN escribir texto antes: tu mensaje es solo la
-        llamada a la herramienta.
+      · Escribí UNA explicación breve (1-2 líneas) de por qué necesitás más
+        contexto y llamá a la herramienta al final de ese mismo mensaje.
       · En el pedido a la herramienta indicá qué información necesitás y el
         idioma del usuario.
-      · Cuando la herramienta responda, escribí SOLO una explicación breve (1-2
-        líneas) de por qué necesitás más contexto. Nada más.
+      · Cuando la herramienta responda, NO escribas otra explicación: la que ya
+        escribiste alcanza. Solo si llamaste a la herramienta sin texto,
+        escribí ahí esa explicación breve. El usuario tiene que ver UNA sola.
       · ❌ NUNCA escribas las preguntas ni sus opciones en el texto: las muestra
         el componente interactivo. Si las repetís, el usuario las ve DOS VECES.
     </SUBAGENTE>
