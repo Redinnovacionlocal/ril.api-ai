@@ -16,7 +16,7 @@ import (
 )
 
 type MemoryRecord struct {
-	RecordType   string         `json:"record_type" jsonschema:"Tipo de registro: respuesta_AD (respuesta a una pregunta que devolvió lookup_tree_questions), nivel_madurez, odm_en_curso o contexto_municipio (datos del municipio y del usuario, incluidas las respuestas a los datos mínimos)."`
+	RecordType   string         `json:"record_type" jsonschema:"Tipo de registro: respuesta_AD (respuesta a una pregunta que devolvió lookup_tree_questions), nivel_madurez, odm_en_curso o contexto_municipio (datos del gobierno local y del usuario, incluidas las respuestas a los datos mínimos)."`
 	AdQuestionId *string        `json:"ad_question_id,omitempty" jsonschema:"Solo para respuesta_AD. El campo id de la pregunta que devolvió lookup_tree_questions en esta conversación (por ejemplo \"43\"). Nunca un tag ni un texto armado por vos. Si la pregunta no salió de lookup_tree_questions, no uses respuesta_AD."`
 	Tema         *string        `json:"tema,omitempty" jsonschema:"Solo para nivel_madurez y odm_en_curso. El id de la pregunta del árbol (el campo id que devuelve lookup_tree_questions) a la que corresponde el nivel o la OdM, por ejemplo \"23\"."`
 	Payload      map[string]any `json:"payload" jsonschema:"Contenido del registro, con la forma que indican las instrucciones para cada record_type."`
@@ -47,7 +47,7 @@ func getDB() (*sqlx.DB, error) {
 func NewSaveMemoryTool() (tool.Tool, error) {
 	return functiontool.New(functiontool.Config{
 		Name:        "save_user_memory",
-		Description: "LLAMADA OBLIGATORIA PREVIA: Si el usuario aporta cualquier dato nuevo sobre su municipio (ej. responde a tus preguntas), DEBÉS llamar a esta herramienta ANTES de escribir una sola palabra en tu respuesta. Guarda en la memoria todo lo que el municipio aporta durante la conversación.",
+		Description: "LLAMADA OBLIGATORIA PREVIA: Si el usuario aporta cualquier dato nuevo sobre su gobierno local (ej. responde a tus preguntas), DEBÉS llamar a esta herramienta ANTES de escribir una sola palabra en tu respuesta. Guarda en la memoria todo lo que el gobierno local aporta durante la conversación.",
 	}, func(ctx tool.Context, input SaveUserMemoryToolInput) (map[string]any, error) {
 		log.Printf("Saving %d memory records for user %s", len(input.Records), ctx.UserID())
 		db, err := getDB()

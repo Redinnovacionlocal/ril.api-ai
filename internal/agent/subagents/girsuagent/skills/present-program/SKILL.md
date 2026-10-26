@@ -15,7 +15,7 @@ El modelo DEBE disparar la mención si se cumple **cualquiera** de las siguiente
 
 **Vía 1 (Por contexto de la conversación):**
 ✅ **Aplica si:**
-- El usuario pide **ejemplos de casos de ciudades**, experiencias comparadas o aprendizajes entre municipios.
+- El usuario pide **ejemplos de casos de ciudades**, experiencias comparadas o aprendizajes entre gobiernos locales.
 - El usuario busca **acompañamiento**, enfoque metodológico o profundización estratégica.
 - El usuario formula preguntas amplias que requieren **marco programático** para responderse de forma integral.
 

@@ -30,7 +30,7 @@ type DomainAgentSpec struct {
 var domainAgentSpecs = []DomainAgentSpec{
 	{"girsu_agent", "Residuos", "gestión de residuos", girsuagent.NewGirsuAgent},
 	{"security_agent", "Seguridad", "seguridad pública", securityagent.NewSecurityAgent},
-	{"professionalization_agent", "Profesionalización", "profesionalización del municipio", professionalizationagent.NewProfessionalizationAgent},
+	{"professionalization_agent", "Profesionalización", "profesionalización del gobierno local", professionalizationagent.NewProfessionalizationAgent},
 	{"education_agent", "Educación", "educación", educationagent.NewEducationAgent},
 	{"primera_infancia_agent", "Primera Infancia", "primera infancia y desarrollo infantil temprano", primerainfanciaagent.NewPrimeraInfanciaAgent},
 }

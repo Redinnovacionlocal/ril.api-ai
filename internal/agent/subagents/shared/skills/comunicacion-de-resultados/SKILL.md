@@ -1,18 +1,18 @@
 ---
 name: comunicacion-de-resultados
-description: 'Arma el balance de gestión de un municipio: compara lo planificado contra lo ejecutado por eje, con los desvíos explicados, y produce el informe interno para gabinete y la versión pública en lenguaje ciudadano. Dispara en un momento de rendición —cierre de año o de período, apertura de sesiones, aniversario de gestión— con intención de mostrar lo hecho (rendir cuentas, avances, impacto, informe de gestión). Sin línea de base registrada, dispara igual pero avisando que solo puede comunicarse actividad ejecutada, no resultado. No dispara cuando lo que se enuncia es falta de datos o de medición (problema de indicadores, no de comunicación). Es el paso posterior a comunicacion-plan-de-gestion.'
+description: 'Arma el balance de gestión de un gobierno local: compara lo planificado contra lo ejecutado por eje, con los desvíos explicados, y produce el informe interno para gabinete y la versión pública en lenguaje ciudadano. Dispara en un momento de rendición —cierre de año o de período, apertura de sesiones, aniversario de gestión— con intención de mostrar lo hecho (rendir cuentas, avances, impacto, informe de gestión). Sin línea de base registrada, dispara igual pero avisando que solo puede comunicarse actividad ejecutada, no resultado. No dispara cuando lo que se enuncia es falta de datos o de medición (problema de indicadores, no de comunicación). Es el paso posterior a comunicacion-plan-de-gestion.'
 ---
 
 # Skill: Comunicación de resultados (balance)
 
 ## Objetivo
 
-El municipio llegó al momento de rendir cuentas —cierre de año, apertura de sesiones, mitad de
+El gobierno local llegó al momento de rendir cuentas —cierre de año, apertura de sesiones, mitad de
 mandato— y necesita mostrar qué se comprometió y qué cumplió. Esta skill arma el balance por eje
 y sus dos salidas: la interna, con decisiones y reprogramación, y la pública, en lenguaje
 ciudadano.
 
-Es una skill **transversal**: sirve para el balance del municipio entero o para el de una sola
+Es una skill **transversal**: sirve para el balance del gobierno local entero o para el de una sola
 línea (lo que se logró en residuos, en seguridad, en educación).
 
 ## Cuándo NO usarla
@@ -83,5 +83,5 @@ La rendición de cuentas es una serie, no un evento.
 
 - `references/guia-balance.md` — la guía larga, paso a paso.
 - `references/ejemplo-villa-esperanza-balance.md` — un balance completo escrito de punta a punta,
-  incluida la versión pública. Es el mismo municipio del ejemplo de `comunicacion-plan-de-gestion`,
+  incluida la versión pública. Es el mismo gobierno local del ejemplo de `comunicacion-plan-de-gestion`,
   un año después.

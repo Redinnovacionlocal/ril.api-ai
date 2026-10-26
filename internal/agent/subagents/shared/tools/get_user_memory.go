@@ -15,7 +15,7 @@ type GetUserMemoryToolArgs struct{}
 func NewGetMemoryTool() (tool.Tool, error) {
 	return functiontool.New(functiontool.Config{
 		Name:        "get_user_memory",
-		Description: "Recupera la memoria acumulada del usuario sobre su municipio. Devuelve datos concretos aportados por el usuario, oportunidades de mejora identificadas y contexto relevante.",
+		Description: "Recupera la memoria acumulada del usuario sobre su gobierno local. Devuelve datos concretos aportados por el usuario, oportunidades de mejora identificadas y contexto relevante.",
 	}, func(ctx tool.Context, _ GetUserMemoryToolArgs) (map[string]any, error) {
 		db, err := getDB()
 		if err != nil {

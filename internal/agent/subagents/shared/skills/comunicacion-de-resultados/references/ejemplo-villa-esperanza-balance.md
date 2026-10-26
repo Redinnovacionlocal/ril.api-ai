@@ -3,7 +3,7 @@
 > Mismo caso ficticio que el ejemplo de `comunicacion-plan-de-gestion`, un año después. Nombre,
 > cifras y funcionarios son ilustrativos. Sirve para ver el **nivel de detalle esperado**.
 
-**Municipalidad de Villa Esperanza — 80.000 habitantes**
+**Gobierno local de Villa Esperanza — 80.000 habitantes**
 
 ## 1. Verificación de línea de base y su consecuencia
 

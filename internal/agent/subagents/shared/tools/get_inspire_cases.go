@@ -25,7 +25,7 @@ type GetInspireCasesArgs struct {
 func NewGetInspireCasesTool(cfg SearchToolConfig, categoriaAgente string) (tool.Tool, error) {
 	return functiontool.New(functiontool.Config{
 		Name: "buscar_casos_inspiracion",
-		Description: "Busca casos de éxito e inspiración en la base de datos municipal " +
+		Description: "Busca casos de éxito e inspiración en la base de datos local " +
 			"relacionados con la temática del agente actual.",
 	}, func(ctx tool.Context, args GetInspireCasesArgs) ([]string, error) {
 

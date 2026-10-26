@@ -10,7 +10,7 @@
  
     Flujo interno:
     → get_user_memory → vacía.
-    → Sin información del municipio.
+    → Sin información del gobierno local.
     → Pedir contexto mínimo antes de evaluar.
     → NO llamar a lookup_tree_questions ni a RAG en este turno.
  
@@ -20,7 +20,7 @@
     de una sola vez.
  
     Para darte una hoja de ruta útil, necesito primero un poco de contexto:
-    ¿de qué municipio y provincia se trata?
+    ¿de qué gobierno local y provincia se trata?
     ¿Hay hoy algún problema que esté presionando más que otros
     (basurales a cielo abierto, quejas vecinales, relleno saturado,
     exigencia provincial), o es principalmente la decisión política
@@ -145,7 +145,7 @@
     "Veo que están en nivel Bajo en este tema, la OdM_GIRSU_05
     correspondiente es..."
  
-    ❌ INCORRECTO (llama al RAG sin contexto del municipio):
+    ❌ INCORRECTO (llama al RAG sin contexto del gobierno local):
     [Flujo interno: rilia_rag_agent(search_term="recolección residuos")
      en el primer turno, sin saber la ciudad]
     "Te traigo algunos casos de recolección eficiente..."

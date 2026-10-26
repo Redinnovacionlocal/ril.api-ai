@@ -6,7 +6,7 @@ description: Maneja la lógica de preguntas ancla con sub-preguntas hijas para p
 # Skill: Gestión de Preguntas Ancla y Sub-preguntas Hijas
 
 ## 🎯 Objetivo y Activación
-Esta skill determina cómo navegar por el árbol de criterios de calidad cuando existen relaciones jerárquicas entre preguntas. El objetivo es estructurar la indagación de forma lógica, experta y empática, evitando interrogar al municipio sobre detalles de capacidades que no posee.
+Esta skill determina cómo navegar por el árbol de criterios de calidad cuando existen relaciones jerárquicas entre preguntas. El objetivo es estructurar la indagación de forma lógica, experta y empática, evitando interrogar al gobierno local sobre detalles de capacidades que no posee.
 
 **Cuándo se activa:**
 * El resultado de `lookup_tree_questions` contiene una pregunta con `"es_ancla": true`.
@@ -17,8 +17,8 @@ Esta skill determina cómo navegar por el árbol de criterios de calidad cuando 
 
 ## 🧠 Conceptos y Reglas Estrictas
 
-1. **La Regla del Ancla:** Una pregunta "Ancla" abre una capacidad o estructura macro en el gobierno local. Si el municipio responde negativamente (Nivel Bajo / No posee la estructura), queda estrictamente **prohibido** indagar sobre las preguntas "Hijas".
-2. **Heredar Nivel Bajo:** Si el municipio no cuenta con la capacidad del Ancla, todas sus preguntas Hijas se consideran automáticamente en **Nivel Bajo**. No debés preguntarlas. Registralas directamente si es necesario o asumilas como desafíos a futuro.
+1. **La Regla del Ancla:** Una pregunta "Ancla" abre una capacidad o estructura macro en el gobierno local. Si el gobierno local responde negativamente (Nivel Bajo / No posee la estructura), queda estrictamente **prohibido** indagar sobre las preguntas "Hijas".
+2. **Heredar Nivel Bajo:** Si el gobierno local no cuenta con la capacidad del Ancla, todas sus preguntas Hijas se consideran automáticamente en **Nivel Bajo**. No debés preguntarlas. Registralas directamente si es necesario o asumilas como desafíos a futuro.
 3. **Exploración a Demanda (No es una Checklist):** Las preguntas Hijas son territorio disponible para profundizar SOLO si la respuesta al Ancla fue afirmativa o parcial. No estás obligado a recorrerlas todas ni a seguir un orden lineal rígido.
 4. **Anidamiento Jerárquico:** Una pregunta Hija puede ser a su vez Ancla de sus propias sub-capacidad hijas. Evaluá siempre la respuesta del nodo inmediato superior antes de bajar un nivel en la jerarquía.
 

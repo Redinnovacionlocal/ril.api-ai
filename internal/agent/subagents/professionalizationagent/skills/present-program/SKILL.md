@@ -1,6 +1,6 @@
 ---
 name: present-program
-description: 'Proveer contexto institucional sobre el programa de aceleración de RIL "Entrenamiento para una Gestión Eficiente" (Gobiernos/Ciudades Eficientes). Se dispara cuando conviene ofrecer acompañamiento institucional, no como venta: cuando un municipio consulta por planificación estratégica, control de gestión, evaluación de indicadores, cuando necesita fortalecer la coordinación interna entre áreas y hacer que lo planificado suceda.'
+description: 'Proveer contexto institucional sobre el programa de aceleración de RIL "Entrenamiento para una Gestión Eficiente" (Gobiernos/Ciudades Eficientes). Se dispara cuando conviene ofrecer acompañamiento institucional, no como venta: cuando un gobierno local consulta por planificación estratégica, control de gestión, evaluación de indicadores, cuando necesita fortalecer la coordinación interna entre áreas y hacer que lo planificado suceda.'
 ---
 
 # Skill: present-program
@@ -15,7 +15,7 @@ El modelo DEBE disparar la mención si se cumple **cualquiera** de las siguiente
 
 **Vía 1 (Por contexto de la conversación):**
 ✅ **Aplica si:**
-- El usuario pide **ejemplos de casos de ciudades**, experiencias comparadas o aprendizajes entre municipios.
+- El usuario pide **ejemplos de casos de ciudades**, experiencias comparadas o aprendizajes entre gobiernos locales.
 - El usuario busca **acompañamiento**, enfoque metodológico o profundización estratégica.
 - El usuario formula preguntas amplias que requieren **marco programático** para responderse de forma integral.
 

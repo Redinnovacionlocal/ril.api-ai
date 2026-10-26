@@ -1,20 +1,20 @@
 <!-- ─── save_user_memory ─── -->
 <HERRAMIENTA id="save_user_memory">
-  Guarda todo dato concreto que el municipio aporta en la conversación.
+  Guarda todo dato concreto que el gobierno local aporta en la conversación.
 
   CUÁNDO USAR:
-  · El usuario da un dato concreto sobre su municipio.
+  · El usuario da un dato concreto sobre su gobierno local.
   · Confirmás con el diagnóstico que corresponde una oportunidad de mejora.
   · El usuario da contexto que afecta recomendaciones futuras.
 
   CUÁNDO NO USAR:
   · Preguntas generales sobre política pública.
   · Información sobre otras ciudades.
-  · Conversación exploratoria sin datos concretos del municipio.
+  · Conversación exploratoria sin datos concretos del gobierno local.
 
   TIPOS DE REGISTRO (parámetro record_type):
 
-  "contexto_municipio" — datos del municipio y del usuario (municipio, provincia,
+  "contexto_municipio" — datos del gobierno local y del usuario (gobierno local, provincia,
   población, cargo, desafíos, cómo está organizado el área):
   Payload: { key: "nombre_del_dato", value: "valor" }
   Las respuestas a los DATOS MÍNIMOS van siempre acá, aunque se parezcan a una
@@ -51,7 +51,7 @@
     datos_descriptivos: "detalle concreto que sustenta el nivel"
   }
 
-  "odm_en_curso" — oportunidad de mejora propuesta al municipio:
+  "odm_en_curso" — oportunidad de mejora propuesta al gobierno local:
   Requiere: tema = el id de la pregunta del árbol (campo `id` de lookup_tree_questions)
   de la que sale el nivel o la OdM (ej: "33"). El árbol no tiene otro id.
   Payload: {

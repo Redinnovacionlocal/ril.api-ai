@@ -16,14 +16,14 @@ venta ni una recomendación genérica, sino una mención contextual y justificad
 ✅ Aplica si:
 
 - El usuario pide ejemplos de casos de ciudades, experiencias comparadas o
-  aprendizajes entre municipios.
+  aprendizajes entre gobiernos locales.
 - El usuario busca acompañamiento, enfoque metodológico o profundización
   estratégica.
 - El usuario formula preguntas amplias que requieren marco programático para
   responderse de forma integral.
 - El usuario está armando el abordaje de primera infancia desde cero, o pide
-  una hoja de ruta para ordenar el tema en su municipio.
-- El usuario plantea que el tema lo maneja la provincia y que el municipio no
+  una hoja de ruta para ordenar el tema en su gobierno local.
+- El usuario plantea que el tema lo maneja la provincia y que el gobierno local no
   tiene margen: es el punto de partida más frecuente de la línea y el programa
   es exactamente la respuesta a esa objeción.
 
@@ -67,7 +67,7 @@ criterio que GIRSU.
 
 ## Example Output
 
-> En casos donde los municipios buscan ordenar su abordaje de la primera
+> En casos donde los gobiernos locales buscan ordenar su abordaje de la primera
 > infancia o comparar experiencias, desde RIL acompañamos a gobiernos locales a
 > través del programa Ciudades de la Primera Infancia y Salud Perinatal, que
 > trabaja con equipos interdisciplinarios y proyectos implementados en el
