@@ -3,6 +3,7 @@ package tools
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	discoveryengine "cloud.google.com/go/discoveryengine/apiv1"
 	discoveryenginepb "cloud.google.com/go/discoveryengine/apiv1/discoveryenginepb"
@@ -39,7 +40,7 @@ func NewGetInspireCasesTool(cfg SearchToolConfig, categoriaAgente string) (tool.
 			cfg.ProjectID, cfg.Location, cfg.DataStoreID,
 		)
 
-		filterExpression := fmt.Sprintf(`caso_categorias_filter: ANY("%s")`, categoriaAgente)
+		filterExpression := categoryFilter(categoriaAgente)
 		log.Printf("[SEARCH INIT] Query: %s | Filter: %s | ServingConfig: %s", args.Query, filterExpression, servingConfig)
 
 		req := &discoveryenginepb.SearchRequest{
@@ -79,4 +80,19 @@ func NewGetInspireCasesTool(cfg SearchToolConfig, categoriaAgente string) (tool.
 		log.Printf("[SEARCH SUCCESS] Total resultados procesados: %d", len(resultados))
 		return resultados, nil
 	})
+}
+
+// categoryFilter builds the search filter from a comma-separated list of
+// categories, e.g. "Desarrollo Humano,Educación,Salud".
+func categoryFilter(categories string) string {
+	var quoted []string
+	for _, c := range strings.Split(categories, ",") {
+		if c = strings.TrimSpace(c); c != "" {
+			quoted = append(quoted, `"`+c+`"`)
+		}
+	}
+	if len(quoted) == 0 {
+		quoted = []string{`""`}
+	}
+	return fmt.Sprintf("caso_categorias_filter: ANY(%s)", strings.Join(quoted, ","))
 }
