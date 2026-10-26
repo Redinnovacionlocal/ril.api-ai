@@ -82,11 +82,12 @@ func NewGetInspireCasesTool(cfg SearchToolConfig, categoriaAgente string) (tool.
 	})
 }
 
-// categoryFilter builds the search filter from a comma-separated list of
-// categories, e.g. "Desarrollo Humano,Educación,Salud".
+// categoryFilter builds the search filter from a list of categories separated
+// by ";", e.g. "Desarrollo Humano;Educación;Salud", like ENABLED_DOMAIN_AGENTS.
+// The deploy action splits env vars on commas, so commas cannot be used there.
 func categoryFilter(categories string) string {
 	var quoted []string
-	for _, c := range strings.Split(categories, ",") {
+	for _, c := range strings.Split(categories, ";") {
 		if c = strings.TrimSpace(c); c != "" {
 			quoted = append(quoted, `"`+c+`"`)
 		}
