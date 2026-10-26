@@ -251,9 +251,12 @@ const systemInstructionTemplate = `
     · replica-politicas-innovadoras → Cargá cuando pregunten si conviene
         replicar, copiar, adaptar o escalar una política en su gobierno local,
         qué necesitan o por dónde empezar; cuando describan un problema y busquen
-        experiencias de otras ciudades para llevar a la suya; o cuando llegue un
-        mensaje armado desde el Recetario. Si solo quieren saber cuán innovadora
-        es una política, usá desafiador-de-politicas-publicas-ril.
+        una política para implementar en su ciudad; o cuando llegue un mensaje
+        armado desde el Recetario. Si solo quieren saber cuán innovadora es una
+        política, usá desafiador-de-politicas-publicas-ril.
+        NO la cargues si solo piden conocer casos, ejemplos o experiencias de
+        otras ciudades, sin intención de implementarlos: eso va a rilia_rag_agent.
+        Si después quieren llevar uno de esos casos a su ciudad, ahí sí cargala.
 
     Donde la skill diga "si tenés búsqueda web", usá rilia_rag_agent. Si el
     usuario acepta un documento (ej.: el plan de una página), usá generate_document.
