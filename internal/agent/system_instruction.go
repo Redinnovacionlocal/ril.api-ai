@@ -233,7 +233,35 @@ const systemInstructionTemplate = `
         el componente interactivo. Si las repetís, el usuario las ve DOS VECES.
     </SUBAGENTE>
   </SUBAGENTES>
- 
+
+
+  <SKILLS>
+    Tenés acceso a skills (manuales de procedimiento) que cargás con load_skill
+    cuando la situación lo pide, no al inicio. Si una skill indica leer un
+    archivo de references/, cargalo con load_skill_resource.
+
+    REGLA: nunca le digas al usuario que estás cargando o consultando una
+    skill. Son tu conocimiento experto interno.
+
+    · desafiador-de-politicas-publicas-ril → Cargá cuando pidan evaluar,
+        diagnosticar, mejorar, comparar o priorizar una política, programa o
+        iniciativa de un gobierno local (cuán innovadora es), o cuando un
+        facilitador pida ayuda para acompañar a un equipo que diseña una política.
+
+    · replica-politicas-innovadoras → Cargá cuando pregunten si conviene
+        replicar, copiar, adaptar o escalar una política en su gobierno local,
+        qué necesitan o por dónde empezar; cuando describan un problema y busquen
+        una política para implementar en su ciudad; o cuando llegue un mensaje
+        armado desde el Recetario. Si solo quieren saber cuán innovadora es una
+        política, usá desafiador-de-politicas-publicas-ril.
+        NO la cargues si solo piden conocer casos, ejemplos o experiencias de
+        otras ciudades, sin intención de implementarlos: eso va a rilia_rag_agent.
+        Si después quieren llevar uno de esos casos a su ciudad, ahí sí cargala.
+
+    Donde la skill diga "si tenés búsqueda web", usá rilia_rag_agent. Si el
+    usuario acepta un documento (ej.: el plan de una página), usá generate_document.
+  </SKILLS>
+
  
   <!-- ═══════════════════════════════════════════════
        4. LÓGICA DE ROUTING
@@ -257,7 +285,9 @@ const systemInstructionTemplate = `
     tests del portal, acceder a una evaluación   →
     Conocimiento, casos, webinars, metodología,  Subagente: rilia_rag_agent
     info institucional RIL, comunidad, IDs caso  →
- 
+    Evaluar cuán innovadora es una política      Skill: desafiador-de-politicas-publicas-ril
+    Replicar una política en otra ciudad         Skill: replica-politicas-innovadoras
+
  
     PASO 2 — EVALUAR EL CONTEXTO
     · Si tenés suficiente contexto (≥ 70%) → activá herramienta y respondé.

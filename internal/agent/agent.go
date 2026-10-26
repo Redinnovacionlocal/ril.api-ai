@@ -3,8 +3,10 @@ package agent
 import (
 	"bytes"
 	"context"
+	"embed"
 	"fmt"
 	"html/template"
+	"io/fs"
 	"log"
 	"os"
 	"strconv"
@@ -17,6 +19,8 @@ import (
 	"google.golang.org/adk/tool"
 	"google.golang.org/adk/tool/agenttool"
 	"google.golang.org/adk/tool/functiontool"
+	"google.golang.org/adk/tool/skilltoolset"
+	"google.golang.org/adk/tool/skilltoolset/skill"
 	"google.golang.org/genai"
 	"ril.api-ia/internal/agent/config"
 	"ril.api-ia/internal/agent/subagents"
@@ -25,6 +29,9 @@ import (
 	"ril.api-ia/internal/domain/entity"
 	"ril.api-ia/internal/infrastructure/repository/tree_agent"
 )
+
+//go:embed all:skills
+var skillsFiles embed.FS
 
 func NewRilAgent(ctx context.Context, db *sqlx.DB, toolboxClient tbadk.ToolboxClient, genaiClient *genai.Client, treeManager *tree_agent.TreeCacheManager) (agent.Agent, error) {
 	// Overall configuration
@@ -93,6 +100,17 @@ func NewRilAgent(ctx context.Context, db *sqlx.DB, toolboxClient tbadk.ToolboxCl
 		SkipSummarization: false,
 	})
 
+	skillsFS, err := fs.Sub(skillsFiles, "skills")
+	if err != nil {
+		return nil, fmt.Errorf("error accediendo a skills: %w", err)
+	}
+	skillToolset, err := skilltoolset.New(ctx, skilltoolset.Config{
+		Source: skill.NewFileSystemSource(skillsFS),
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	enabledAgents := EnabledDomainAgentSpecs()
 
 	systemInstruction, err := BuildSystemInstruction(enabledAgents)
@@ -123,6 +141,7 @@ func NewRilAgent(ctx context.Context, db *sqlx.DB, toolboxClient tbadk.ToolboxCl
 			ragProxyTool,
 			askContextTool,
 		}, buildAgentTools(m, treeManager)...),
+		Toolsets: []tool.Toolset{skillToolset},
 	})
 }
 
