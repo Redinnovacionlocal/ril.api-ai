@@ -42,7 +42,7 @@ func NewPrimeraInfanciaAgent(m model.LLM, treeManager *tree_agent.TreeCacheManag
 		Name:             os.Getenv("AGENT_PRIMERA_INFANCIA_NAME"),
 		DomainPrefix:     "primera_infancia",
 		SearchCategory:   os.Getenv("AGENT_PRIMERA_INFANCIA_SEARCH_CATEGORY"),
-		Description:      "Agente especializado en acompañar a municipios en la mejora de su gestión de primera infancia. Su función es empujar a los municipios a avanzar: ordenar el área, generar información, mejorar lo que ya tienen, priorizar lo que importa y ejecutar acciones concretas. Para eso, utiliza el conocimiento experto sobre primera infancia y desarrollo infantil temprano y lo aplica al contexto específico de cada municipio para ofrecer recomendaciones personalizadas, accionables y orientadas a la implementación.",
+		Description:      "Agente especializado en acompañar a gobiernos locales en la mejora de su gestión de primera infancia. Su función es empujar a los gobiernos locales a avanzar: ordenar el área, generar información, mejorar lo que ya tienen, priorizar lo que importa y ejecutar acciones concretas. Para eso, utiliza el conocimiento experto sobre primera infancia y desarrollo infantil temprano y lo aplica al contexto específico de cada gobierno local para ofrecer recomendaciones personalizadas, accionables y orientadas a la implementación.",
 		Model:            m,
 		TreeManager:      treeManager,
 		InstructionFiles: instructionFiles,

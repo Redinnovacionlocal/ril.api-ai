@@ -1,17 +1,17 @@
 # Ejemplo completo — Plan de comunicación del Plan de Gestión 2026
 
 > Caso ficticio construido para probar la skill. Nombre, cifras y funcionarios son ilustrativos,
-> no corresponden a un municipio real. Sirve para ver el **nivel de detalle esperado** en la
+> no corresponden a un gobierno local real. Sirve para ver el **nivel de detalle esperado** en la
 > salida, no para copiar los contenidos.
 
-**Municipalidad de Villa Esperanza — 80.000 habitantes**
+**Gobierno local de Villa Esperanza — 80.000 habitantes**
 
 ## 1. Diagnóstico del punto de partida
 
 Villa Esperanza cerró su POA 2026 en marzo. El documento se presentó una vez al gabinete, en una
 reunión de dos horas, y no tuvo instancias posteriores.
 
-Punto de partida: **intermedio**. Se comunica solo a la planta política. La plantilla municipal no
+Punto de partida: **intermedio**. Se comunica solo a la planta política. La plantilla local no
 conoce los ejes, el Concejo Deliberante no tiene el documento, y no existe ninguna pieza para la
 ciudadanía.
 
@@ -34,7 +34,7 @@ después, no en simultáneo con el lanzamiento interno.
 
 ## 3. Mensaje central en lenguaje ciudadano
 
-Este año, la Municipalidad de Villa Esperanza se comprometió a tres cosas concretas:
+Este año, el gobierno local de Villa Esperanza se comprometió a tres cosas concretas:
 
 1. Renovar 12 plazas y 8 kilómetros de veredas en los barrios Norte, Sur, Centro y Las Flores,
    antes de fin de año.

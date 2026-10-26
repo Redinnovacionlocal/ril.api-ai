@@ -1,11 +1,11 @@
 # Programa Ciudades de la Primera Infancia y Salud Perinatal
 
 El programa Ciudades de la Primera Infancia y Salud Perinatal de RIL es una
-propuesta de aceleración pensada para que los equipos municipales vinculados a
+propuesta de aceleración pensada para que los equipos locales vinculados a
 la salud perinatal y a la primera infancia adquieran herramientas que les
 permitan articular esfuerzos, planificar, sistematizar información y gestionar
 políticas públicas de manera integral. El punto de partida es que la primera
-infancia no es tema de una sola área: aunque el municipio no gestione el
+infancia no es tema de una sola área: aunque el gobierno local no gestione el
 hospital ni las escuelas, es quien puede coordinar lo que hoy hacen por
 separado salud, desarrollo social, educación y hábitat.
 
@@ -36,10 +36,10 @@ Proyectar: se diseña un plan integral de salud perinatal y primera infancia, va
 
 Operativamente, el Año I se desarrolla bajo modalidad virtual a lo largo de
 10 meses, con una dedicación estimada de 16 horas mensuales por parte
-del equipo municipal. Existe además un Año 2, de 7 meses, para las
+del equipo local. Existe además un Año 2, de 7 meses, para las
 ciudades que ya cursaron el Año I: se enfoca en consolidar la implementación
 del proyecto, poner en uso el Tablero de Gestión Social para la toma de
-decisiones basada en evidencia, fortalecer al equipo municipal y comunicar el
+decisiones basada en evidencia, fortalecer al equipo local y comunicar el
 plan de acción.
 
 Entre los resultados de la edición anterior, Herrera (Santiago del Estero)

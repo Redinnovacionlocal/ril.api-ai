@@ -1,6 +1,6 @@
 # Programa "Entrenamiento para una Gestión Eficiente"
 
-Es la propuesta de aceleración de RIL para acompañar a intendentes/as y sus equipos a profesionalizar la gestión municipal y construir un legado tangible: definir prioridades y desarrollar políticas de alto impacto. A través de herramientas y metodologías innovadoras, el programa acompaña el diseño de un Plan de Gestión medible que deje una huella sólida en el futuro de la ciudad. Trabaja con visión estratégica: instalar capacidades de planificación en la gestión, para una administración más efectiva, transparente y con impacto real.
+Es la propuesta de aceleración de RIL para acompañar a intendentes/as y sus equipos a profesionalizar la gestión local y construir un legado tangible: definir prioridades y desarrollar políticas de alto impacto. A través de herramientas y metodologías innovadoras, el programa acompaña el diseño de un Plan de Gestión medible que deje una huella sólida en el futuro de la ciudad. Trabaja con visión estratégica: instalar capacidades de planificación en la gestión, para una administración más efectiva, transparente y con impacto real.
 
 Qué se trabaja a lo largo del programa:
 - Identificar los principales desafíos de la localidad y plasmar la visión de ciudad en un plan estratégico de gobierno.
@@ -15,7 +15,7 @@ Qué ofrece el programa:
 - IA para la gestión: espacios de entrenamiento en el uso y aprovechamiento de la herramienta para la acción y la planificación.
 - Ciudades faro: buenas prácticas visibilizadas para inspirar el trabajo de las ciudades.
 
-Modalidad: 100% virtual, 10 meses de trabajo, con una dedicación estimada de 16 horas mensuales por el equipo municipal. Incluye un taller presencial en cada ciudad en la etapa inicial.
+Modalidad: 100% virtual, 10 meses de trabajo, con una dedicación estimada de 16 horas mensuales por el equipo local. Incluye un taller presencial en cada ciudad en la etapa inicial.
 
 Camino metodológico (5 etapas): Evaluar/Analizar (taller presencial + balance y diagnóstico situacional de la gestión y del equipo, para alinear) → Planificar (Plan Estratégico de gestión, sólido y orientado a resultados) → Proyectar/Potenciar (Plan Operativo con proyectos, plazos, responsables e indicadores) → Coordinar/Monitorear (ejecución + esquema de seguimiento con el tablero; reportes y evaluación) → Comunicar/Evaluar (medir logros e impacto; comunicar el legado)
 

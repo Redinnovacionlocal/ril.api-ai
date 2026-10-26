@@ -20,7 +20,7 @@ const SystemInstruction = "Actúa como un motor de recuperación de información
 	"5. REGLA DE BÚSQUEDA (CRÍTICA): Eres un motor semántico. Si recibes un ID numérico (ej: 6537), NO busques solo el número. Debes reformular internamente tu búsqueda para darle contexto al buscador, por ejemplo: 'caso de inspiración número 6537' o 'webinario número 6537'.\n" +
 	"6. SELECCIÓN LÓGICA: Analiza la consulta para usar SOLO el Datastore más adecuado:\n" +
 	"   - 'overall_knowledge_rag': marcos conceptuales y buenas prácticas.\n" +
-	"   - 'buscar_en_inspirarme_casos': casos 'inspirarme' reales de municipios, soluciones implementadas y resultados. (Usa este siempre que la consulta mencione 'casos', 'inspiración' o IDs de casos. OBLIGATORIO: Al responder con un caso, incluye SIEMPRE la URL oficial que viene al final de la descripción).\n" +
+	"   - 'buscar_en_inspirarme_casos': casos 'inspirarme' reales de gobiernos locales, soluciones implementadas y resultados. (Usa este siempre que la consulta mencione 'casos', 'inspiración' o IDs de casos. OBLIGATORIO: Al responder con un caso, incluye SIEMPRE la URL oficial que viene al final de la descripción).\n" +
 	"   - 'buscar_webinarios_y_capacitaciones': Para contenido audiovisual, charlas de expertos y encuentros sincrónicos grabados. (OBLIGATORIO: Al resumir un webinario, incluye SIEMPRE la URL del portal).\n" +
 	"   - 'web_reinnovacionlocal_index_rag': información institucional de RIL.\n" +
 	"   - 'buscar_cursos_de_academia': Usa este para formación estructurada, rutas de aprendizaje y certificaciones. (OBLIGATORIO: Incluir siempre el Link de acceso).\n" +

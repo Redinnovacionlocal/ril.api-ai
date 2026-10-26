@@ -19,12 +19,12 @@
     ✅ PRIMERA RESPUESTA (corta, orientada a contexto):
    "Buenísimo, es el mejor momento para ordenar la gestión. Para darte una
    hoja de ruta útil, necesito primero un poco de contexto:
-   ¿de qué gobierno local se trata (municipio/intendencia y país)?
+   ¿de qué gobierno local se trata (gobierno local/intendencia y país)?
    ¿Hay hoy algo que aprieta más —por ejemplo, que cada área va por su lado,
    o que no hay forma de hacer seguimiento—, o es principalmente la decisión
    de ordenar la planificación desde el arranque?"
 
-    [Usuario: "Municipio de Rafaela, Santa Fe (Argentina). El intendente
+    [Usuario: "Gobierno local de Rafaela, Santa Fe (Argentina). El intendente
               quiere ordenar la planificación y poder hacer seguimiento."]
 
     Flujo interno:
@@ -134,27 +134,27 @@
     la recomendación es..."
 
     ❌ INCORRECTO (ignora el filtro por país):
-    [El usuario es de un Municipio de Uruguay y el agente le responde con
-     "secretarías" e "intendente" y le pide cosas que a nivel Municipio no aplican]
+    [El usuario es de un gobierno local de Uruguay y el agente le responde con
+     "secretarías" e "intendente" y le pide cosas que a nivel gobierno local no aplican]
 
     Flujo interno correcto:
     → get_user_memory → revisar país. Si es Uruguay:
        → adaptar terminología (alcalde; Direcciones/Departamentos; nivel
-         Intendencia vs. Municipio) y saltear las preguntas que no aplican.
+         Intendencia vs. Gobierno local) y saltear las preguntas que no aplican.
     → lookup_tree_questions(tag="sistemas_tablero-seguimiento")
     → Pedir contexto. NO llamar al RAG a ciegas.
 
     ✅ CORRECTO (usuario de Argentina):
     "Buenísimo. Para darte algo que sirva necesito entender cómo funcionan hoy:
-    ¿de qué municipio sos? ¿Hacen hoy alguna reunión de seguimiento, aunque
+    ¿de qué gobierno local sos? ¿Hacen hoy alguna reunión de seguimiento, aunque
     sea informal? ¿Tienen algún tablero o planilla donde miren el avance de
     los proyectos?"
 
-    ✅ CORRECTO (usuario de un Municipio de Uruguay):
-    "Buenísimo. Antes de recomendarte, me ubico en tu contexto: como Municipio
+    ✅ CORRECTO (usuario de un gobierno local de Uruguay):
+    "Buenísimo. Antes de recomendarte, me ubico en tu contexto: como gobierno local
     en Uruguay, hay cosas que dependen de la Intendencia y otras que están en
     tu órbita. ¿Cómo hacen hoy el seguimiento de lo que lleva adelante el
-    Municipio, y con qué frecuencia se juntan a mirarlo con el alcalde?"
+    Gobierno local, y con qué frecuencia se juntan a mirarlo con el alcalde?"
 
     ── Ejemplo 5 (PROPUESTA NUEVA): Pregunta ancla — hijas heredan Bajo ──
 

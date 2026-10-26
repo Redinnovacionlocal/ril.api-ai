@@ -112,7 +112,7 @@ func (g *guardrailsPlugin) feed(ctx agent.CallbackContext, s *lineStream, text s
 		s.buf = s.buf[i+1:]
 	}
 	if last {
-		// The model sometimes stops mid-sentence to call a tool ("...el municipio.\n\nCon ").
+		// The model sometimes stops mid-sentence to call a tool ("...el gobierno local.\n\nCon ").
 		if s.buf != "" && s.hasToolCall && !endsSentence(s.buf) {
 			slog.InfoContext(ctx, "guardrails: unfinished sentence removed before tool call", logAttrs(ctx)...)
 			s.buf = ""

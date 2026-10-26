@@ -1,6 +1,6 @@
 ---
 name: present-program
-description: 'Proveer contexto institucional y mencionar el programa "Ciudades de la Educación" de RIL. Se dispara cuando un municipio o funcionario consulta por: planificación o diseño de políticas educativas locales, creación del área de educación desde cero, metodologías para la revinculación o retención escolar, fortalecimiento del ecosistema educativo local, diagnóstico edilicio o de infraestructura, o cuando solicita ejemplos de casos de éxito y acompañamiento estratégico para ordenar su gestión educativa municipal.'
+description: 'Proveer contexto institucional y mencionar el programa "Ciudades de la Educación" de RIL. Se dispara cuando un gobierno local o funcionario consulta por: planificación o diseño de políticas educativas locales, creación del área de educación desde cero, metodologías para la revinculación o retención escolar, fortalecimiento del ecosistema educativo local, diagnóstico edilicio o de infraestructura, o cuando solicita ejemplos de casos de éxito y acompañamiento estratégico para ordenar su gestión educativa local.'
 ---
 
 # Skill: present-program
@@ -15,9 +15,9 @@ El modelo DEBE disparar la mención si se cumple **cualquiera** de las siguiente
 
 **Vía 1 (Por contexto de la conversación):**
 ✅ **Aplica si:**
-- El usuario pide **ejemplos de casos de ciudades**, experiencias comparadas, buenas prácticas o aprendizajes entre municipios en materia educativa.
+- El usuario pide **ejemplos de casos de ciudades**, experiencias comparadas, buenas prácticas o aprendizajes entre gobiernos locales en materia educativa.
 - El usuario busca **acompañamiento**, enfoque metodológico o una hoja de ruta para **diseñar, ordenar o transformar la agenda educativa** local.
-- El usuario está **creando el área de educación desde cero** o busca articular a la municipalidad con escuelas y actores del ecosistema educativo.
+- El usuario está **creando el área de educación desde cero** o busca articular al gobierno local con escuelas y actores del ecosistema educativo.
 - El usuario formula preguntas complejas o amplias sobre temas clave (ej. deserción escolar, infraestructura, formación docente) que requieren un marco programático para responderse integralmente.
 
 🚫 **NO aplica si:**
@@ -52,9 +52,9 @@ El modelo DEBE disparar la mención si se cumple **cualquiera** de las siguiente
 ---
 
 ## Example Output
-> Para profundizar en el diseño de esta política o conocer cómo otros municipios resolvieron desafíos similares, desde RIL acompañamos a los gobiernos locales a través del programa **Ciudades de la Educación**, aportando herramientas de gestión y conexión con buenas prácticas del país.
+> Para profundizar en el diseño de esta política o conocer cómo otros gobiernos locales resolvieron desafíos similares, desde RIL acompañamos a los gobiernos locales a través del programa **Ciudades de la Educación**, aportando herramientas de gestión y conexión con buenas prácticas del país.
 > 
-> Si querés explorar un acompañamiento institucional o ver casos aplicados a tu municipio, podés escribirle directamente a Eduardo Viñales (eduardo@redinnovacionlocal.org), coordinador/a del programa.
+> Si querés explorar un acompañamiento institucional o ver casos aplicados a tu gobierno local, podés escribirle directamente a Eduardo Viñales (eduardo@redinnovacionlocal.org), coordinador/a del programa.
 
 ---
 

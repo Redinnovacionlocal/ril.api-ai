@@ -7,17 +7,17 @@ description: 'Arma el plan de comunicación de un plan de gestión ya formulado 
 
 ## Objetivo
 
-El municipio ya tiene un plan (POA, plan de metas, ejes estratégicos, plan de una línea
+El gobierno local ya tiene un plan (POA, plan de metas, ejes estratégicos, plan de una línea
 concreta como residuos o seguridad) y el problema no es planificar sino **hacerlo circular**.
 Esta skill arma el plan de comunicación de ese plan en cuatro capas de audiencia, con
 mensaje, canal, calendario e indicador de comprensión.
 
 Es una skill **transversal**: no depende de la línea temática. El plan puede ser el POA
-completo del municipio o el plan de gestión de una sola área (GIRSU, seguridad, educación).
+completo del gobierno local o el plan de gestión de una sola área (GIRSU, seguridad, educación).
 
 ## Cuándo NO usarla
 
-- **No hay plan formulado.** Si el municipio todavía no definió ejes, metas y plazos, no hay
+- **No hay plan formulado.** Si el gobierno local todavía no definió ejes, metas y plazos, no hay
   nada que comunicar. Decilo y ayudalo primero a formular el plan; no armes piezas sobre un
   plan inexistente.
 - **Lo que quiere comunicar ya se ejecutó.** Eso es rendición de cuentas → `comunicacion-de-resultados`.
@@ -34,7 +34,7 @@ el plan.
 **Paso 2 — Calibrar contra el punto de partida.**
 Identificá qué tanto circula hoy el plan (no comunica / comunica solo a la planta política /
 comunica a todo el equipo). Ese es el punto de partida y **manda sobre la ambición del
-entregable**: a un municipio que nunca comunicó nada no se le propone una campaña ciudadana,
+entregable**: a un gobierno local que nunca comunicó nada no se le propone una campaña ciudadana,
 se le propone empezar por el gabinete.
 
 **Paso 3 — Extraer lo mínimo indispensable.**
@@ -112,7 +112,7 @@ y no en un envío único.
 - Ninguna audiencia sin acción asociada recibiendo pieza propia.
 - Ningún indicador que mida solo alcance sin medir también comprensión.
 - **Control de credibilidad:** si el material no incluye metas medibles ni fechas, avisale al
-  municipio que va a leerse como propaganda y perder efecto como rendición de cuentas. Si la
+  gobierno local que va a leerse como propaganda y perder efecto como rendición de cuentas. Si la
   pieza no se sostiene sin adjetivos, el problema no es de redacción: no hay dato.
 
 ## Recursos
@@ -120,4 +120,4 @@ y no en un envío único.
 - `references/guia-plan-de-gestion.md` — la guía larga, paso a paso, con los lineamientos por
   formato y el cronograma por fases.
 - `references/ejemplo-villa-esperanza.md` — un entregable completo, escrito de punta a punta para
-  un municipio de 80.000 habitantes. Abrilo cuando necesites ver el nivel de detalle esperado.
+  un gobierno local de 80.000 habitantes. Abrilo cuando necesites ver el nivel de detalle esperado.
