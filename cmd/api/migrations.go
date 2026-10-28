@@ -2,6 +2,8 @@ package main
 
 import (
 	"database/sql"
+	"errors"
+	"io/fs"
 	"log"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -33,6 +35,11 @@ func runMigrations(databaseURL string) {
 	defer m.Close()
 
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		if errors.Is(err, fs.ErrNotExist) {
+			version, _, _ := m.Version()
+			log.Printf("WARNING: la DB está en la versión %d, que no existe en migrations/; se omiten las migraciones", version)
+			return
+		}
 		log.Fatal("Error running migrations:", err)
 	}
 
